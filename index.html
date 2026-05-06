@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tabby's Best Games OAT</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: black;
+      color: red;
+      font-family: "Courier New", monospace;
+    }
+
+    header {
+      padding: 20px;
+      border-bottom: 1px solid red;
+      text-align: center;
+      font-size: 2rem;
+      letter-spacing: 2px;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding: 20px;
+      border-bottom: 1px solid red;
+    }
+
+    a {
+      color: red;
+      text-decoration: none;
+      border: 1px solid red;
+      padding: 10px 15px;
+      transition: 0.2s;
+    }
+
+    a:hover {
+      background-color: red;
+      color: black;
+    }
+
+    main {
+      padding: 40px;
+      text-align: center;
+    }
+
+    .terminal {
+      border: 1px solid red;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+      text-align: left;
+      line-height: 1.5;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      background: red;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 50%, 100% { opacity: 1; }
+      25%, 75% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    Tabby's Best Games OAT
+  </header>
+
+  <nav>
+    <a href="aim.html">AIM TRAINER</a>
+    <a href="#">COMING SOON</a>
+  </nav>
+
+  <main>
+    <div class="terminal">
+      > initializing...<br>
+      > loading games...<br>
+      > access granted<br>
+      > welcome, player<span class="cursor"></span>
+    </div>
+  </main>
+
+</body>
+</html>
