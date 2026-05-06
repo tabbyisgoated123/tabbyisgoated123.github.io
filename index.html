@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIM TRAINER</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #ff1a1a;
+    --red-glow: #ff4444;
+    --red-dark: #cc0000;
+    --bg: #0a0a0a;
+    --text: #e0e0e0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Share Tech Mono', monospace;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    cursor: crosshair;
+    user-select: none;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.012) 2px, rgba(255,255,255,0.012) 4px),
+      repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,26,26,0.04) 40px, rgba(255,26,26,0.04) 41px),
+      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,26,26,0.04) 40px, rgba(255,26,26,0.04) 41px);
+    pointer-events: none;
+    z-index: 100;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.75) 100%);
+    pointer-events: none;
+    z-index: 101;
+  }
+
+  /* HUD */
+  #hud { position: fixed; top: 20px; right: 24px; z-index: 200; text-align: right; }
+  #hud .label { font-size: 10px; letter-spacing: 4px; color: #ff1a1a99; text-transform: uppercase; margin-bottom: 2px; }
+  #score-display {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 72px; line-height: 1; color: var(--text);
+    text-shadow: 0 0 20px rgba(255,26,26,0.5), 0 0 60px rgba(255,26,26,0.2);
+    transition: transform 0.08s ease, color 0.08s ease;
+  }
+  #score-display.pop { transform: scale(1.18); color: var(--red-glow); }
+
+  #timer-bar-wrap { position: fixed; bottom: 0; left: 0; right: 0; height: 4px; background: #1a1a1a; z-index: 200; }
+  #timer-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #ff1a1a, #ff6666); box-shadow: 0 0 8px #ff1a1a; transition: width 1s linear; }
+  #timer-display { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); font-size: 11px; letter-spacing: 3px; color: #ff1a1a88; z-index: 200; }
+  #mode-label { position: fixed; top: 20px; left: 24px; font-size: 10px; letter-spacing: 4px; color: #ff1a1a55; z-index: 200; text-transform: uppercase; }
+
+  #miss-flash { position: fixed; inset: 0; background: rgba(255,0,0,0.07); pointer-events: none; z-index: 150; opacity: 0; transition: opacity 0.1s; }
+
+  #accuracy-wrap { position: fixed; bottom: 24px; right: 24px; text-align: right; z-index: 200; }
+  #accuracy-val { font-size: 18px; color: #ffffff55; letter-spacing: 1px; }
+
+  /* Targets */
+  .target {
+    position: absolute; border-radius: 50%; border: none; cursor: crosshair;
+    background: radial-gradient(circle at 38% 36%, #ff4444, #cc0000 55%, #800000);
+    box-shadow: 0 0 0 3px #ff1a1a22, 0 0 20px #ff1a1a88, 0 0 40px #ff1a1a33, inset 0 2px 8px rgba(255,200,200,0.25);
+    animation: spawn 0.12s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    transform: scale(0);
+  }
+  .target::after {
+    content: ''; position: absolute; top: 20%; left: 22%; width: 28%; height: 18%;
+    border-radius: 50%; background: rgba(255,255,255,0.25); transform: rotate(-30deg);
+  }
+  .target:hover { box-shadow: 0 0 0 3px #ff1a1a55, 0 0 30px #ff1a1aaa, 0 0 60px #ff1a1a55, inset 0 2px 8px rgba(255,200,200,0.3); }
+  .target:active { transform: scale(0.92) !important; }
+  @keyframes spawn { from { transform: scale(0); opacity: 0.5; } to { transform: scale(1); opacity: 1; } }
+  .target.dying { animation: die 0.15s ease-out forwards !important; }
+  @keyframes die { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.6; } 100% { transform: scale(0); opacity: 0; } }
+
+  /* Tracking target */
+  #tracking-target {
+    position: absolute; border-radius: 50%; border: none; cursor: crosshair;
+    background: radial-gradient(circle at 38% 36%, #ff4444, #cc0000 55%, #800000);
+    box-shadow: 0 0 0 4px #ff1a1a33, 0 0 24px #ff1a1a99, 0 0 60px #ff1a1a44, inset 0 2px 8px rgba(255,200,200,0.25);
+    display: none; z-index: 50;
+  }
+  #tracking-target::after {
+    content: ''; position: absolute; top: 20%; left: 22%; width: 28%; height: 18%;
+    border-radius: 50%; background: rgba(255,255,255,0.25); transform: rotate(-30deg);
+  }
+  #tracking-target.active { display: block; }
+
+  /* Trail */
+  .trail {
+    position: absolute; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,60,60,0.28), transparent 70%);
+    pointer-events: none;
+    animation: trail-fade 0.5s ease-out forwards;
+    z-index: 40;
+  }
+  @keyframes trail-fade { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.7); } }
+
+  /* Particles & hit text */
+  .particle { position: absolute; border-radius: 50%; background: var(--red-glow); pointer-events: none; animation: burst 0.4s ease-out forwards; }
+  @keyframes burst { 0% { transform: translate(0,0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
+  .hit-text { position: absolute; font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: #ff4444; pointer-events: none; text-shadow: 0 0 10px #ff1a1a; animation: floatUp 0.5s ease-out forwards; z-index: 190; }
+  @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-40px); opacity: 0; } }
+
+  /* ── SCREENS ── */
+  .screen {
+    position: fixed; inset: 0; z-index: 300;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    background: rgba(0,0,0,0.95); transition: opacity 0.35s ease;
+  }
+  .screen.hidden { opacity: 0; pointer-events: none; }
+  .screen h1 { font-family: 'Bebas Neue', sans-serif; font-size: 88px; color: var(--red); letter-spacing: 10px; text-shadow: 0 0 60px rgba(255,26,26,0.5); line-height: 1; }
+  .screen p { font-size: 11px; letter-spacing: 4px; color: #555; text-transform: uppercase; }
+
+  /* Mode toggle */
+  .mode-select { display: flex; gap: 0; margin: 4px 0; }
+  .mode-btn {
+    font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: 3px;
+    padding: 10px 28px; background: transparent; border: 1px solid #222; color: #444;
+    cursor: pointer; text-transform: uppercase; transition: all 0.18s;
+  }
+  .mode-btn:first-child { border-right: none; }
+  .mode-btn.active { border-color: #ff1a1a66; color: #ff1a1a; background: rgba(255,26,26,0.08); text-shadow: 0 0 8px #ff1a1a55; }
+  .mode-btn:hover:not(.active) { border-color: #333; color: #666; }
+
+  /* Settings panel */
+  .settings-panel {
+    display: flex; flex-direction: column; gap: 18px;
+    border: 1px solid #191919; padding: 22px 30px; min-width: 340px;
+    background: rgba(255,26,26,0.015);
+  }
+  .setting-row { display: flex; flex-direction: column; gap: 8px; }
+  .setting-label {
+    font-size: 9px; letter-spacing: 4px; color: #ff1a1a55; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .setting-label span { color: #ccc; font-size: 13px; letter-spacing: 1px; }
+
+  input[type=range] { -webkit-appearance: none; width: 100%; height: 2px; background: #1e1e1e; outline: none; cursor: pointer; }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+    background: #ff1a1a; box-shadow: 0 0 10px #ff1a1a88; cursor: pointer; transition: transform 0.1s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.35); }
+
+  /* Speed opts */
+  .speed-opts { display: flex; gap: 6px; }
+  .speed-opt {
+    font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: 2px;
+    padding: 7px 14px; background: transparent; border: 1px solid #1e1e1e; color: #3a3a3a;
+    cursor: pointer; transition: all 0.15s; text-transform: uppercase;
+  }
+  .speed-opt.active { border-color: #ff1a1a55; color: #ff1a1a; background: rgba(255,26,26,0.07); }
+  .speed-opt:hover:not(.active) { border-color: #2e2e2e; color: #555; }
+
+  /* Start/action buttons */
+  .action-btn {
+    font-family: 'Share Tech Mono', monospace; font-size: 13px; letter-spacing: 6px;
+    color: #ff1a1a; background: transparent; border: 1px solid #ff1a1a66;
+    padding: 15px 52px; cursor: pointer; text-transform: uppercase;
+    transition: all 0.2s; text-shadow: 0 0 10px #ff1a1a55; margin-top: 4px;
+  }
+  .action-btn:hover { background: rgba(255,26,26,0.12); border-color: #ff1a1a; box-shadow: 0 0 40px rgba(255,26,26,0.22); letter-spacing: 8px; }
+  .action-btn.sm { font-size: 10px; letter-spacing: 4px; padding: 10px 32px; margin-top: -2px; }
+
+  /* End screen */
+  .big-score { font-family: 'Bebas Neue', sans-serif; font-size: 140px; line-height: 1; color: #fff; text-shadow: 0 0 60px rgba(255,26,26,0.4); }
+  .stat-row { font-size: 13px; letter-spacing: 3px; color: #888; display: flex; gap: 40px; }
+  .stat-row span { color: #fff; }
+  .end-mode-tag { font-size: 9px; letter-spacing: 5px; color: #ff1a1a44; text-transform: uppercase; margin-bottom: -4px; }
+
+  #arena { position: fixed; inset: 0; z-index: 10; }
+</style>
+</head>
+<body>
+
+<div id="arena"></div>
+<div id="tracking-target"></div>
+<div id="miss-flash"></div>
+
+<!-- HUD -->
+<div id="mode-label">// aim trainer</div>
+<div id="hud">
+  <div class="label">score</div>
+  <div id="score-display">0</div>
+</div>
+<div id="accuracy-wrap">
+  <div style="font-size:9px;letter-spacing:3px;color:#ff1a1a55;">accuracy</div>
+  <div id="accuracy-val">—</div>
+</div>
+<div id="timer-bar-wrap"><div id="timer-bar"></div></div>
+<div id="timer-display">60s</div>
+
+<!-- ── START SCREEN ── -->
+<div class="screen" id="start-screen">
+  <h1>AIM</h1>
+  <p>// sharpen your reflexes</p>
+
+  <div class="mode-select">
+    <button class="mode-btn active" id="btn-classic">Classic</button>
+    <button class="mode-btn" id="btn-tracking">Tracking</button>
+  </div>
+
+  <div class="settings-panel">
+    <!-- CLASSIC -->
+    <div id="classic-settings">
+      <div class="setting-row">
+        <div class="setting-label">Max targets at once <span id="targets-val">3</span></div>
+        <input type="range" id="targets-slider" min="1" max="8" value="3">
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Target size <span id="size-val">Med</span></div>
+        <input type="range" id="size-slider" min="1" max="3" value="2">
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Duration <span id="dur-val">60s</span></div>
+        <input type="range" id="dur-slider" min="1" max="4" value="2">
+      </div>
+    </div>
+
+    <!-- TRACKING -->
+    <div id="tracking-settings" style="display:none;">
+      <div class="setting-row">
+        <div class="setting-label">Movement speed</div>
+        <div class="speed-opts">
+          <button class="speed-opt" data-speed="slow">Slow</button>
+          <button class="speed-opt active" data-speed="medium">Medium</button>
+          <button class="speed-opt" data-speed="fast">Fast</button>
+          <button class="speed-opt" data-speed="chaos">Chaos</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Target size <span id="track-size-val">Med</span></div>
+        <input type="range" id="track-size-slider" min="1" max="3" value="2">
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Duration <span id="track-dur-val">60s</span></div>
+        <input type="range" id="track-dur-slider" min="1" max="4" value="2">
+      </div>
+    </div>
+  </div>
+
+  <button class="action-btn" id="start-btn">START</button>
+</div>
+
+<!-- ── END SCREEN ── -->
+<div class="screen hidden" id="end-screen">
+  <div class="end-mode-tag" id="end-mode-tag">classic mode</div>
+  <h1>TIME'S UP</h1>
+  <div class="big-score" id="final-score">0</div>
+  <div class="stat-row">
+    <div>hits <span id="final-hits">0</span></div>
+    <div>misses <span id="final-misses">0</span></div>
+    <div>accuracy <span id="final-acc">0%</span></div>
+  </div>
+  <button class="action-btn" id="restart-btn">PLAY AGAIN</button>
+  <button class="action-btn sm" id="menu-btn">MAIN MENU</button>
+</div>
+
+<script>
+  // ── DOM ──
+  const arena        = document.getElementById('arena');
+  const scoreEl      = document.getElementById('score-display');
+  const timerBar     = document.getElementById('timer-bar');
+  const timerDisplay = document.getElementById('timer-display');
+  const missFlash    = document.getElementById('miss-flash');
+  const accVal       = document.getElementById('accuracy-val');
+  const endScreen    = document.getElementById('end-screen');
+  const startScreen  = document.getElementById('start-screen');
+  const modeLbl      = document.getElementById('mode-label');
+  const trackingEl   = document.getElementById('tracking-target');
+
+  // ── Config maps ──
+  const DUR_MAP  = { 1: 30, 2: 60, 3: 90, 4: 120 };
+  const SIZE_MAP = { 1: [18,32], 2: [30,54], 3: [48,76] };
+  const SIZE_LBL = { 1: 'Small', 2: 'Med', 3: 'Large' };
+  const SPEED_CFG = {
+    slow:   { moveInterval: 2200, cssTransition: 1.8 },
+    medium: { moveInterval: 1100, cssTransition: 0.85 },
+    fast:   { moveInterval: 580,  cssTransition: 0.48 },
+    chaos:  { moveInterval: 280,  cssTransition: 0.22 },
+  };
+
+  // ── Settings state ──
+  let currentMode = 'classic';
+  let settings = {
+    classic:  { maxTargets: 3, sizeKey: 2, durKey: 2 },
+    tracking: { speed: 'medium', sizeKey: 2, durKey: 2 },
+  };
+
+  // Classic sliders
+  const targetsSlider = document.getElementById('targets-slider');
+  const sizeSlider    = document.getElementById('size-slider');
+  const durSlider     = document.getElementById('dur-slider');
+  targetsSlider.addEventListener('input', () => { settings.classic.maxTargets = +targetsSlider.value; document.getElementById('targets-val').textContent = targetsSlider.value; });
+  sizeSlider.addEventListener('input',    () => { settings.classic.sizeKey = +sizeSlider.value; document.getElementById('size-val').textContent = SIZE_LBL[sizeSlider.value]; });
+  durSlider.addEventListener('input',     () => { settings.classic.durKey = +durSlider.value; document.getElementById('dur-val').textContent = DUR_MAP[durSlider.value] + 's'; });
+
+  // Tracking sliders
+  const trackSizeSlider = document.getElementById('track-size-slider');
+  const trackDurSlider  = document.getElementById('track-dur-slider');
+  trackSizeSlider.addEventListener('input', () => { settings.tracking.sizeKey = +trackSizeSlider.value; document.getElementById('track-size-val').textContent = SIZE_LBL[trackSizeSlider.value]; });
+  trackDurSlider.addEventListener('input',  () => { settings.tracking.durKey = +trackDurSlider.value; document.getElementById('track-dur-val').textContent = DUR_MAP[trackDurSlider.value] + 's'; });
+
+  // Speed buttons
+  document.querySelectorAll('.speed-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.speed-opt').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      settings.tracking.speed = btn.dataset.speed;
+    });
+  });
+
+  // Mode toggle
+  document.getElementById('btn-classic').addEventListener('click',  () => switchMode('classic'));
+  document.getElementById('btn-tracking').addEventListener('click', () => switchMode('tracking'));
+  function switchMode(m) {
+    currentMode = m;
+    document.getElementById('btn-classic').classList.toggle('active',  m === 'classic');
+    document.getElementById('btn-tracking').classList.toggle('active', m === 'tracking');
+    document.getElementById('classic-settings').style.display  = m === 'classic'  ? '' : 'none';
+    document.getElementById('tracking-settings').style.display = m === 'tracking' ? '' : 'none';
+  }
+
+  // ── Game state ──
+  let score = 0, hits = 0, misses = 0, timeLeft = 0, gameActive = false;
+  let spawnInterval = null, countdownInterval = null, trackMoveInterval = null;
+  let targetTimeouts = new Map();
+  let trailRaf = null;
+  let trackSize = 44;
+  let trackCurX = 0, trackCurY = 0;
+
+  // ── Start ──
+  document.getElementById('start-btn').addEventListener('click',   startGame);
+  document.getElementById('restart-btn').addEventListener('click', startGame);
+  document.getElementById('menu-btn').addEventListener('click', () => {
+    endScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+  });
+
+  function startGame() {
+    // Reset
+    score = 0; hits = 0; misses = 0;
+    const durKey = currentMode === 'classic' ? settings.classic.durKey : settings.tracking.durKey;
+    timeLeft = DUR_MAP[durKey];
+    scoreEl.textContent = '0';
+    accVal.textContent = '—';
+    timerBar.style.transition = 'none';
+    timerBar.style.width = '100%';
+    requestAnimationFrame(() => { timerBar.style.transition = 'width 1s linear'; });
+    timerDisplay.textContent = timeLeft + 's';
+    arena.innerHTML = '';
+    arena.onclick = null;
+    trackingEl.className = '';
+    trackingEl.style.display = 'none';
+    trackingEl.onclick = null;
+    clearInterval(spawnInterval);
+    clearInterval(countdownInterval);
+    clearInterval(trackMoveInterval);
+    cancelAnimationFrame(trailRaf);
+    targetTimeouts.forEach(t => clearTimeout(t));
+    targetTimeouts.clear();
+
+    startScreen.classList.add('hidden');
+    endScreen.classList.add('hidden');
+    gameActive = true;
+
+    if (currentMode === 'classic') {
+      modeLbl.textContent = '// classic mode';
+      startClassic();
+    } else {
+      modeLbl.textContent = '// tracking mode';
+      startTracking();
+    }
+
+    countdownInterval = setInterval(() => {
+      timeLeft--;
+      timerDisplay.textContent = timeLeft + 's';
+      timerBar.style.width = `${(timeLeft / DUR_MAP[durKey]) * 100}%`;
+      if (timeLeft <= 0) endGame();
+    }, 1000);
+  }
+
+  // ── CLASSIC MODE ──
+  function startClassic() {
+    const max = settings.classic.maxTargets;
+    for (let i = 0; i < Math.min(max, 3); i++) spawnTarget();
+    spawnInterval = setInterval(() => {
+      if (!gameActive) return;
+      const alive = arena.querySelectorAll('.target:not(.dying)').length;
+      const need = max - alive;
+      for (let i = 0; i < need; i++) spawnTarget();
+    }, 600);
+
+    arena.onclick = e => {
+      if (!gameActive || e.target !== arena) return;
+      misses++; updateAcc(); flashMiss();
+    };
+  }
+
+  function spawnTarget() {
+    if (!gameActive) return;
+    const [minS, maxS] = SIZE_MAP[settings.classic.sizeKey];
+    const size = Math.floor(Math.random() * (maxS - minS)) + minS;
+    const margin = size + 14;
+    const x = Math.random() * (window.innerWidth  - margin * 2) + margin;
+    const y = Math.random() * (window.innerHeight - margin * 2 - 40) + margin;
+
+    const btn = document.createElement('button');
+    btn.className = 'target';
+    btn.style.cssText = `width:${size}px;height:${size}px;left:${x-size/2}px;top:${y-size/2}px;`;
+    arena.appendChild(btn);
+
+    const lifetime = Math.max(800, 2100 - settings.classic.maxTargets * 120);
+    const to = setTimeout(() => {
+      if (btn.parentNode && !btn.classList.contains('dying')) {
+        btn.classList.add('dying');
+        misses++; updateAcc(); flashMiss();
+        btn.addEventListener('animationend', () => btn.remove(), { once: true });
+        targetTimeouts.delete(btn);
+      }
+    }, lifetime);
+    targetTimeouts.set(btn, to);
+
+    btn.addEventListener('click', e => {
+      if (!gameActive || btn.classList.contains('dying')) return;
+      clearTimeout(targetTimeouts.get(btn));
+      targetTimeouts.delete(btn);
+      score++; hits++;
+      updateScore(); updateAcc();
+      spawnHitEffect(e.clientX, e.clientY);
+      btn.classList.add('dying');
+      btn.style.pointerEvents = 'none';
+      btn.addEventListener('animationend', () => btn.remove(), { once: true });
+    });
+  }
+
+  // ── TRACKING MODE ──
+  function startTracking() {
+    const [minS, maxS] = SIZE_MAP[settings.tracking.sizeKey];
+    trackSize = Math.floor(Math.random() * (maxS - minS)) + minS;
+
+    trackingEl.style.width  = trackSize + 'px';
+    trackingEl.style.height = trackSize + 'px';
+
+    // Place center
+    trackCurX = window.innerWidth  / 2 - trackSize / 2;
+    trackCurY = window.innerHeight / 2 - trackSize / 2;
+    trackingEl.style.left = trackCurX + 'px';
+    trackingEl.style.top  = trackCurY + 'px';
+    trackingEl.style.transition = 'none';
+    trackingEl.style.display = 'block';
+    trackingEl.className = 'active';
+
+    const cfg = SPEED_CFG[settings.tracking.speed];
+    // Apply CSS transition for smooth glide
+    setTimeout(() => {
+      trackingEl.style.transition = `left ${cfg.cssTransition}s cubic-bezier(0.42,0,0.58,1), top ${cfg.cssTransition}s cubic-bezier(0.42,0,0.58,1)`;
+    }, 50);
+
+    // Click to score
+    trackingEl.onclick = e => {
+      if (!gameActive) return;
+      score++; hits++;
+      updateScore(); updateAcc();
+      spawnHitEffect(e.clientX, e.clientY);
+      // quick flash
+      trackingEl.style.boxShadow = '0 0 0 4px #ff1a1a, 0 0 50px #ff4444, 0 0 100px #ff1a1a88';
+      setTimeout(() => { trackingEl.style.boxShadow = ''; }, 130);
+    };
+
+    // Miss on background
+    arena.onclick = e => {
+      if (!gameActive || e.target !== arena) return;
+      misses++; updateAcc(); flashMiss();
+    };
+
+    // Start moving
+    moveTracking();
+    trackMoveInterval = setInterval(moveTracking, cfg.moveInterval * 1000);
+
+    // Trail loop
+    startTrail();
+  }
+
+  function moveTracking() {
+    if (!gameActive) return;
+    const margin = trackSize + 24;
+    const nx = Math.random() * (window.innerWidth  - margin * 2) + margin;
+    const ny = Math.random() * (window.innerHeight - margin * 2 - 40) + margin;
+    trackCurX = nx - trackSize / 2;
+    trackCurY = ny - trackSize / 2;
+    trackingEl.style.left = trackCurX + 'px';
+    trackingEl.style.top  = trackCurY + 'px';
+  }
+
+  function startTrail() {
+    let last = 0;
+    function loop(ts) {
+      if (!gameActive) return;
+      if (ts - last > 75) {
+        last = ts;
+        const t = document.createElement('div');
+        t.className = 'trail';
+        const s = trackSize * 0.85;
+        t.style.cssText = `width:${s}px;height:${s}px;left:${trackCurX + trackSize/2 - s/2}px;top:${trackCurY + trackSize/2 - s/2}px;`;
+        arena.appendChild(t);
+        t.addEventListener('animationend', () => t.remove(), { once: true });
+      }
+      trailRaf = requestAnimationFrame(loop);
+    }
+    trailRaf = requestAnimationFrame(loop);
+  }
+
+  // ── End Game ──
+  function endGame() {
+    gameActive = false;
+    clearInterval(spawnInterval);
+    clearInterval(countdownInterval);
+    clearInterval(trackMoveInterval);
+    cancelAnimationFrame(trailRaf);
+    arena.innerHTML = '';
+    arena.onclick = null;
+    trackingEl.className = '';
+    trackingEl.style.display = 'none';
+    trackingEl.onclick = null;
+    targetTimeouts.forEach(t => clearTimeout(t));
+    targetTimeouts.clear();
+
+    document.getElementById('final-score').textContent  = score;
+    document.getElementById('final-hits').textContent   = hits;
+    document.getElementById('final-misses').textContent = misses;
+    document.getElementById('end-mode-tag').textContent = currentMode + ' mode';
+    const total = hits + misses;
+    document.getElementById('final-acc').textContent = total > 0 ? Math.round(hits/total*100) + '%' : '—';
+    endScreen.classList.remove('hidden');
+  }
+
+  // ── Helpers ──
+  function updateScore() {
+    scoreEl.textContent = score;
+    scoreEl.classList.remove('pop');
+    void scoreEl.offsetWidth;
+    scoreEl.classList.add('pop');
+    setTimeout(() => scoreEl.classList.remove('pop'), 120);
+  }
+
+  function updateAcc() {
+    const total = hits + misses;
+    accVal.textContent = total > 0 ? Math.round(hits/total*100) + '%' : '—';
+  }
+
+  function flashMiss() {
+    missFlash.style.opacity = '1';
+    setTimeout(() => missFlash.style.opacity = '0', 100);
+  }
+
+  function spawnHitEffect(cx, cy) {
+    for (let i = 0; i < 8; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const ps = Math.random() * 6 + 3;
+      const angle = (i / 8) * Math.PI * 2;
+      const dist  = 28 + Math.random() * 32;
+      p.style.cssText = `width:${ps}px;height:${ps}px;left:${cx}px;top:${cy}px;`;
+      p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+      p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+      document.body.appendChild(p);
+      p.addEventListener('animationend', () => p.remove());
+    }
+    const h = document.createElement('div');
+    h.className = 'hit-text';
+    h.textContent = '+1';
+    h.style.cssText = `left:${cx-12}px;top:${cy-20}px;`;
+    document.body.appendChild(h);
+    h.addEventListener('animationend', () => h.remove());
+  }
+</script>
+</body>
+</html>
