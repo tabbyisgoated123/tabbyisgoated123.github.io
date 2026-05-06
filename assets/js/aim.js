@@ -14,8 +14,8 @@ const cpsHud = document.getElementById('cps-hud');
 const cpsDisp = document.getElementById('cps-display');
 
 // ── Config ──
-const DUR_MAP = { 1: 30, 2: 60, 3: 90, 4: 120 };
-const CPS_DUR_MAP = { 1: 10, 2: 15, 3: 30, 4: 60 };
+const DUR_MAP = { 1: 15, 2: 30, 3: 60, 4: 90, 5: 120 };
+const CPS_DUR_MAP = { 1: 5, 2: 10, 3: 15, 4: 30, 5: 60 };
 const SIZE_MAP = { 1: [18, 32], 2: [30, 54], 3: [48, 76] };
 const SIZE_LBL = { 1: 'Small', 2: 'Med', 3: 'Large' };
 // moveInterval = ms between jumps, cssTransition = seconds for CSS glide
@@ -103,6 +103,7 @@ let trailRaf = null;
 let trackSize = 44;
 let trackCurX = 0;
 let trackCurY = 0;
+let cpsSurfaceHandler = null;
 
 // CPS state
 let cpsClicks = 0;
@@ -156,6 +157,10 @@ function startGame() {
   clearInterval(spawnInterval);
   clearInterval(countdownInterval);
   clearInterval(trackMoveInterval);
+  if (cpsSurfaceHandler) {
+    document.removeEventListener('pointerdown', cpsSurfaceHandler, true);
+    cpsSurfaceHandler = null;
+  }
   cancelAnimationFrame(trailRaf);
   targetTimeouts.forEach(t => clearTimeout(t));
   targetTimeouts.clear();
@@ -287,7 +292,7 @@ function startTracking() {
     updateScore();
     updateAcc();
     spawnHitEffect(e.clientX, e.clientY);
-    trackingEl.style.boxShadow = '0 0 0 4px #ff1a1a, 0 0 50px #ff4444, 0 0 100px #ff1a1a88';
+    trackingEl.style.boxShadow = '0 0 0 4px var(--accent), 0 0 50px var(--accent-glow), 0 0 100px rgb(var(--accent-rgb) / 0.55)';
     setTimeout(() => {
       if (trackingEl) trackingEl.style.boxShadow = '';
     }, 140);
@@ -338,12 +343,19 @@ function startTrail() {
 function startCPS() {
   cpsBtn.className = 'active';
 
-  cpsBtn.onclick = e => {
-    if (!gameActive) return;
+  cpsSurfaceHandler = e => {
+    if (!gameActive || currentMode !== 'cps') return;
+    if (e.target && e.target.closest && e.target.closest('.profile-dock')) return;
+    if (e.target && e.target.closest && e.target.closest('.home-btn')) return;
+    if (e.button !== undefined && e.button !== 0) return;
+
     score++;
     cpsClicks++;
     updateScore();
-    spawnHitEffect(e.clientX, e.clientY);
+
+    if (typeof e.clientX === 'number' && typeof e.clientY === 'number') {
+      spawnHitEffect(e.clientX, e.clientY);
+    }
 
     const now = performance.now();
     cpsWindowClicks.push(now);
@@ -355,9 +367,13 @@ function startCPS() {
 
     const ring = document.createElement('div');
     ring.className = 'cps-ring';
+    ring.style.left = `${e.clientX}px`;
+    ring.style.top = `${e.clientY}px`;
     document.body.appendChild(ring);
     ring.addEventListener('animationend', () => ring.remove(), { once: true });
   };
+
+  document.addEventListener('pointerdown', cpsSurfaceHandler, true);
 
   spawnInterval = setInterval(() => {
     if (!gameActive) return;
@@ -377,6 +393,10 @@ function endGame() {
   clearInterval(spawnInterval);
   clearInterval(countdownInterval);
   clearInterval(trackMoveInterval);
+  if (cpsSurfaceHandler) {
+    document.removeEventListener('pointerdown', cpsSurfaceHandler, true);
+    cpsSurfaceHandler = null;
+  }
   cancelAnimationFrame(trailRaf);
 
   arena.innerHTML = '';
@@ -386,7 +406,6 @@ function endGame() {
   trackingEl.onclick = null;
   cpsBtn.className = '';
   cpsBtn.style.display = 'none';
-  cpsBtn.onclick = null;
   cpsHud.style.display = 'none';
 
   targetTimeouts.forEach(t => clearTimeout(t));

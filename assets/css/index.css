@@ -1,9 +1,9 @@
 .home-title {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 80px;
-  color: var(--red);
+  color: var(--accent);
   letter-spacing: 10px;
-  text-shadow: 0 0 40px rgba(255, 26, 26, 0.5);
+  text-shadow: 0 0 40px rgb(var(--accent-rgb) / 0.5);
   line-height: 0.95;
   text-align: center;
 }
@@ -11,14 +11,14 @@
 .home-subtitle {
   font-size: 14px;
   letter-spacing: 6px;
-  color: rgba(255, 26, 26, 0.4);
+  color: rgb(var(--accent-rgb) / 0.4);
   margin-bottom: 40px;
   text-transform: uppercase;
 }
 
 .home-menu {
   display: flex;
-  border: 1px solid rgba(255, 26, 26, 0.33);
+  border: 1px solid rgb(var(--accent-rgb) / 0.33);
   overflow: hidden;
 }
 
@@ -26,7 +26,7 @@
   padding: 12px 30px;
   text-decoration: none;
   color: #555;
-  border-right: 1px solid rgba(255, 26, 26, 0.2);
+  border-right: 1px solid rgb(var(--accent-rgb) / 0.2);
   transition: color 0.18s, background 0.18s;
 }
 
@@ -35,8 +35,8 @@
 }
 
 .home-menu a:hover {
-  color: var(--red);
-  background: rgba(255, 0, 0, 0.1);
+  color: var(--accent);
+  background: rgb(var(--accent-rgb) / 0.1);
 }
 
 .home-note {
@@ -46,4 +46,3 @@
   color: #444;
   text-transform: uppercase;
 }
-

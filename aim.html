@@ -5,9 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tabby's Mouse Trainer</title>
 <link rel="stylesheet" href="assets/css/shared.css">
+<link rel="stylesheet" href="assets/css/profile.css">
 <link rel="stylesheet" href="assets/css/aim.css">
 </head>
 <body>
+
+<a class="home-btn" href="index.html">Home</a>
 
 <div id="arena"></div>
 <div id="tracking-target"></div>
@@ -56,8 +59,8 @@
         <input type="range" id="size-slider" min="1" max="3" value="2">
       </div>
       <div class="setting-row">
-        <div class="setting-label">Duration <span id="dur-val">60s</span></div>
-        <input type="range" id="dur-slider" min="1" max="4" value="2">
+        <div class="setting-label">Duration <span id="dur-val">30s</span></div>
+        <input type="range" id="dur-slider" min="1" max="5" value="2">
       </div>
     </div>
 
@@ -77,19 +80,19 @@
         <input type="range" id="track-size-slider" min="1" max="3" value="2">
       </div>
       <div class="setting-row">
-        <div class="setting-label">Duration <span id="track-dur-val">60s</span></div>
-        <input type="range" id="track-dur-slider" min="1" max="4" value="2">
+        <div class="setting-label">Duration <span id="track-dur-val">30s</span></div>
+        <input type="range" id="track-dur-slider" min="1" max="5" value="2">
       </div>
     </div>
 
     <!-- CPS -->
     <div id="cps-settings" class="is-hidden">
       <div class="setting-row">
-        <div class="setting-label">Duration <span id="cps-dur-val">10s</span></div>
-        <input type="range" id="cps-dur-slider" min="1" max="4" value="1">
+        <div class="setting-label">Duration <span id="cps-dur-val">5s</span></div>
+        <input type="range" id="cps-dur-slider" min="1" max="5" value="1">
       </div>
-      <div style="font-size:9px;letter-spacing:3px;color:#ff1a1a33;margin-top:4px;">
-        Click the target as fast as possible.<br>Your CPS is tracked live.
+      <div class="cps-help">
+        Click anywhere as fast as possible.<br>Your CPS is tracked live.
       </div>
     </div>
   </div>
@@ -116,6 +119,7 @@
   <button class="action-btn sm" id="menu-btn">MAIN MENU</button>
 </div>
 
+<script src="assets/js/profile.js" defer></script>
 <script src="assets/js/aim.js" defer></script>
 </body>
 </html>

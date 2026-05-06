@@ -1,8 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&display=swap');
 
 :root {
-  --red: #ff1a1a;
-  --red-glow: #ff4444;
+  --accent: #ff1a1a;
+  --accent-glow: #ff4444;
+  --accent-rgb: 255 26 26;
+  --red: var(--accent);
+  --red-glow: var(--accent-glow);
   --bg: #0a0a0a;
   --text: #e0e0e0;
 }
@@ -37,8 +40,8 @@ body::before {
   z-index: 100;
   background:
     repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 255, 255, 0.012) 2px, rgba(255, 255, 255, 0.012) 4px),
-    repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255, 26, 26, 0.04) 40px, rgba(255, 26, 26, 0.04) 41px),
-    repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255, 26, 26, 0.04) 40px, rgba(255, 26, 26, 0.04) 41px);
+    repeating-linear-gradient(90deg, transparent, transparent 40px, rgb(var(--accent-rgb) / 0.04) 40px, rgb(var(--accent-rgb) / 0.04) 41px),
+    repeating-linear-gradient(0deg, transparent, transparent 40px, rgb(var(--accent-rgb) / 0.04) 40px, rgb(var(--accent-rgb) / 0.04) 41px);
 }
 
 body::after {
@@ -76,21 +79,21 @@ body::after {
   font-family: 'Share Tech Mono', monospace;
   font-size: 13px;
   letter-spacing: 6px;
-  color: var(--red);
+  color: var(--accent);
   background: transparent;
-  border: 1px solid rgba(255, 26, 26, 0.4);
+  border: 1px solid rgb(var(--accent-rgb) / 0.4);
   padding: 14px 52px;
   cursor: pointer;
   text-transform: uppercase;
   transition: all 0.2s;
-  text-shadow: 0 0 10px rgba(255, 26, 26, 0.35);
+  text-shadow: 0 0 10px rgb(var(--accent-rgb) / 0.35);
   margin-top: 4px;
 }
 
 .action-btn:hover {
-  background: rgba(255, 26, 26, 0.12);
-  border-color: var(--red);
-  box-shadow: 0 0 40px rgba(255, 26, 26, 0.22);
+  background: rgb(var(--accent-rgb) / 0.12);
+  border-color: var(--accent);
+  box-shadow: 0 0 40px rgb(var(--accent-rgb) / 0.22);
   letter-spacing: 8px;
 }
 
@@ -99,6 +102,34 @@ body::after {
   letter-spacing: 4px;
   padding: 9px 30px;
   margin-top: -2px;
+}
+
+.home-btn {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 430;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border: 1px solid rgb(var(--accent-rgb) / 0.28);
+  background: rgba(8, 8, 8, 0.7);
+  color: #fff;
+  text-decoration: none;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / 0.06), 0 0 22px rgb(var(--accent-rgb) / 0.08);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.home-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgb(var(--accent-rgb) / 0.52);
+  background: rgb(var(--accent-rgb) / 0.1);
+  box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / 0.08), 0 0 26px rgb(var(--accent-rgb) / 0.16);
 }
 
 a {
