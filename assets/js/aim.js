@@ -47,7 +47,7 @@ wire('size-slider', 'size-val', v => {
 });
 wire('dur-slider', 'dur-val', v => {
   settings.classic.durKey = v;
-  return DUR_MAP[v] + 's';
+  return DUR_MAP[v] + ' s';
 });
 wire('track-size-slider', 'track-size-val', v => {
   settings.tracking.sizeKey = v;
@@ -55,7 +55,7 @@ wire('track-size-slider', 'track-size-val', v => {
 });
 wire('track-dur-slider', 'track-dur-val', v => {
   settings.tracking.durKey = v;
-  return DUR_MAP[v] + 's';
+  return DUR_MAP[v] + ' s';
 });
 
 document.querySelectorAll('.speed-opt').forEach(btn => {
@@ -117,7 +117,7 @@ function startGame() {
   requestAnimationFrame(() => {
     timerBar.style.transition = 'width 1s linear';
   });
-  timerDisp.textContent = timeLeft + 's';
+  timerDisp.textContent = timeLeft + ' s';
 
   arena.innerHTML = '';
   arena.onclick = null;
@@ -149,7 +149,7 @@ function startGame() {
 
   countdownInterval = setInterval(() => {
     timeLeft--;
-    timerDisp.textContent = timeLeft + 's';
+    timerDisp.textContent = timeLeft + ' s';
     timerBar.style.width = `${(timeLeft / dur) * 100}%`;
     if (timeLeft <= 0) endGame();
   }, 1000);

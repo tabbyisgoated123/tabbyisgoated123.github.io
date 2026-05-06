@@ -2,6 +2,16 @@
   const STORAGE_KEY = 'tabby_profiles_v1';
   const ACTIVE_KEY = 'tabby_profiles_active_v1';
   const DEFAULT_PROFILE_ID = 'default';
+  const PROFILE_COLORS = [
+    { value: '#ff1a1a', label: 'Red' },
+    { value: '#ff7a1a', label: 'Orange' },
+    { value: '#ffd21a', label: 'Gold' },
+    { value: '#4ade80', label: 'Green' },
+    { value: '#38bdf8', label: 'Cyan' },
+    { value: '#a855f7', label: 'Purple' },
+    { value: '#f472b6', label: 'Pink' },
+    { value: '#e5e7eb', label: 'White' },
+  ];
 
   const defaultState = {
     activeId: DEFAULT_PROFILE_ID,
@@ -11,12 +21,6 @@
         name: 'Tabby',
         color: '#ff1a1a',
         gameStats: {},
-        avatar: {
-          type: 'emoji',
-          value: '😺',
-          imageUrl: '',
-          background: '#111111',
-        },
       },
     ],
   };
@@ -26,9 +30,11 @@
   let rootEl = null;
   let panelEl = null;
   let chipEl = null;
-  let previewAvatarEl = null;
+  let chipMarkEl = null;
+  let previewMarkEl = null;
   let previewNameEl = null;
   let previewColorEl = null;
+  let colorSwatchesEl = null;
   let listEl = null;
   let statusEl = null;
   let formEls = {};
@@ -53,19 +59,12 @@
 
   function safeProfile(raw) {
     const profile = raw && typeof raw === 'object' ? raw : {};
-    const avatar = profile.avatar && typeof profile.avatar === 'object' ? profile.avatar : {};
     const gameStats = profile.gameStats && typeof profile.gameStats === 'object' ? profile.gameStats : {};
     return {
       id: String(profile.id || `profile_${Date.now()}`),
       name: String(profile.name || 'New Profile').slice(0, 32),
-      color: normalizeColor(profile.color, '#ff1a1a'),
+      color: pickPaletteColor(profile.color, PROFILE_COLORS[0].value),
       gameStats,
-      avatar: {
-        type: avatar.type === 'image' ? 'image' : 'emoji',
-        value: String(avatar.value || '🙂').slice(0, 4),
-        imageUrl: String(avatar.imageUrl || ''),
-        background: normalizeColor(avatar.background, '#111111'),
-      },
     };
   }
 
@@ -73,6 +72,23 @@
     const input = String(value || '').trim();
     if (/^#[0-9a-fA-F]{3}$/.test(input) || /^#[0-9a-fA-F]{6}$/.test(input)) return input;
     return fallback;
+  }
+
+  function pickPaletteColor(value, fallback = PROFILE_COLORS[0].value) {
+    const normalized = normalizeColor(value, fallback).toLowerCase();
+    const found = PROFILE_COLORS.find(item => item.value.toLowerCase() === normalized);
+    return found ? found.value : fallback;
+  }
+
+  function colorLabel(value) {
+    const found = PROFILE_COLORS.find(item => item.value.toLowerCase() === String(value || '').toLowerCase());
+    return found ? found.label : 'Custom';
+  }
+
+  function renderMark(profile, target) {
+    if (!target) return;
+    target.textContent = String(profile.name || 'T').trim().charAt(0).toUpperCase() || 'T';
+    target.style.background = pickPaletteColor(profile.color, PROFILE_COLORS[0].value);
   }
 
   function loadState() {
@@ -136,7 +152,7 @@
   }
 
   function applyTheme(profile) {
-    const accent = normalizeColor(profile.color, '#ff1a1a');
+    const accent = pickPaletteColor(profile.color, PROFILE_COLORS[0].value);
     const rgb = hexToRgbParts(accent);
     const root = document.documentElement;
     root.style.setProperty('--accent', accent);
@@ -147,37 +163,22 @@
     document.body.dataset.profileId = profile.id;
   }
 
-  function renderAvatar(profile, target) {
-    const avatar = profile.avatar || {};
-    target.innerHTML = '';
-    target.style.background = avatar.background || '#111';
-    if (avatar.type === 'image' && avatar.imageUrl) {
-      const img = document.createElement('img');
-      img.alt = `${profile.name} avatar`;
-      img.src = avatar.imageUrl;
-      target.appendChild(img);
-      return;
-    }
-    target.textContent = avatar.value || '🙂';
-  }
-
   function updateChip(profile) {
-    if (!chipEl || !previewAvatarEl) return;
-    const chipAvatar = chipEl.querySelector('.profile-chip-avatar');
-    if (chipAvatar) renderAvatar(profile, chipAvatar);
-    renderAvatar(profile, previewAvatarEl);
+    if (!chipEl || !chipMarkEl || !previewMarkEl) return;
+    renderMark(profile, chipMarkEl);
+    renderMark(profile, previewMarkEl);
     const nameEl = chipEl.querySelector('.profile-chip-name');
     const metaEl = chipEl.querySelector('.profile-chip-meta');
     if (nameEl) nameEl.textContent = profile.name;
-    if (metaEl) metaEl.textContent = profile.color;
+    if (metaEl) metaEl.textContent = colorLabel(profile.color);
     if (previewNameEl) previewNameEl.textContent = profile.name;
-    if (previewColorEl) previewColorEl.textContent = profile.color;
+    if (previewColorEl) previewColorEl.textContent = `${colorLabel(profile.color)} ${profile.color}`;
     if (formEls.name) formEls.name.value = profile.name;
-    if (formEls.color) formEls.color.value = profile.color;
-    if (formEls.avatarType) formEls.avatarType.value = profile.avatar.type;
-    if (formEls.avatarValue) formEls.avatarValue.value = profile.avatar.value || '🙂';
-    if (formEls.avatarImageUrl) formEls.avatarImageUrl.value = profile.avatar.imageUrl || '';
-    if (formEls.avatarBackground) formEls.avatarBackground.value = profile.avatar.background || '#111111';
+    if (colorSwatchesEl) {
+      colorSwatchesEl.querySelectorAll('.profile-color-swatch').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.color?.toLowerCase() === profile.color.toLowerCase());
+      });
+    }
   }
 
   function activeProfileFromForm() {
@@ -185,13 +186,8 @@
     return safeProfile({
       id: current.id,
       name: formEls.name?.value,
-      color: formEls.color?.value,
-      avatar: {
-        type: formEls.avatarType?.value,
-        value: formEls.avatarValue?.value,
-        imageUrl: formEls.avatarImageUrl?.value,
-        background: formEls.avatarBackground?.value,
-      },
+      color: current.color,
+      gameStats: current.gameStats,
     });
   }
 
@@ -204,7 +200,7 @@
       state.profiles.push(profile);
     }
     state.activeId = profile.id;
-    if (chipEl && previewAvatarEl) {
+    if (chipEl && chipMarkEl && previewMarkEl) {
       updateChip(profile);
     }
     applyTheme(profile);
@@ -227,7 +223,7 @@
 
       const avatar = document.createElement('div');
       avatar.className = 'profile-avatar';
-      renderAvatar(profile, avatar);
+      renderMark(profile, avatar);
 
       const copy = document.createElement('div');
       copy.className = 'profile-item-copy';
@@ -236,7 +232,7 @@
       name.textContent = profile.name;
       const color = document.createElement('div');
       color.className = 'profile-item-color';
-      color.textContent = profile.color;
+      color.textContent = colorLabel(profile.color);
       copy.appendChild(name);
       copy.appendChild(color);
 
@@ -298,7 +294,6 @@
       id: `profile_${Date.now()}`,
       name: `${base.name} Copy`,
       color: base.color,
-      avatar: JSON.parse(JSON.stringify(base.avatar || defaultState.profiles[0].avatar)),
     });
     state.profiles.push(created);
     state.activeId = created.id;
@@ -333,13 +328,13 @@
           <div class="profile-chip-meta"></div>
         </div>
       </button>
-      <div class="profile-panel hidden" id="profile-panel" aria-label="Profile manager">
+      <div class="profile-panel hidden" id="profile-panel" aria-label="Settings menu">
         <div class="profile-panel-head">
           <div class="profile-panel-title">
-            <strong>Profile</strong>
-            <span>cookie-based local identity</span>
+            <strong>Settings</strong>
+            <span>cookie-based local profiles</span>
           </div>
-          <button type="button" class="profile-panel-close" aria-label="Close profile panel">x</button>
+          <button type="button" class="profile-panel-close" aria-label="Close settings panel">x</button>
         </div>
         <div class="profile-panel-body">
           <div class="profile-preview">
@@ -358,30 +353,10 @@
               <label for="profile-name-input">Name</label>
               <input id="profile-name-input" type="text" maxlength="32" />
             </div>
-            <div class="profile-inline">
-              <div class="profile-field">
-                <label for="profile-color-input">Color</label>
-                <input id="profile-color-input" type="color" />
-              </div>
-              <div class="profile-field">
-                <label for="profile-avatar-type">Avatar</label>
-                <select id="profile-avatar-type">
-                  <option value="emoji">Emoji</option>
-                  <option value="image">Image</option>
-                </select>
-              </div>
-            </div>
             <div class="profile-field">
-              <label for="profile-avatar-value">Emoji</label>
-              <input id="profile-avatar-value" type="text" maxlength="4" placeholder="😺" />
-            </div>
-            <div class="profile-field">
-              <label for="profile-avatar-image">Image URL</label>
-              <input id="profile-avatar-image" type="url" placeholder="https://..." />
-            </div>
-            <div class="profile-field">
-              <label for="profile-avatar-bg">Avatar Background</label>
-              <input id="profile-avatar-bg" type="color" />
+              <label>Color</label>
+              <div class="profile-color-grid"></div>
+              <div class="profile-color-note">Choose the accent that drives the site theme.</div>
             </div>
             <div class="profile-actions">
               <button type="button" class="profile-btn primary" data-action="save">Save</button>
@@ -400,18 +375,15 @@
     rootEl = dock;
     chipEl = dock.querySelector('.profile-chip');
     panelEl = dock.querySelector('.profile-panel');
-    previewAvatarEl = dock.querySelector('.profile-preview-avatar');
+    chipMarkEl = dock.querySelector('.profile-chip-avatar');
+    previewMarkEl = dock.querySelector('.profile-preview-avatar');
     previewNameEl = dock.querySelector('.profile-name');
     previewColorEl = dock.querySelector('.profile-color');
+    colorSwatchesEl = dock.querySelector('.profile-color-grid');
     listEl = dock.querySelector('.profile-list-items');
     statusEl = dock.querySelector('.profile-status');
     formEls = {
       name: dock.querySelector('#profile-name-input'),
-      color: dock.querySelector('#profile-color-input'),
-      avatarType: dock.querySelector('#profile-avatar-type'),
-      avatarValue: dock.querySelector('#profile-avatar-value'),
-      avatarImageUrl: dock.querySelector('#profile-avatar-image'),
-      avatarBackground: dock.querySelector('#profile-avatar-bg'),
     };
 
     chipEl.addEventListener('click', () => togglePanel());
@@ -420,15 +392,40 @@
     dock.querySelector('[data-action="new"]').addEventListener('click', createProfile);
     dock.querySelector('[data-action="delete"]').addEventListener('click', deleteActiveProfile);
 
-    for (const input of Object.values(formEls)) {
-      input.addEventListener('input', () => {
+    if (formEls.name) {
+      formEls.name.addEventListener('input', () => {
         applyProfile(activeProfileFromForm(), { rerenderList: true, emitChange: true });
         setStatus('Applied live');
       });
-      input.addEventListener('change', () => {
+      formEls.name.addEventListener('change', () => {
         applyProfile(activeProfileFromForm(), { rerenderList: true, emitChange: true });
         setStatus('Applied live');
       });
+    }
+
+    if (colorSwatchesEl) {
+      colorSwatchesEl.innerHTML = '';
+      for (const item of PROFILE_COLORS) {
+        const swatch = document.createElement('button');
+        swatch.type = 'button';
+        swatch.className = 'profile-color-swatch';
+        swatch.dataset.color = item.value;
+        swatch.innerHTML = `
+          <span class="profile-color-chip" style="background:${item.value}"></span>
+          <span class="profile-color-name">${item.label}</span>
+        `;
+        swatch.addEventListener('click', () => {
+          const current = getActiveProfile();
+          applyProfile(safeProfile({
+            id: current.id,
+            name: current.name,
+            color: item.value,
+            gameStats: current.gameStats,
+          }), { rerenderList: true, emitChange: true });
+          setStatus(`Color set to ${item.label}`);
+        });
+        colorSwatchesEl.appendChild(swatch);
+      }
     }
 
     const current = profile;
@@ -454,7 +451,7 @@
     chipEl.setAttribute('aria-expanded', String(shouldOpen));
     if (shouldOpen) {
       updateChip(getActiveProfile());
-      setStatus('Edit the active profile, or create another one');
+      setStatus('Edit the active settings, or create another one');
     }
   }
 

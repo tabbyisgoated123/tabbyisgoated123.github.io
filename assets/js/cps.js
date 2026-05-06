@@ -21,7 +21,7 @@ let liveInterval = null;
 
 durSlider.addEventListener('input', () => {
   durKey = +durSlider.value;
-  durVal.textContent = DUR_MAP[durKey] + 's';
+  durVal.textContent = DUR_MAP[durKey] + ' s';
 });
 
 document.getElementById('start-btn').addEventListener('click', startGame);
@@ -43,7 +43,7 @@ function startGame() {
   requestAnimationFrame(() => {
     timerBar.style.transition = 'width 1s linear';
   });
-  timerDisp.textContent = timeLeft + 's';
+  timerDisp.textContent = timeLeft + ' s';
 
   clearInterval(countdownInterval);
   clearInterval(liveInterval);
@@ -61,7 +61,7 @@ function startGame() {
 
   countdownInterval = setInterval(() => {
     timeLeft--;
-    timerDisp.textContent = timeLeft + 's';
+    timerDisp.textContent = timeLeft + ' s';
     timerBar.style.width = `${(timeLeft / DUR_MAP[durKey]) * 100}%`;
     if (timeLeft <= 0) endGame();
   }, 1000);
