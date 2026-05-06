@@ -1,132 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tabby's Best Games OAT</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: radial-gradient(circle at center, #0a0a0a 0%, #000 100%);
-      color: #ff2a2a;
-      font-family: "Courier New", monospace;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tabby's Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #ff1a1a;
+    --red-glow: #ff4444;
+    --bg: #0a0a0a;
+    --text: #e0e0e0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    font-family: 'Share Tech Mono', monospace;
+    overflow: hidden; height: 100vh; width: 100vw;
+    cursor: crosshair; user-select: none;
+  }
 
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.01) 2px, rgba(255,255,255,0.01) 4px);
+  }
 
-    h1 {
-      font-size: 4rem;
-      margin: 0;
-      letter-spacing: 8px;
-    }
+  .screen {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.95);
+  }
 
-    h2 {
-      font-size: 1rem;
-      margin: 10px 0 30px;
-      color: #888;
-    }
+  .title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px;
+    color: var(--red);
+    letter-spacing: 10px;
+    text-shadow: 0 0 40px rgba(255,0,0,0.5);
+  }
 
-    .subtitle {
-      font-size: 0.7rem;
-      color: #666;
-      margin-bottom: 30px;
-    }
+  .subtitle {
+    font-size: 14px;
+    letter-spacing: 6px;
+    color: #ff1a1a66;
+    margin-bottom: 40px;
+  }
 
-    .menu {
-      display: flex;
-      border: 1px solid #ff2a2a;
-    }
+  .menu {
+    display: flex;
+    border: 1px solid #ff1a1a55;
+  }
 
-    .menu a {
-      padding: 10px 25px;
-      color: #888;
-      text-decoration: none;
-      border-right: 1px solid #ff2a2a;
-    }
+  .menu a {
+    padding: 12px 30px;
+    text-decoration: none;
+    color: #555;
+    border-right: 1px solid #ff1a1a33;
+  }
 
-    .menu a:last-child {
-      border-right: none;
-    }
+  .menu a:last-child { border-right: none; }
 
-    .menu a.active {
-      color: #ff2a2a;
-      background: rgba(255, 0, 0, 0.1);
-    }
+  .menu a:hover {
+    color: var(--red);
+    background: rgba(255,0,0,0.1);
+  }
 
-    .panel {
-      margin-top: 30px;
-      border: 1px solid #ff2a2a;
-      padding: 25px;
-      width: 300px;
-    }
+  .start-btn {
+    margin-top: 40px;
+    padding: 15px 60px;
+    border: 1px solid var(--red);
+    color: var(--red);
+    text-decoration: none;
+    letter-spacing: 6px;
+    transition: 0.2s;
+  }
 
-    .row {
-      display: flex;
-      justify-content: space-between;
-      margin: 15px 0;
-      font-size: 0.8rem;
-    }
+  .start-btn:hover {
+    background: rgba(255,0,0,0.15);
+    letter-spacing: 8px;
+  }
 
-    .value {
-      color: white;
-    }
-
-    .start {
-      margin-top: 30px;
-      padding: 15px 40px;
-      border: 1px solid #ff2a2a;
-      text-decoration: none;
-      color: #ff2a2a;
-      transition: 0.2s;
-    }
-
-    .start:hover {
-      background: #ff2a2a;
-      color: black;
-    }
-  </style>
+</style>
 </head>
 <body>
 
-  <div class="container">
+<div class="screen">
+  <div class="title">Tabby's Games</div>
+  <div class="subtitle">// choose your challenge</div>
 
-    <h1>Target Lab</h1>
-    <h2>Mouse Precision Suite</h2>
-    <div class="subtitle">// refine your accuracy</div>
-
-    <div class="menu">
-      <a href="aim.html" class="active">Classic</a>
-      <a href="#">Tracking</a>
-      <a href="#">CPS</a>
-    </div>
-
-    <div class="panel">
-      <div class="row">
-        <span>Max Targets</span>
-        <span class="value">3</span>
-      </div>
-      <div class="row">
-        <span>Target Size</span>
-        <span class="value">Medium</span>
-      </div>
-      <div class="row">
-        <span>Duration</span>
-        <span class="value">60s</span>
-      </div>
-    </div>
-
-    <a href="aim.html" class="start">Start</a>
-
+  <div class="menu">
+    <a href="aim.html">Aim Trainer</a>
+    <a href="#">More Soon</a>
   </div>
+
+  <a href="aim.html" class="start-btn">Start</a>
+</div>
 
 </body>
 </html>
