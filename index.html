@@ -8,86 +8,125 @@
     body {
       margin: 0;
       padding: 0;
-      background-color: black;
-      color: red;
+      background: radial-gradient(circle at center, #0a0a0a 0%, #000 100%);
+      color: #ff2a2a;
       font-family: "Courier New", monospace;
-    }
-
-    header {
-      padding: 20px;
-      border-bottom: 1px solid red;
-      text-align: center;
-      font-size: 2rem;
+      text-transform: uppercase;
       letter-spacing: 2px;
     }
 
-    nav {
+    .container {
       display: flex;
+      flex-direction: column;
+      align-items: center;
       justify-content: center;
-      gap: 20px;
-      padding: 20px;
-      border-bottom: 1px solid red;
+      min-height: 100vh;
     }
 
-    a {
-      color: red;
+    h1 {
+      font-size: 4rem;
+      margin: 0;
+      letter-spacing: 8px;
+    }
+
+    h2 {
+      font-size: 1rem;
+      margin: 10px 0 30px;
+      color: #888;
+    }
+
+    .subtitle {
+      font-size: 0.7rem;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .menu {
+      display: flex;
+      border: 1px solid #ff2a2a;
+    }
+
+    .menu a {
+      padding: 10px 25px;
+      color: #888;
       text-decoration: none;
-      border: 1px solid red;
-      padding: 10px 15px;
+      border-right: 1px solid #ff2a2a;
+    }
+
+    .menu a:last-child {
+      border-right: none;
+    }
+
+    .menu a.active {
+      color: #ff2a2a;
+      background: rgba(255, 0, 0, 0.1);
+    }
+
+    .panel {
+      margin-top: 30px;
+      border: 1px solid #ff2a2a;
+      padding: 25px;
+      width: 300px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      margin: 15px 0;
+      font-size: 0.8rem;
+    }
+
+    .value {
+      color: white;
+    }
+
+    .start {
+      margin-top: 30px;
+      padding: 15px 40px;
+      border: 1px solid #ff2a2a;
+      text-decoration: none;
+      color: #ff2a2a;
       transition: 0.2s;
     }
 
-    a:hover {
-      background-color: red;
+    .start:hover {
+      background: #ff2a2a;
       color: black;
-    }
-
-    main {
-      padding: 40px;
-      text-align: center;
-    }
-
-    .terminal {
-      border: 1px solid red;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
-      text-align: left;
-      line-height: 1.5;
-    }
-
-    .cursor {
-      display: inline-block;
-      width: 10px;
-      background: red;
-      animation: blink 1s infinite;
-    }
-
-    @keyframes blink {
-      0%, 50%, 100% { opacity: 1; }
-      25%, 75% { opacity: 0; }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    Tabby's Best Games OAT
-  </header>
+  <div class="container">
 
-  <nav>
-    <a href="aim.html">AIM TRAINER</a>
-    <a href="#">COMING SOON</a>
-  </nav>
+    <h1>Target Lab</h1>
+    <h2>Mouse Precision Suite</h2>
+    <div class="subtitle">// refine your accuracy</div>
 
-  <main>
-    <div class="terminal">
-      > initializing...<br>
-      > loading games...<br>
-      > access granted<br>
-      > welcome, player<span class="cursor"></span>
+    <div class="menu">
+      <a href="aim.html" class="active">Classic</a>
+      <a href="#">Tracking</a>
+      <a href="#">CPS</a>
     </div>
-  </main>
+
+    <div class="panel">
+      <div class="row">
+        <span>Max Targets</span>
+        <span class="value">3</span>
+      </div>
+      <div class="row">
+        <span>Target Size</span>
+        <span class="value">Medium</span>
+      </div>
+      <div class="row">
+        <span>Duration</span>
+        <span class="value">60s</span>
+      </div>
+    </div>
+
+    <a href="aim.html" class="start">Start</a>
+
+  </div>
 
 </body>
 </html>
