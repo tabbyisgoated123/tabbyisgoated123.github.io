@@ -4,95 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tabby's Games</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --red: #ff1a1a;
-    --red-glow: #ff4444;
-    --bg: #0a0a0a;
-    --text: #e0e0e0;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: var(--bg);
-    font-family: 'Share Tech Mono', monospace;
-    overflow: hidden; height: 100vh; width: 100vw;
-    cursor: crosshair; user-select: none;
-  }
-
-  body::before {
-    content: ''; position: fixed; inset: 0; pointer-events: none;
-    background:
-      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.01) 2px, rgba(255,255,255,0.01) 4px);
-  }
-
-  .screen {
-    position: fixed; inset: 0;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: rgba(0,0,0,0.95);
-  }
-
-  .title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 80px;
-    color: var(--red);
-    letter-spacing: 10px;
-    text-shadow: 0 0 40px rgba(255,0,0,0.5);
-  }
-
-  .subtitle {
-    font-size: 14px;
-    letter-spacing: 6px;
-    color: #ff1a1a66;
-    margin-bottom: 40px;
-  }
-
-  .menu {
-    display: flex;
-    border: 1px solid #ff1a1a55;
-  }
-
-  .menu a {
-    padding: 12px 30px;
-    text-decoration: none;
-    color: #555;
-    border-right: 1px solid #ff1a1a33;
-  }
-
-  .menu a:last-child { border-right: none; }
-
-  .menu a:hover {
-    color: var(--red);
-    background: rgba(255,0,0,0.1);
-  }
-
-  .start-btn {
-    margin-top: 40px;
-    padding: 15px 60px;
-    border: 1px solid var(--red);
-    color: var(--red);
-    text-decoration: none;
-    letter-spacing: 6px;
-    transition: 0.2s;
-  }
-
-  .start-btn:hover {
-    background: rgba(255,0,0,0.15);
-    letter-spacing: 8px;
-  }
-
-</style>
+<link rel="stylesheet" href="assets/css/shared.css">
+<link rel="stylesheet" href="assets/css/index.css">
 </head>
 <body>
 
 <div class="screen">
-  <div class="title">Tabby's Games</div>
-  <div class="subtitle">choose your challenge</div>
+  <div class="home-title">Tabby's Games</div>
+  <div class="home-subtitle">choose your challenge</div>
 
-  <div class="menu">
+  <div class="home-menu">
     <a href="aim.html">Aim Trainer</a>
     <a href="#">More Soon</a>
   </div>
+
+  <div class="home-note">built from the same aim.html theme</div>
 </div>
 
 </body>
