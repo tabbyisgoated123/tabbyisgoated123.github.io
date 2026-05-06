@@ -10,6 +10,7 @@
         id: DEFAULT_PROFILE_ID,
         name: 'Tabby',
         color: '#ff1a1a',
+        gameStats: {},
         avatar: {
           type: 'emoji',
           value: '😺',
@@ -53,10 +54,12 @@
   function safeProfile(raw) {
     const profile = raw && typeof raw === 'object' ? raw : {};
     const avatar = profile.avatar && typeof profile.avatar === 'object' ? profile.avatar : {};
+    const gameStats = profile.gameStats && typeof profile.gameStats === 'object' ? profile.gameStats : {};
     return {
       id: String(profile.id || `profile_${Date.now()}`),
       name: String(profile.name || 'New Profile').slice(0, 32),
       color: normalizeColor(profile.color, '#ff1a1a'),
+      gameStats,
       avatar: {
         type: avatar.type === 'image' ? 'image' : 'emoji',
         value: String(avatar.value || '🙂').slice(0, 4),
@@ -111,6 +114,21 @@
     const encoded = encodeURIComponent(JSON.stringify(state));
     writeCookie(STORAGE_KEY, encoded);
     writeCookie(ACTIVE_KEY, encodeURIComponent(state.activeId));
+  }
+
+  function getProfileGameStats(gameId) {
+    const profile = getActiveProfile();
+    const gameStats = profile.gameStats && typeof profile.gameStats === 'object' ? profile.gameStats : {};
+    return gameStats[gameId] && typeof gameStats[gameId] === 'object' ? gameStats[gameId] : {};
+  }
+
+  function setProfileGameStat(gameId, values) {
+    const profile = getActiveProfile();
+    const next = safeProfile(profile);
+    next.gameStats = JSON.parse(JSON.stringify(profile.gameStats || {}));
+    next.gameStats[gameId] = Object.assign({}, next.gameStats[gameId] || {}, values);
+    applyProfile(next, { rerenderList: true, emitChange: true });
+    setStatus(`Updated ${gameId} stats`);
   }
 
   function getActiveProfile() {
@@ -449,11 +467,13 @@
     mount: init,
     getState: () => JSON.parse(JSON.stringify(state)),
     getActiveProfile,
+    getProfileGameStats,
     setActiveProfile,
     saveCurrentProfile,
     createProfile,
     deleteActiveProfile,
     applyTheme,
+    setProfileGameStat,
     togglePanel,
   };
 

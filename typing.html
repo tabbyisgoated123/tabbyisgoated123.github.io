@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TabbyTyping</title>
+<link rel="stylesheet" href="assets/css/shared.css">
+<link rel="stylesheet" href="assets/css/profile.css">
+<link rel="stylesheet" href="assets/css/typing.css">
+</head>
+<body>
+
+<div id="typing-field"></div>
+<div id="miss-flash"></div>
+
+<div id="hud">
+  <div class="label">score</div>
+  <div id="score-display">0</div>
+</div>
+<div id="typing-stats">
+  <div class="typing-stat"><span>lives</span> <strong id="lives-display">3</strong></div>
+  <div class="typing-stat"><span>best</span> <strong id="best-display">0</strong></div>
+  <div class="typing-stat"><span>combo</span> <strong id="combo-display">0</strong></div>
+</div>
+
+<div id="timer-bar-wrap"><div id="timer-bar"></div></div>
+<div id="timer-display">60s</div>
+
+<div class="screen" id="start-screen">
+  <div class="screen-title">
+    Tabby<span class="sub-title">Typing</span>
+  </div>
+  <p>// catch the falling words before they hit bottom</p>
+  <div class="typing-best-banner">profile best <strong id="start-best">0</strong></div>
+
+  <div class="settings-panel typing-panel">
+    <div class="typing-grid">
+      <div class="setting-row">
+        <div class="setting-label">Round length <span id="dur-val">60s</span></div>
+        <input type="range" id="dur-slider" min="1" max="5" value="2">
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Lives <span id="lives-val">3</span></div>
+        <input type="range" id="lives-slider" min="1" max="6" value="3">
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Spawn rate <span id="spawn-val">Medium</span></div>
+        <input type="range" id="spawn-slider" min="1" max="5" value="2">
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Fall speed <span id="speed-val">Medium</span></div>
+        <input type="range" id="speed-slider" min="1" max="5" value="2">
+      </div>
+    </div>
+
+    <div class="typing-custom">
+      <div class="setting-label">Word bank</div>
+      <textarea id="word-bank" rows="7" spellcheck="false" placeholder="one word per line, comma-separated, or add your own phrases"></textarea>
+      <div class="typing-pills">
+        <button class="pill active" data-bank="classic">Classic</button>
+        <button class="pill" data-bank="tech">Tech</button>
+        <button class="pill" data-bank="chaos">Chaos</button>
+        <button class="pill" data-bank="custom">Custom</button>
+      </div>
+    </div>
+
+    <div class="typing-grid compact">
+      <div class="setting-row">
+        <div class="setting-label">Start difficulty <span id="tier-val">1</span></div>
+        <input type="range" id="tier-slider" min="1" max="5" value="1">
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Max words <span id="max-val">4</span></div>
+        <input type="range" id="max-slider" min="1" max="8" value="4">
+      </div>
+    </div>
+
+    <div class="typing-help">
+      Type the word and press <strong>Enter</strong>, or just keep typing until it matches exactly.
+      Mistakes subtract score and miss a life.
+    </div>
+  </div>
+
+  <button class="action-btn" id="start-btn">START</button>
+</div>
+
+<div class="screen hidden" id="end-screen">
+  <div class="end-mode-tag" id="end-mode-tag">typing mode</div>
+  <div class="mode-note">TIME'S UP</div>
+  <div class="big-score" id="final-score">0</div>
+  <div class="stat-row" id="final-stats">
+    <div>typed <span id="final-typed">0</span></div>
+    <div>missed <span id="final-missed">0</span></div>
+    <div>accuracy <span id="final-acc">0%</span></div>
+  </div>
+  <div class="stat-row">
+    <div>best profile score <span id="final-best">0</span></div>
+    <div>high score <span id="final-high">0</span></div>
+  </div>
+  <button class="action-btn" id="restart-btn">PLAY AGAIN</button>
+  <button class="action-btn sm" id="menu-btn">MAIN MENU</button>
+</div>
+
+<script src="assets/js/profile.js" defer></script>
+<script src="assets/js/typing.js" defer></script>
+</body>
+</html>
