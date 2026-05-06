@@ -191,7 +191,7 @@ inputEl.id = 'typing-input';
 inputEl.type = 'text';
 inputEl.autocomplete = 'off';
 inputEl.spellcheck = false;
-inputEl.placeholder = 'type here and press enter';
+inputEl.placeholder = 'type here to submit';
 inputEl.addEventListener('input', () => {
   if (!gameActive) return;
   checkTypedWord(false);
@@ -201,6 +201,9 @@ inputEl.addEventListener('keydown', ev => {
   if (ev.key === 'Enter') {
     ev.preventDefault();
     checkTypedWord(true);
+  } else if (ev.key === 'Backspace' && inputEl.value.length > 0) {
+    ev.preventDefault();
+    inputEl.value = '';
   } else if (ev.key === 'Escape') {
     inputEl.value = '';
   }
@@ -334,7 +337,7 @@ function spawnWord() {
   const el = document.createElement('div');
   el.className = 'typing-word';
   el.dataset.wordId = String(word.id);
-  el.innerHTML = `<span class="typing-word-text">${word.text}</span><span class="typing-word-hint">enter</span>`;
+  el.innerHTML = `<span class="typing-word-text">${word.text}</span>`;
   typingField.appendChild(el);
   word.el = el;
   positionWord(word);
@@ -374,12 +377,14 @@ function checkTypedWord(forceSubmit) {
   const typedText = inputEl.value.trim().toLowerCase();
   if (!typedText) return;
 
-  const word = activeWords.find(item => !item.dead && item.text.toLowerCase() === typedText);
-  if (word) {
-    resolveWord(word, true);
+  const matches = activeWords.filter(item => !item.dead && item.text.toLowerCase() === typedText);
+  if (matches.length) {
+    const comboStart = combo;
     inputEl.value = '';
-    combo++;
-    document.getElementById('combo-display').textContent = String(combo);
+    matches.forEach((word, index) => resolveWord(word, comboStart + index));
+    combo += matches.length;
+    updateLivesAndStats();
+    maybeUpdateHighScore();
     return;
   }
 
@@ -389,18 +394,16 @@ function checkTypedWord(forceSubmit) {
   }
 }
 
-function resolveWord(word, correct) {
+function resolveWord(word, comboSnapshot = combo) {
   if (word.dead) return;
   word.dead = true;
   typed++;
-  score += 10 + Math.floor(combo / 3);
+  const points = 10 + Math.floor(comboSnapshot / 3);
+  score += points;
   updateScore();
-  document.getElementById('typing-stats').querySelector('#lives-display').textContent = String(lives);
-  spawnSuccessEffect(word);
+  spawnSuccessEffect(word, points);
   word.el?.remove();
   activeWords = activeWords.filter(item => item.id !== word.id);
-  updateLivesAndStats();
-  if (correct) maybeUpdateHighScore();
   burstAt(word.x, word.y);
 }
 
@@ -448,10 +451,10 @@ function maybeUpdateHighScore() {
   }
 }
 
-function spawnSuccessEffect(word) {
+function spawnSuccessEffect(word, points) {
   const el = document.createElement('div');
   el.className = 'typing-fly';
-  el.textContent = `+${10 + Math.floor(combo / 3)}`;
+  el.textContent = `+${points}`;
   el.style.left = `${word.x}px`;
   el.style.top = `${word.y}px`;
   document.body.appendChild(el);

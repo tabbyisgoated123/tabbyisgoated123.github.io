@@ -95,16 +95,73 @@
   transition: opacity 0.1s;
 }
 
+.screen-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 64px;
+  color: var(--accent);
+  letter-spacing: 8px;
+  text-shadow: 0 0 60px rgb(var(--accent-rgb) / 0.5);
+  line-height: 1;
+  text-align: center;
+}
+
+.screen-title .sub-title {
+  display: block;
+  font-size: 22px;
+  letter-spacing: 14px;
+  color: rgb(var(--accent-rgb) / 0.55);
+  text-shadow: 0 0 20px rgb(var(--accent-rgb) / 0.3);
+}
+
+.screen p {
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: rgb(var(--accent-rgb) / 0.42);
+  text-transform: uppercase;
+}
+
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid rgb(var(--accent-rgb) / 0.14);
+  padding: 20px 28px;
+  min-width: 340px;
+  background: rgb(var(--accent-rgb) / 0.015);
+}
+
+.setting-row {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.setting-label {
+  font-size: 9px;
+  letter-spacing: 4px;
+  color: rgb(var(--accent-rgb) / 0.5);
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.setting-label span {
+  color: var(--accent);
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
 .typing-best-banner {
   margin-bottom: 6px;
   font-size: 10px;
   letter-spacing: 4px;
-  color: rgb(var(--accent-rgb) / 0.5);
+  color: rgb(var(--accent-rgb) / 0.6);
   text-transform: uppercase;
 }
 
 .typing-best-banner strong {
-  color: #fff;
+  color: var(--accent);
 }
 
 .typing-panel {
@@ -127,23 +184,32 @@
   gap: 10px;
 }
 
+.typing-custom .setting-label {
+  margin-bottom: 2px;
+}
+
 .typing-custom textarea {
   width: 100%;
   min-height: 170px;
   resize: vertical;
-  border: 1px solid #1f1f1f;
-  background: #0d0d0d;
+  border: 1px solid rgb(var(--accent-rgb) / 0.18);
+  background: rgba(6, 6, 6, 0.86);
   color: #fff;
   padding: 10px 11px;
   outline: none;
   font-family: inherit;
   font-size: 12px;
   line-height: 1.5;
+  box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / 0.04);
 }
 
 .typing-custom textarea:focus {
-  border-color: rgb(var(--accent-rgb) / 0.35);
-  box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / 0.08);
+  border-color: rgb(var(--accent-rgb) / 0.5);
+  box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / 0.1), 0 0 22px rgb(var(--accent-rgb) / 0.08);
+}
+
+.typing-custom textarea::placeholder {
+  color: rgb(var(--accent-rgb) / 0.35);
 }
 
 .typing-pills {
@@ -153,9 +219,9 @@
 }
 
 .pill {
-  border: 1px solid #1f1f1f;
+  border: 1px solid rgb(var(--accent-rgb) / 0.16);
   background: transparent;
-  color: #666;
+  color: rgb(var(--accent-rgb) / 0.48);
   padding: 7px 12px;
   text-transform: uppercase;
   letter-spacing: 3px;
@@ -164,7 +230,7 @@
 }
 
 .pill.active {
-  border-color: rgb(var(--accent-rgb) / 0.35);
+  border-color: rgb(var(--accent-rgb) / 0.42);
   color: var(--accent);
   background: rgb(var(--accent-rgb) / 0.08);
 }
@@ -172,7 +238,7 @@
 .typing-help {
   font-size: 9px;
   letter-spacing: 3px;
-  color: rgb(var(--accent-rgb) / 0.35);
+  color: rgb(var(--accent-rgb) / 0.5);
   line-height: 1.6;
 }
 
@@ -203,15 +269,6 @@
 .typing-word .typing-word-text {
   display: block;
   font-size: 34px;
-}
-
-.typing-word .typing-word-hint {
-  display: block;
-  margin-top: 3px;
-  color: rgb(var(--accent-rgb) / 0.5);
-  font-size: 9px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
 }
 
 .typing-input-wrap {
