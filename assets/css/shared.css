@@ -104,34 +104,6 @@ body::after {
   margin-top: -2px;
 }
 
-.home-btn {
-  position: fixed;
-  top: 14px;
-  right: 14px;
-  z-index: 430;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 14px;
-  border: 1px solid rgb(var(--accent-rgb) / 0.28);
-  background: rgba(8, 8, 8, 0.7);
-  color: #fff;
-  text-decoration: none;
-  font-size: 10px;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / 0.06), 0 0 22px rgb(var(--accent-rgb) / 0.08);
-  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
-}
-
-.home-btn:hover {
-  transform: translateY(-1px);
-  border-color: rgb(var(--accent-rgb) / 0.52);
-  background: rgb(var(--accent-rgb) / 0.1);
-  box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / 0.08), 0 0 26px rgb(var(--accent-rgb) / 0.16);
-}
-
 a {
   color: inherit;
 }

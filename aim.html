@@ -3,18 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tabby's Mouse Trainer</title>
+<title>Tabby's Aim Trainer</title>
 <link rel="stylesheet" href="assets/css/shared.css">
 <link rel="stylesheet" href="assets/css/profile.css">
 <link rel="stylesheet" href="assets/css/aim.css">
 </head>
 <body>
 
-<a class="home-btn" href="index.html">Home</a>
-
 <div id="arena"></div>
 <div id="tracking-target"></div>
-<div id="cps-button"></div>
 <div id="miss-flash"></div>
 
 <!-- HUD -->
@@ -22,10 +19,6 @@
 <div id="hud">
   <div class="label">score</div>
   <div id="score-display">0</div>
-</div>
-<div id="cps-hud">
-  <div class="label">clicks / sec</div>
-  <div id="cps-display">0.0</div>
 </div>
 <div id="accuracy-wrap">
   <div class="accuracy-label">accuracy</div>
@@ -37,14 +30,13 @@
 <!-- ── START SCREEN ── -->
 <div class="screen" id="start-screen">
   <div class="screen-title">
-    Tabby's<span class="sub-title">Mouse Trainer</span>
+    Tabby's<span class="sub-title">Aim Trainer</span>
   </div>
   <p>// sharpen your reflexes</p>
 
   <div class="mode-select">
     <button class="mode-btn active" id="btn-classic">Classic</button>
     <button class="mode-btn" id="btn-tracking">Tracking</button>
-    <button class="mode-btn" id="btn-cps">CPS</button>
   </div>
 
   <div class="settings-panel">
@@ -82,17 +74,6 @@
       <div class="setting-row">
         <div class="setting-label">Duration <span id="track-dur-val">30s</span></div>
         <input type="range" id="track-dur-slider" min="1" max="5" value="2">
-      </div>
-    </div>
-
-    <!-- CPS -->
-    <div id="cps-settings" class="is-hidden">
-      <div class="setting-row">
-        <div class="setting-label">Duration <span id="cps-dur-val">5s</span></div>
-        <input type="range" id="cps-dur-slider" min="1" max="5" value="1">
-      </div>
-      <div class="cps-help">
-        Click anywhere as fast as possible.<br>Your CPS is tracked live.
       </div>
     </div>
   </div>

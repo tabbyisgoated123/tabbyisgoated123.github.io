@@ -9,16 +9,11 @@ const endScreen = document.getElementById('end-screen');
 const startScreen = document.getElementById('start-screen');
 const modeLbl = document.getElementById('mode-label');
 const trackingEl = document.getElementById('tracking-target');
-const cpsBtn = document.getElementById('cps-button');
-const cpsHud = document.getElementById('cps-hud');
-const cpsDisp = document.getElementById('cps-display');
 
 // ── Config ──
 const DUR_MAP = { 1: 15, 2: 30, 3: 60, 4: 90, 5: 120 };
-const CPS_DUR_MAP = { 1: 5, 2: 10, 3: 15, 4: 30, 5: 60 };
 const SIZE_MAP = { 1: [18, 32], 2: [30, 54], 3: [48, 76] };
 const SIZE_LBL = { 1: 'Small', 2: 'Med', 3: 'Large' };
-// moveInterval = ms between jumps, cssTransition = seconds for CSS glide
 const SPEED_CFG = {
   slow: { moveInterval: 2000, cssTransition: 1.6 },
   medium: { moveInterval: 1000, cssTransition: 0.8 },
@@ -30,10 +25,8 @@ let currentMode = 'classic';
 let settings = {
   classic: { maxTargets: 3, sizeKey: 2, durKey: 2 },
   tracking: { speed: 'medium', sizeKey: 2, durKey: 2 },
-  cps: { durKey: 1 },
 };
 
-// ── Slider wiring ──
 function wire(sliderId, labelId, mapOrFn) {
   const sl = document.getElementById(sliderId);
   const upd = () => {
@@ -64,10 +57,6 @@ wire('track-dur-slider', 'track-dur-val', v => {
   settings.tracking.durKey = v;
   return DUR_MAP[v] + 's';
 });
-wire('cps-dur-slider', 'cps-dur-val', v => {
-  settings.cps.durKey = v;
-  return CPS_DUR_MAP[v] + 's';
-});
 
 document.querySelectorAll('.speed-opt').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -77,19 +66,18 @@ document.querySelectorAll('.speed-opt').forEach(btn => {
   });
 });
 
-['classic', 'tracking', 'cps'].forEach(m => {
+['classic', 'tracking'].forEach(m => {
   document.getElementById('btn-' + m).addEventListener('click', () => switchMode(m));
 });
 
 function switchMode(m) {
   currentMode = m;
-  ['classic', 'tracking', 'cps'].forEach(n => {
+  ['classic', 'tracking'].forEach(n => {
     document.getElementById('btn-' + n).classList.toggle('active', n === m);
     document.getElementById(n + '-settings').classList.toggle('is-hidden', n !== m);
   });
 }
 
-// ── Game state ──
 let score = 0;
 let hits = 0;
 let misses = 0;
@@ -103,14 +91,7 @@ let trailRaf = null;
 let trackSize = 44;
 let trackCurX = 0;
 let trackCurY = 0;
-let cpsSurfaceHandler = null;
 
-// CPS state
-let cpsClicks = 0;
-let cpsWindowClicks = [];
-let cpsPeak = 0;
-
-// ── Start ──
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('restart-btn').addEventListener('click', startGame);
 document.getElementById('menu-btn').addEventListener('click', () => {
@@ -119,24 +100,17 @@ document.getElementById('menu-btn').addEventListener('click', () => {
 });
 
 function getDuration() {
-  if (currentMode === 'cps') return CPS_DUR_MAP[settings.cps.durKey];
-  if (currentMode === 'tracking') return DUR_MAP[settings.tracking.durKey];
-  return DUR_MAP[settings.classic.durKey];
+  return DUR_MAP[settings[currentMode].durKey];
 }
 
 function startGame() {
   score = 0;
   hits = 0;
   misses = 0;
-  cpsClicks = 0;
-  cpsWindowClicks = [];
-  cpsPeak = 0;
   timeLeft = getDuration();
 
   scoreEl.textContent = '0';
   accVal.textContent = '—';
-  cpsDisp.textContent = '0.0';
-  cpsHud.style.display = 'none';
 
   timerBar.style.transition = 'none';
   timerBar.style.width = '100%';
@@ -150,17 +124,10 @@ function startGame() {
   trackingEl.className = '';
   trackingEl.style.display = 'none';
   trackingEl.onclick = null;
-  cpsBtn.className = '';
-  cpsBtn.style.display = 'none';
-  cpsBtn.onclick = null;
 
   clearInterval(spawnInterval);
   clearInterval(countdownInterval);
   clearInterval(trackMoveInterval);
-  if (cpsSurfaceHandler) {
-    document.removeEventListener('pointerdown', cpsSurfaceHandler, true);
-    cpsSurfaceHandler = null;
-  }
   cancelAnimationFrame(trailRaf);
   targetTimeouts.forEach(t => clearTimeout(t));
   targetTimeouts.clear();
@@ -170,20 +137,14 @@ function startGame() {
   gameActive = true;
 
   const dur = getDuration();
-
   if (currentMode === 'classic') {
     modeLbl.textContent = '// classic mode';
     document.getElementById('accuracy-wrap').style.display = '';
     startClassic();
-  } else if (currentMode === 'tracking') {
+  } else {
     modeLbl.textContent = '// tracking mode';
     document.getElementById('accuracy-wrap').style.display = '';
     startTracking();
-  } else {
-    modeLbl.textContent = '// cps mode';
-    document.getElementById('accuracy-wrap').style.display = 'none';
-    cpsHud.style.display = 'block';
-    startCPS();
   }
 
   countdownInterval = setInterval(() => {
@@ -194,9 +155,6 @@ function startGame() {
   }, 1000);
 }
 
-// ──────────────────────────
-// CLASSIC MODE
-// ──────────────────────────
 function startClassic() {
   const max = settings.classic.maxTargets;
   for (let i = 0; i < Math.min(max, 3); i++) spawnTarget();
@@ -254,9 +212,6 @@ function spawnTarget() {
   });
 }
 
-// ──────────────────────────
-// TRACKING MODE
-// ──────────────────────────
 function startTracking() {
   const [minS, maxS] = SIZE_MAP[settings.tracking.sizeKey];
   trackSize = Math.floor(Math.random() * (maxS - minS)) + minS;
@@ -337,66 +292,11 @@ function startTrail() {
   trailRaf = requestAnimationFrame(loop);
 }
 
-// ──────────────────────────
-// CPS MODE
-// ──────────────────────────
-function startCPS() {
-  cpsBtn.className = 'active';
-
-  cpsSurfaceHandler = e => {
-    if (!gameActive || currentMode !== 'cps') return;
-    if (e.target && e.target.closest && e.target.closest('.profile-dock')) return;
-    if (e.target && e.target.closest && e.target.closest('.home-btn')) return;
-    if (e.button !== undefined && e.button !== 0) return;
-
-    score++;
-    cpsClicks++;
-    updateScore();
-
-    if (typeof e.clientX === 'number' && typeof e.clientY === 'number') {
-      spawnHitEffect(e.clientX, e.clientY);
-    }
-
-    const now = performance.now();
-    cpsWindowClicks.push(now);
-    const cutoff = now - 1000;
-    while (cpsWindowClicks.length && cpsWindowClicks[0] < cutoff) cpsWindowClicks.shift();
-    const liveCPS = cpsWindowClicks.length;
-    if (liveCPS > cpsPeak) cpsPeak = liveCPS;
-    cpsDisp.textContent = liveCPS.toFixed(1);
-
-    const ring = document.createElement('div');
-    ring.className = 'cps-ring';
-    ring.style.left = `${e.clientX}px`;
-    ring.style.top = `${e.clientY}px`;
-    document.body.appendChild(ring);
-    ring.addEventListener('animationend', () => ring.remove(), { once: true });
-  };
-
-  document.addEventListener('pointerdown', cpsSurfaceHandler, true);
-
-  spawnInterval = setInterval(() => {
-    if (!gameActive) return;
-    const now = performance.now();
-    const cutoff = now - 1000;
-    while (cpsWindowClicks.length && cpsWindowClicks[0] < cutoff) cpsWindowClicks.shift();
-    const liveCPS = cpsWindowClicks.length;
-    cpsDisp.textContent = liveCPS.toFixed(1);
-  }, 100);
-}
-
-// ──────────────────────────
-// END GAME
-// ──────────────────────────
 function endGame() {
   gameActive = false;
   clearInterval(spawnInterval);
   clearInterval(countdownInterval);
   clearInterval(trackMoveInterval);
-  if (cpsSurfaceHandler) {
-    document.removeEventListener('pointerdown', cpsSurfaceHandler, true);
-    cpsSurfaceHandler = null;
-  }
   cancelAnimationFrame(trailRaf);
 
   arena.innerHTML = '';
@@ -404,9 +304,6 @@ function endGame() {
   trackingEl.className = '';
   trackingEl.style.display = 'none';
   trackingEl.onclick = null;
-  cpsBtn.className = '';
-  cpsBtn.style.display = 'none';
-  cpsHud.style.display = 'none';
 
   targetTimeouts.forEach(t => clearTimeout(t));
   targetTimeouts.clear();
@@ -414,30 +311,14 @@ function endGame() {
   document.getElementById('end-mode-tag').textContent = currentMode + ' mode';
   document.getElementById('final-score').textContent = score;
 
-  const finalStats = document.getElementById('final-stats');
-  const cpsStats = document.getElementById('cps-stats');
-
-  if (currentMode === 'cps') {
-    finalStats.style.display = 'none';
-    cpsStats.style.display = '';
-    document.getElementById('final-score').textContent = cpsClicks;
-    document.getElementById('final-clicks').textContent = cpsClicks;
-    document.getElementById('final-peak').textContent = cpsPeak.toFixed(1);
-    const dur = CPS_DUR_MAP[settings.cps.durKey];
-    document.getElementById('final-avg').textContent = (cpsClicks / dur).toFixed(1);
-  } else {
-    finalStats.style.display = '';
-    cpsStats.style.display = 'none';
-    document.getElementById('final-hits').textContent = hits;
-    document.getElementById('final-misses').textContent = misses;
-    const total = hits + misses;
-    document.getElementById('final-acc').textContent = total > 0 ? Math.round((hits / total) * 100) + '%' : '—';
-  }
+  document.getElementById('final-hits').textContent = hits;
+  document.getElementById('final-misses').textContent = misses;
+  const total = hits + misses;
+  document.getElementById('final-acc').textContent = total > 0 ? Math.round((hits / total) * 100) + '%' : '—';
 
   endScreen.classList.remove('hidden');
 }
 
-// ── Helpers ──
 function updateScore() {
   scoreEl.textContent = score;
   scoreEl.classList.remove('pop');

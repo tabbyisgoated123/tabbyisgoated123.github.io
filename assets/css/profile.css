@@ -9,6 +9,27 @@
   max-width: min(320px, calc(100vw - 28px));
 }
 
+.profile-home-link {
+  width: fit-content;
+  padding: 7px 10px;
+  border: 1px solid rgb(var(--accent-rgb) / 0.18);
+  background: rgba(8, 8, 8, 0.65);
+  backdrop-filter: blur(10px);
+  color: rgb(var(--accent-rgb) / 0.82);
+  text-decoration: none;
+  font-size: 9px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+.profile-home-link:hover {
+  transform: translateY(-1px);
+  border-color: rgb(var(--accent-rgb) / 0.42);
+  background: rgb(var(--accent-rgb) / 0.08);
+  color: #fff;
+}
+
 .profile-chip {
   display: flex;
   align-items: center;
@@ -345,4 +366,3 @@
 body.has-profile-dock #mode-label {
   top: 84px;
 }
-

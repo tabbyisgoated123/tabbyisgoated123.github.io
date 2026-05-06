@@ -31,6 +31,7 @@
   let listEl = null;
   let statusEl = null;
   let formEls = {};
+  let homeLinkEl = null;
 
   function hexToRgbParts(hex) {
     const normalized = String(hex || '').trim().replace('#', '');
@@ -161,15 +162,50 @@
     if (formEls.avatarBackground) formEls.avatarBackground.value = profile.avatar.background || '#111111';
   }
 
+  function activeProfileFromForm() {
+    const current = getActiveProfile();
+    return safeProfile({
+      id: current.id,
+      name: formEls.name?.value,
+      color: formEls.color?.value,
+      avatar: {
+        type: formEls.avatarType?.value,
+        value: formEls.avatarValue?.value,
+        imageUrl: formEls.avatarImageUrl?.value,
+        background: formEls.avatarBackground?.value,
+      },
+    });
+  }
+
+  function applyProfile(profile, options = {}) {
+    const { rerenderList = true, emitChange = true } = options;
+    const index = state.profiles.findIndex(item => item.id === profile.id);
+    if (index >= 0) {
+      state.profiles[index] = profile;
+    } else {
+      state.profiles.push(profile);
+    }
+    state.activeId = profile.id;
+    if (chipEl && previewAvatarEl) {
+      updateChip(profile);
+    }
+    applyTheme(profile);
+    if (rerenderList) renderList();
+    persistState();
+    if (emitChange) {
+      document.dispatchEvent(new CustomEvent('tabby-profile-change', { detail: { profile } }));
+    }
+  }
+
   function renderList() {
     if (!listEl) return;
     listEl.innerHTML = '';
     for (const profile of state.profiles) {
-    const item = document.createElement('div');
-    item.className = `profile-item${profile.id === state.activeId ? ' active' : ''}`;
-    item.tabIndex = 0;
-    item.setAttribute('role', 'button');
-    item.dataset.id = profile.id;
+      const item = document.createElement('div');
+      item.className = `profile-item${profile.id === state.activeId ? ' active' : ''}`;
+      item.tabIndex = 0;
+      item.setAttribute('role', 'button');
+      item.dataset.id = profile.id;
 
       const avatar = document.createElement('div');
       avatar.className = 'profile-avatar';
@@ -234,26 +270,7 @@
   }
 
   function saveCurrentProfile() {
-    const current = getActiveProfile();
-    const updated = safeProfile({
-      id: current.id,
-      name: formEls.name?.value,
-      color: formEls.color?.value,
-      avatar: {
-        type: formEls.avatarType?.value,
-        value: formEls.avatarValue?.value,
-        imageUrl: formEls.avatarImageUrl?.value,
-        background: formEls.avatarBackground?.value,
-      },
-    });
-    const index = state.profiles.findIndex(profile => profile.id === current.id);
-    if (index >= 0) {
-      state.profiles[index] = updated;
-    } else {
-      state.profiles.push(updated);
-    }
-    state.activeId = updated.id;
-    syncFormToActive();
+    applyProfile(activeProfileFromForm(), { rerenderList: true, emitChange: true });
     setStatus('Profile saved');
   }
 
@@ -386,8 +403,14 @@
     dock.querySelector('[data-action="delete"]').addEventListener('click', deleteActiveProfile);
 
     for (const input of Object.values(formEls)) {
-      input.addEventListener('input', () => setStatus('Unsaved changes'));
-      input.addEventListener('change', () => setStatus('Unsaved changes'));
+      input.addEventListener('input', () => {
+        applyProfile(activeProfileFromForm(), { rerenderList: true, emitChange: true });
+        setStatus('Applied live');
+      });
+      input.addEventListener('change', () => {
+        applyProfile(activeProfileFromForm(), { rerenderList: true, emitChange: true });
+        setStatus('Applied live');
+      });
     }
 
     const current = profile;
@@ -395,6 +418,15 @@
     renderList();
     applyTheme(current);
     persistState();
+
+    const isIndexPage = /(^|\/)index\.html?$/.test(window.location.pathname) || window.location.pathname === '/' || window.location.pathname === '';
+    if (!isIndexPage) {
+      homeLinkEl = document.createElement('a');
+      homeLinkEl.className = 'profile-home-link';
+      homeLinkEl.href = 'index.html';
+      homeLinkEl.textContent = 'Home';
+      dock.insertBefore(homeLinkEl, panelEl);
+    }
   }
 
   function togglePanel(forceOpen) {

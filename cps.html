@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tabby's CPS Trainer</title>
+<link rel="stylesheet" href="assets/css/shared.css">
+<link rel="stylesheet" href="assets/css/profile.css">
+<link rel="stylesheet" href="assets/css/cps.css">
+</head>
+<body>
+
+<div id="cps-field"></div>
+
+<div id="timer-bar-wrap"><div id="timer-bar"></div></div>
+<div id="timer-display">5s</div>
+
+<div id="cps-hud">
+  <div class="label">clicks / sec</div>
+  <div id="cps-display">0.0</div>
+</div>
+
+<div class="screen" id="start-screen">
+  <div class="screen-title">
+    Tabby's<span class="sub-title">CPS Trainer</span>
+  </div>
+  <p>// click anywhere as fast as possible</p>
+
+  <div class="settings-panel cps-panel">
+    <div class="setting-row">
+      <div class="setting-label">Duration <span id="dur-val">5s</span></div>
+      <input type="range" id="dur-slider" min="1" max="5" value="1">
+    </div>
+    <div class="cps-help">Every click counts. The ring appears where you clicked.</div>
+  </div>
+
+  <button class="action-btn" id="start-btn">START</button>
+</div>
+
+<div class="screen hidden" id="end-screen">
+  <div class="end-mode-tag" id="end-mode-tag">cps mode</div>
+  <div class="mode-note">TIME'S UP</div>
+  <div class="big-score" id="final-score">0</div>
+  <div class="stat-row" id="cps-stats">
+    <div>total clicks <span id="final-clicks">0</span></div>
+    <div>peak CPS <span id="final-peak">0.0</span></div>
+    <div>avg CPS <span id="final-avg">0.0</span></div>
+  </div>
+  <button class="action-btn" id="restart-btn">PLAY AGAIN</button>
+  <button class="action-btn sm" id="menu-btn">MAIN MENU</button>
+</div>
+
+<script src="assets/js/profile.js" defer></script>
+<script src="assets/js/cps.js" defer></script>
+</body>
+</html>
