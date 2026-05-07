@@ -6,6 +6,8 @@
   display: block;
   background: linear-gradient(180deg, #7fc9ff 0%, #b8e6ff 28%, #91cf7f 29%, #274024 100%);
   touch-action: none;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 #craft-overlay {
@@ -121,6 +123,31 @@
 #craft-crosshair::after {
   width: 1px;
   height: 10px;
+}
+
+#craft-crosshair[data-style="dot"] {
+  width: 4px;
+  height: 4px;
+  background: rgb(var(--accent-rgb) / 0.85);
+  border: none;
+  border-radius: 50%;
+}
+
+#craft-crosshair[data-style="dot"]::before,
+#craft-crosshair[data-style="dot"]::after {
+  display: none;
+}
+
+#craft-crosshair[data-style="circle"] {
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgb(var(--accent-rgb) / 0.6);
+  background: transparent;
+}
+
+#craft-crosshair[data-style="circle"]::before,
+#craft-crosshair[data-style="circle"]::after {
+  display: none;
 }
 
 #craft-hotbar {

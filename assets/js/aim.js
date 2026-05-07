@@ -5,36 +5,51 @@ const timerBar = document.getElementById('timer-bar');
 const timerDisp = document.getElementById('timer-display');
 const missFlash = document.getElementById('miss-flash');
 const accVal = document.getElementById('accuracy-val');
+const accuracyWrap = document.getElementById('accuracy-wrap');
+const accuracyLabel = accuracyWrap?.querySelector('.accuracy-label');
 const endScreen = document.getElementById('end-screen');
 const startScreen = document.getElementById('start-screen');
 const modeLbl = document.getElementById('mode-label');
-const trackingEl = document.getElementById('tracking-target');
+const trackingLegacy = document.getElementById('tracking-target');
+
+if (trackingLegacy) trackingLegacy.remove();
 
 // ── Config ──
 const DUR_MAP = { 1: 15, 2: 30, 3: 60, 4: 90, 5: 120 };
 const SIZE_MAP = { 1: [18, 32], 2: [30, 54], 3: [48, 76] };
 const SIZE_LBL = { 1: 'Small', 2: 'Med', 3: 'Large' };
-const SPEED_CFG = {
-  slow: { moveInterval: 2000, cssTransition: 1.6 },
-  medium: { moveInterval: 1000, cssTransition: 0.8 },
-  fast: { moveInterval: 500, cssTransition: 0.42 },
-  chaos: { moveInterval: 220, cssTransition: 0.18 },
+// Pixel-per-second baselines so it feels deliberate.
+const SPEED_PRESETS = {
+  crawl:  { speed: 80,  amp: 80 },
+  slow:   { speed: 140, amp: 110 },
+  medium: { speed: 230, amp: 150 },
+  fast:   { speed: 360, amp: 190 },
+  chaos:  { speed: 520, amp: 240 },
 };
 
 let currentMode = 'classic';
 let settings = {
   classic: { maxTargets: 3, sizeKey: 2, durKey: 2 },
-  tracking: { speed: 'medium', sizeKey: 2, durKey: 2 },
+  tracking: {
+    speed: 'slow',
+    multiplier: 1.0,
+    count: 2,
+    pattern: 'linear',
+    sizeKey: 2,
+    durKey: 2,
+  },
 };
 
 function wire(sliderId, labelId, mapOrFn) {
   const sl = document.getElementById(sliderId);
+  if (!sl) return;
   const upd = () => {
     const v = +sl.value;
     const lbl = document.getElementById(labelId);
-    lbl.textContent = typeof mapOrFn === 'function' ? mapOrFn(v) : mapOrFn[v];
+    if (lbl) lbl.textContent = typeof mapOrFn === 'function' ? mapOrFn(v) : mapOrFn[v];
   };
   sl.addEventListener('input', upd);
+  upd();
 }
 
 wire('targets-slider', 'targets-val', v => {
@@ -57,12 +72,28 @@ wire('track-dur-slider', 'track-dur-val', v => {
   settings.tracking.durKey = v;
   return DUR_MAP[v] + ' s';
 });
+wire('track-mult-slider', 'track-mult-val', v => {
+  settings.tracking.multiplier = v / 10;
+  return settings.tracking.multiplier.toFixed(1) + 'x';
+});
+wire('track-count-slider', 'track-count-val', v => {
+  settings.tracking.count = v;
+  return v;
+});
 
 document.querySelectorAll('.speed-opt').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.speed-opt').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     settings.tracking.speed = btn.dataset.speed;
+  });
+});
+
+document.querySelectorAll('.pattern-opt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.pattern-opt').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    settings.tracking.pattern = btn.dataset.pattern;
   });
 });
 
@@ -85,12 +116,17 @@ let timeLeft = 0;
 let gameActive = false;
 let spawnInterval = null;
 let countdownInterval = null;
-let trackMoveInterval = null;
 let targetTimeouts = new Map();
-let trailRaf = null;
-let trackSize = 44;
-let trackCurX = 0;
-let trackCurY = 0;
+
+// Tracking state.
+let trackTargets = [];
+let trackPointer = { x: -9999, y: -9999 };
+let trackElapsed = 0;
+let trackOnTime = 0;
+let trackStreak = 0;
+let trackBestStreak = 0;
+let trackRaf = null;
+let trackLastTs = 0;
 
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('restart-btn').addEventListener('click', startGame);
@@ -121,16 +157,18 @@ function startGame() {
 
   arena.innerHTML = '';
   arena.onclick = null;
-  trackingEl.className = '';
-  trackingEl.style.display = 'none';
-  trackingEl.onclick = null;
 
   clearInterval(spawnInterval);
   clearInterval(countdownInterval);
-  clearInterval(trackMoveInterval);
-  cancelAnimationFrame(trailRaf);
+  cancelAnimationFrame(trackRaf);
   targetTimeouts.forEach(t => clearTimeout(t));
   targetTimeouts.clear();
+  trackTargets.forEach(t => t.el.remove());
+  trackTargets = [];
+  trackElapsed = 0;
+  trackOnTime = 0;
+  trackStreak = 0;
+  trackBestStreak = 0;
 
   startScreen.classList.add('hidden');
   endScreen.classList.add('hidden');
@@ -139,11 +177,13 @@ function startGame() {
   const dur = getDuration();
   if (currentMode === 'classic') {
     modeLbl.textContent = '// classic mode';
-    document.getElementById('accuracy-wrap').style.display = '';
+    accuracyWrap.style.display = '';
+    if (accuracyLabel) accuracyLabel.textContent = 'accuracy';
     startClassic();
   } else {
-    modeLbl.textContent = '// tracking mode';
-    document.getElementById('accuracy-wrap').style.display = '';
+    modeLbl.textContent = '// tracking mode — hover the targets';
+    accuracyWrap.style.display = '';
+    if (accuracyLabel) accuracyLabel.textContent = 'on-target';
     startTracking();
   }
 
@@ -214,107 +254,159 @@ function spawnTarget() {
 
 function startTracking() {
   const [minS, maxS] = SIZE_MAP[settings.tracking.sizeKey];
-  trackSize = Math.floor(Math.random() * (maxS - minS)) + minS;
-
-  trackingEl.style.width = trackSize + 'px';
-  trackingEl.style.height = trackSize + 'px';
-  trackingEl.style.transition = 'none';
-
-  trackCurX = window.innerWidth / 2 - trackSize / 2;
-  trackCurY = window.innerHeight / 2 - trackSize / 2;
-  trackingEl.style.left = trackCurX + 'px';
-  trackingEl.style.top = trackCurY + 'px';
-  trackingEl.style.display = 'block';
-  trackingEl.className = 'active';
-
-  const cfg = SPEED_CFG[settings.tracking.speed];
-
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      trackingEl.style.transition =
-        `left ${cfg.cssTransition}s cubic-bezier(0.42,0,0.58,1),` +
-        `top ${cfg.cssTransition}s cubic-bezier(0.42,0,0.58,1)`;
-      moveTracking();
+  const count = settings.tracking.count;
+  for (let i = 0; i < count; i++) {
+    const size = Math.floor(Math.random() * (maxS - minS)) + minS;
+    const el = document.createElement('div');
+    el.className = 'slide-target';
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    arena.appendChild(el);
+    trackTargets.push({
+      el,
+      size,
+      // Each target staggered along its own path with its own phase.
+      phase: (i / count) * Math.PI * 2,
+      // Offset the y-band so multiple targets don't stack.
+      laneFrac: count === 1 ? 0.5 : 0.2 + (i / Math.max(1, count - 1)) * 0.6,
+      // Per-target multiplier so the cluster has variety.
+      speedJitter: 0.8 + Math.random() * 0.4,
+      hovered: false,
+      x: 0,
+      y: 0,
     });
-  });
-
-  trackMoveInterval = setInterval(moveTracking, cfg.moveInterval);
-
-  trackingEl.onclick = e => {
-    if (!gameActive) return;
-    score++;
-    hits++;
-    updateScore();
-    updateAcc();
-    spawnHitEffect(e.clientX, e.clientY);
-    trackingEl.style.boxShadow = '0 0 0 4px var(--accent), 0 0 50px var(--accent-glow), 0 0 100px rgb(var(--accent-rgb) / 0.55)';
-    setTimeout(() => {
-      if (trackingEl) trackingEl.style.boxShadow = '';
-    }, 140);
-  };
-
-  arena.onclick = e => {
-    if (!gameActive || e.target !== arena) return;
-    misses++;
-    updateAcc();
-    flashMiss();
-  };
-
-  startTrail();
-}
-
-function moveTracking() {
-  if (!gameActive) return;
-  const margin = trackSize + 28;
-  const nx = Math.random() * (window.innerWidth - margin * 2) + margin;
-  const ny = Math.random() * (window.innerHeight - margin * 2 - 40) + margin;
-  trackCurX = nx - trackSize / 2;
-  trackCurY = ny - trackSize / 2;
-  trackingEl.style.left = trackCurX + 'px';
-  trackingEl.style.top = trackCurY + 'px';
-}
-
-function startTrail() {
-  let last = 0;
-  function loop(ts) {
-    if (!gameActive) return;
-    if (ts - last > 70) {
-      last = ts;
-      const t = document.createElement('div');
-      t.className = 'trail';
-      const s = trackSize * 0.82;
-      t.style.cssText = `width:${s}px;height:${s}px;left:${trackCurX + trackSize / 2 - s / 2}px;top:${trackCurY + trackSize / 2 - s / 2}px;`;
-      document.body.appendChild(t);
-      t.addEventListener('animationend', () => t.remove(), { once: true });
-    }
-    trailRaf = requestAnimationFrame(loop);
   }
-  trailRaf = requestAnimationFrame(loop);
+
+  arena.addEventListener('mousemove', onTrackMove);
+  arena.addEventListener('mouseleave', onTrackLeave);
+  // Click is harmless in tracking — just absorb.
+  arena.onclick = null;
+
+  trackLastTs = 0;
+  trackRaf = requestAnimationFrame(trackLoop);
+}
+
+function onTrackMove(e) {
+  trackPointer.x = e.clientX;
+  trackPointer.y = e.clientY;
+}
+function onTrackLeave() {
+  trackPointer.x = -9999;
+  trackPointer.y = -9999;
+}
+
+function trackLoop(ts) {
+  if (!gameActive) return;
+  if (!trackLastTs) trackLastTs = ts;
+  const dt = Math.min(0.05, (ts - trackLastTs) / 1000);
+  trackLastTs = ts;
+  trackElapsed += dt;
+
+  const cfg = SPEED_PRESETS[settings.tracking.speed] || SPEED_PRESETS.slow;
+  const mult = settings.tracking.multiplier;
+  const w = window.innerWidth;
+  const h = window.innerHeight - 60;
+  let anyHover = false;
+
+  for (const t of trackTargets) {
+    const speed = cfg.speed * mult * t.speedJitter;
+    const amp = cfg.amp * mult;
+    let cx = w * 0.5;
+    let cy = h * t.laneFrac + 20;
+
+    if (settings.tracking.pattern === 'linear') {
+      // Bounce horizontally across the screen.
+      const period = (w - t.size - 80) / Math.max(20, speed);
+      const phase = (trackElapsed / period + t.phase / (Math.PI * 2)) % 2;
+      const tri = phase < 1 ? phase : 2 - phase;
+      cx = 40 + t.size / 2 + tri * (w - 80 - t.size);
+      cy = h * t.laneFrac + 20 + Math.sin(trackElapsed * 1.2 + t.phase) * 10;
+    } else if (settings.tracking.pattern === 'sine') {
+      const period = (w - t.size - 80) / Math.max(20, speed);
+      const phase = (trackElapsed / period + t.phase / (Math.PI * 2)) % 2;
+      const tri = phase < 1 ? phase : 2 - phase;
+      cx = 40 + t.size / 2 + tri * (w - 80 - t.size);
+      cy = h * t.laneFrac + 20 + Math.sin(trackElapsed * speed * 0.012 + t.phase) * amp;
+    } else if (settings.tracking.pattern === 'figure8') {
+      const a = trackElapsed * speed * 0.008 + t.phase;
+      cx = w * 0.5 + Math.sin(a) * (w * 0.36);
+      cy = h * 0.5 + Math.sin(a * 2) * (h * 0.32);
+    } else if (settings.tracking.pattern === 'orbit') {
+      const a = trackElapsed * speed * 0.008 + t.phase;
+      cx = w * 0.5 + Math.cos(a) * (w * 0.34);
+      cy = h * 0.5 + Math.sin(a) * (h * 0.34);
+    }
+
+    cx = Math.max(t.size / 2 + 6, Math.min(w - t.size / 2 - 6, cx));
+    cy = Math.max(t.size / 2 + 6, Math.min(h - t.size / 2 + 20, cy));
+
+    t.x = cx;
+    t.y = cy;
+    t.el.style.left = (cx - t.size / 2) + 'px';
+    t.el.style.top = (cy - t.size / 2) + 'px';
+
+    const dx = trackPointer.x - cx;
+    const dy = trackPointer.y - cy;
+    const inside = Math.hypot(dx, dy) <= t.size / 2;
+    t.el.classList.toggle('hovered', inside);
+    if (inside) anyHover = true;
+  }
+
+  if (anyHover) {
+    trackOnTime += dt;
+    trackStreak += dt;
+    if (trackStreak > trackBestStreak) trackBestStreak = trackStreak;
+    // 30 points/sec while on target.
+    score += dt * 30;
+    scoreEl.textContent = String(Math.floor(score));
+  } else {
+    if (trackStreak > 0) flashMiss();
+    trackStreak = 0;
+  }
+
+  const pct = trackElapsed > 0 ? Math.round((trackOnTime / trackElapsed) * 100) : 0;
+  accVal.textContent = pct + '%';
+
+  trackRaf = requestAnimationFrame(trackLoop);
 }
 
 function endGame() {
   gameActive = false;
   clearInterval(spawnInterval);
   clearInterval(countdownInterval);
-  clearInterval(trackMoveInterval);
-  cancelAnimationFrame(trailRaf);
+  cancelAnimationFrame(trackRaf);
 
   arena.innerHTML = '';
   arena.onclick = null;
-  trackingEl.className = '';
-  trackingEl.style.display = 'none';
-  trackingEl.onclick = null;
+  arena.removeEventListener('mousemove', onTrackMove);
+  arena.removeEventListener('mouseleave', onTrackLeave);
+
+  trackTargets = [];
 
   targetTimeouts.forEach(t => clearTimeout(t));
   targetTimeouts.clear();
 
   document.getElementById('end-mode-tag').textContent = currentMode + ' mode';
-  document.getElementById('final-score').textContent = score;
+  document.getElementById('final-score').textContent = Math.floor(score);
 
-  document.getElementById('final-hits').textContent = hits;
-  document.getElementById('final-misses').textContent = misses;
-  const total = hits + misses;
-  document.getElementById('final-acc').textContent = total > 0 ? Math.round((hits / total) * 100) + '%' : '—';
+  const classicStats = document.getElementById('final-stats');
+  const trackStatsRow = document.getElementById('track-stats');
+
+  if (currentMode === 'tracking') {
+    classicStats.style.display = 'none';
+    if (trackStatsRow) trackStatsRow.style.display = '';
+    document.getElementById('final-track-time').textContent = trackOnTime.toFixed(1) + 's';
+    const pct = trackElapsed > 0 ? Math.round((trackOnTime / trackElapsed) * 100) : 0;
+    document.getElementById('final-track-pct').textContent = pct + '%';
+    document.getElementById('final-track-streak').textContent = trackBestStreak.toFixed(1) + 's';
+  } else {
+    classicStats.style.display = '';
+    if (trackStatsRow) trackStatsRow.style.display = 'none';
+    document.getElementById('final-hits').textContent = hits;
+    document.getElementById('final-misses').textContent = misses;
+    const total = hits + misses;
+    document.getElementById('final-acc').textContent = total > 0 ? Math.round((hits / total) * 100) + '%' : '—';
+  }
 
   endScreen.classList.remove('hidden');
 }

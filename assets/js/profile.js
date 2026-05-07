@@ -20,6 +20,7 @@
         id: DEFAULT_PROFILE_ID,
         name: 'Tabby',
         color: '#ff1a1a',
+        prefs: Object.assign({}, DEFAULT_PREFS),
         gameStats: {},
       },
     ],
@@ -57,6 +58,33 @@
     return '255 26 26';
   }
 
+  const DEFAULT_PREFS = {
+    scanline: true,
+    vignette: true,
+    reduceMotion: false,
+    cursor: 'crosshair',
+    fontScale: 1,
+    panelOpacity: 0.92,
+  };
+
+  function safePrefs(raw) {
+    const prefs = raw && typeof raw === 'object' ? raw : {};
+    return {
+      scanline: prefs.scanline !== false,
+      vignette: prefs.vignette !== false,
+      reduceMotion: !!prefs.reduceMotion,
+      cursor: ['crosshair', 'default', 'none'].includes(prefs.cursor) ? prefs.cursor : DEFAULT_PREFS.cursor,
+      fontScale: clampNum(prefs.fontScale, 0.85, 1.25, DEFAULT_PREFS.fontScale),
+      panelOpacity: clampNum(prefs.panelOpacity, 0.6, 1, DEFAULT_PREFS.panelOpacity),
+    };
+  }
+
+  function clampNum(value, min, max, fallback) {
+    const n = Number(value);
+    if (!isFinite(n)) return fallback;
+    return Math.max(min, Math.min(max, n));
+  }
+
   function safeProfile(raw) {
     const profile = raw && typeof raw === 'object' ? raw : {};
     const gameStats = profile.gameStats && typeof profile.gameStats === 'object' ? profile.gameStats : {};
@@ -64,6 +92,7 @@
       id: String(profile.id || `profile_${Date.now()}`),
       name: String(profile.name || 'New Profile').slice(0, 32),
       color: pickPaletteColor(profile.color, PROFILE_COLORS[0].value),
+      prefs: safePrefs(profile.prefs),
       gameStats,
     };
   }
@@ -161,6 +190,19 @@
     root.style.setProperty('--red', accent);
     root.style.setProperty('--red-glow', accent);
     document.body.dataset.profileId = profile.id;
+    applyPrefs(profile.prefs || DEFAULT_PREFS);
+  }
+
+  function applyPrefs(prefs) {
+    const safe = safePrefs(prefs);
+    const root = document.documentElement;
+    const body = document.body;
+    body.dataset.scanline = safe.scanline ? 'on' : 'off';
+    body.dataset.vignette = safe.vignette ? 'on' : 'off';
+    body.dataset.reduceMotion = safe.reduceMotion ? 'on' : 'off';
+    body.dataset.cursor = safe.cursor;
+    root.style.setProperty('--ui-font-scale', String(safe.fontScale));
+    root.style.setProperty('--ui-panel-opacity', String(safe.panelOpacity));
   }
 
   function updateChip(profile) {
@@ -179,6 +221,15 @@
         btn.classList.toggle('active', btn.dataset.color?.toLowerCase() === profile.color.toLowerCase());
       });
     }
+    const prefs = profile.prefs || DEFAULT_PREFS;
+    if (formEls.scanline) formEls.scanline.checked = prefs.scanline;
+    if (formEls.vignette) formEls.vignette.checked = prefs.vignette;
+    if (formEls.reduceMotion) formEls.reduceMotion.checked = prefs.reduceMotion;
+    if (formEls.cursor) formEls.cursor.value = prefs.cursor;
+    if (formEls.fontScale) formEls.fontScale.value = Math.round(prefs.fontScale * 100);
+    if (formEls.fontScaleVal) formEls.fontScaleVal.textContent = (prefs.fontScale).toFixed(2) + 'x';
+    if (formEls.panelOpacity) formEls.panelOpacity.value = Math.round(prefs.panelOpacity * 100);
+    if (formEls.panelOpacityVal) formEls.panelOpacityVal.textContent = Math.round(prefs.panelOpacity * 100) + '%';
   }
 
   function activeProfileFromForm() {
@@ -187,6 +238,7 @@
       id: current.id,
       name: formEls.name?.value,
       color: current.color,
+      prefs: current.prefs,
       gameStats: current.gameStats,
     });
   }
@@ -358,6 +410,37 @@
               <div class="profile-color-grid"></div>
               <div class="profile-color-note">Choose the accent that drives the site theme.</div>
             </div>
+            <div class="profile-field profile-prefs-block">
+              <label>Site preferences</label>
+              <label class="profile-pref-toggle">
+                <input id="pref-scanline" type="checkbox">
+                <span>Scanline overlay</span>
+              </label>
+              <label class="profile-pref-toggle">
+                <input id="pref-vignette" type="checkbox">
+                <span>Vignette</span>
+              </label>
+              <label class="profile-pref-toggle">
+                <input id="pref-reduce-motion" type="checkbox">
+                <span>Reduce motion</span>
+              </label>
+              <div class="profile-pref-row">
+                <span>Cursor</span>
+                <select id="pref-cursor">
+                  <option value="crosshair">Crosshair</option>
+                  <option value="default">Default</option>
+                  <option value="none">Hidden</option>
+                </select>
+              </div>
+              <div class="profile-pref-row">
+                <span>UI scale <em id="pref-font-scale-val">1.00x</em></span>
+                <input id="pref-font-scale" type="range" min="85" max="125" step="5" value="100">
+              </div>
+              <div class="profile-pref-row">
+                <span>Panel opacity <em id="pref-panel-opacity-val">92%</em></span>
+                <input id="pref-panel-opacity" type="range" min="60" max="100" step="2" value="92">
+              </div>
+            </div>
             <div class="profile-actions">
               <button type="button" class="profile-btn primary" data-action="save">Save</button>
               <button type="button" class="profile-btn" data-action="new">New</button>
@@ -384,6 +467,14 @@
     statusEl = dock.querySelector('.profile-status');
     formEls = {
       name: dock.querySelector('#profile-name-input'),
+      scanline: dock.querySelector('#pref-scanline'),
+      vignette: dock.querySelector('#pref-vignette'),
+      reduceMotion: dock.querySelector('#pref-reduce-motion'),
+      cursor: dock.querySelector('#pref-cursor'),
+      fontScale: dock.querySelector('#pref-font-scale'),
+      fontScaleVal: dock.querySelector('#pref-font-scale-val'),
+      panelOpacity: dock.querySelector('#pref-panel-opacity'),
+      panelOpacityVal: dock.querySelector('#pref-panel-opacity-val'),
     };
 
     chipEl.addEventListener('click', () => togglePanel());
@@ -402,6 +493,21 @@
         setStatus('Applied live');
       });
     }
+
+    bindPrefControl(formEls.scanline, 'change', el => ({ scanline: el.checked }));
+    bindPrefControl(formEls.vignette, 'change', el => ({ vignette: el.checked }));
+    bindPrefControl(formEls.reduceMotion, 'change', el => ({ reduceMotion: el.checked }));
+    bindPrefControl(formEls.cursor, 'change', el => ({ cursor: el.value }));
+    bindPrefControl(formEls.fontScale, 'input', el => {
+      const v = +el.value / 100;
+      if (formEls.fontScaleVal) formEls.fontScaleVal.textContent = v.toFixed(2) + 'x';
+      return { fontScale: v };
+    });
+    bindPrefControl(formEls.panelOpacity, 'input', el => {
+      const v = +el.value / 100;
+      if (formEls.panelOpacityVal) formEls.panelOpacityVal.textContent = Math.round(v * 100) + '%';
+      return { panelOpacity: v };
+    });
 
     if (colorSwatchesEl) {
       colorSwatchesEl.innerHTML = '';
@@ -442,6 +548,24 @@
       homeLinkEl.textContent = 'Home';
       dock.insertBefore(homeLinkEl, panelEl);
     }
+  }
+
+  function bindPrefControl(el, evt, getPatch) {
+    if (!el) return;
+    el.addEventListener(evt, () => {
+      const current = getActiveProfile();
+      const patch = getPatch(el) || {};
+      const merged = Object.assign({}, current.prefs || DEFAULT_PREFS, patch);
+      const next = safeProfile({
+        id: current.id,
+        name: current.name,
+        color: current.color,
+        prefs: merged,
+        gameStats: current.gameStats,
+      });
+      applyProfile(next, { rerenderList: false, emitChange: true });
+      setStatus('Preference saved');
+    });
   }
 
   function togglePanel(forceOpen) {

@@ -59,12 +59,33 @@
     <!-- TRACKING -->
     <div id="tracking-settings" class="is-hidden">
       <div class="setting-row">
-        <div class="setting-label">Movement speed</div>
+        <div class="setting-label">// hover the sliding targets — no clicking</div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Speed preset</div>
         <div class="speed-opts">
-          <button class="speed-opt" data-speed="slow">Slow</button>
-          <button class="speed-opt active" data-speed="medium">Medium</button>
+          <button class="speed-opt" data-speed="crawl">Crawl</button>
+          <button class="speed-opt active" data-speed="slow">Slow</button>
+          <button class="speed-opt" data-speed="medium">Medium</button>
           <button class="speed-opt" data-speed="fast">Fast</button>
           <button class="speed-opt" data-speed="chaos">Chaos</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Speed multiplier <span id="track-mult-val">1.0x</span></div>
+        <input type="range" id="track-mult-slider" min="2" max="30" value="10">
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Targets on screen <span id="track-count-val">2</span></div>
+        <input type="range" id="track-count-slider" min="1" max="5" value="2">
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Pattern</div>
+        <div class="speed-opts">
+          <button class="pattern-opt active" data-pattern="linear">Linear</button>
+          <button class="pattern-opt" data-pattern="sine">Sine</button>
+          <button class="pattern-opt" data-pattern="figure8">Figure 8</button>
+          <button class="pattern-opt" data-pattern="orbit">Orbit</button>
         </div>
       </div>
       <div class="setting-row">
@@ -72,7 +93,7 @@
         <input type="range" id="track-size-slider" min="1" max="3" value="2">
       </div>
       <div class="setting-row">
-<div class="setting-label">Duration <span id="track-dur-val">30 s</span></div>
+        <div class="setting-label">Duration <span id="track-dur-val">30 s</span></div>
         <input type="range" id="track-dur-slider" min="1" max="5" value="2">
       </div>
     </div>
@@ -90,6 +111,11 @@
     <div>hits <span id="final-hits">0</span></div>
     <div>misses <span id="final-misses">0</span></div>
     <div>accuracy <span id="final-acc">0%</span></div>
+  </div>
+  <div class="stat-row" id="track-stats" style="display:none;">
+    <div>tracked <span id="final-track-time">0.0s</span></div>
+    <div>on-target <span id="final-track-pct">0%</span></div>
+    <div>longest streak <span id="final-track-streak">0.0s</span></div>
   </div>
   <div class="stat-row" id="cps-stats" style="display:none;">
     <div>total clicks <span id="final-clicks">0</span></div>

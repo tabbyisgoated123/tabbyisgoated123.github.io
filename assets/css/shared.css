@@ -8,6 +8,12 @@
   --red-glow: var(--accent-glow);
   --bg: #0a0a0a;
   --text: #e0e0e0;
+  --ui-font-scale: 1;
+  --ui-panel-opacity: 0.92;
+}
+
+html {
+  font-size: calc(16px * var(--ui-font-scale, 1));
 }
 
 * {
@@ -42,6 +48,12 @@ body::before {
     repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 255, 255, 0.012) 2px, rgba(255, 255, 255, 0.012) 4px),
     repeating-linear-gradient(90deg, transparent, transparent 40px, rgb(var(--accent-rgb) / 0.04) 40px, rgb(var(--accent-rgb) / 0.04) 41px),
     repeating-linear-gradient(0deg, transparent, transparent 40px, rgb(var(--accent-rgb) / 0.04) 40px, rgb(var(--accent-rgb) / 0.04) 41px);
+  opacity: 1;
+  transition: opacity 0.18s ease;
+}
+
+body[data-scanline="off"]::before {
+  opacity: 0;
 }
 
 body::after {
@@ -51,6 +63,27 @@ body::after {
   pointer-events: none;
   z-index: 101;
   background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.75) 100%);
+  opacity: 1;
+  transition: opacity 0.18s ease;
+}
+
+body[data-vignette="off"]::after {
+  opacity: 0;
+}
+
+body[data-reduce-motion="on"] *,
+body[data-reduce-motion="on"] *::before,
+body[data-reduce-motion="on"] *::after {
+  transition-duration: 0.001ms !important;
+  animation-duration: 0.001ms !important;
+}
+
+body[data-cursor="default"] {
+  cursor: default;
+}
+
+body[data-cursor="none"] {
+  cursor: none;
 }
 
 .screen {

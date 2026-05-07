@@ -177,6 +177,35 @@
   display: block;
 }
 
+.slide-target {
+  position: fixed;
+  border-radius: 50%;
+  z-index: 50;
+  pointer-events: none;
+  background: radial-gradient(circle at 38% 36%, rgb(var(--accent-rgb) / 0.85), rgb(var(--accent-rgb) / 0.55) 55%, rgb(var(--accent-rgb) / 0.28));
+  box-shadow: 0 0 0 2px rgb(var(--accent-rgb) / 0.18), 0 0 22px rgb(var(--accent-rgb) / 0.45), inset 0 2px 8px rgb(255 200 200 / 0.22);
+  transition: box-shadow 0.12s ease, background 0.12s ease, transform 0.12s ease;
+  will-change: left, top;
+}
+
+.slide-target::after {
+  content: '';
+  position: absolute;
+  top: 20%;
+  left: 22%;
+  width: 28%;
+  height: 18%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  transform: rotate(-30deg);
+}
+
+.slide-target.hovered {
+  background: radial-gradient(circle at 38% 36%, var(--accent-glow), rgb(var(--accent-rgb) / 0.95) 55%, rgb(var(--accent-rgb) / 0.6));
+  box-shadow: 0 0 0 4px rgb(var(--accent-rgb) / 0.55), 0 0 50px var(--accent-glow), 0 0 100px rgb(var(--accent-rgb) / 0.4), inset 0 2px 8px rgb(255 200 200 / 0.4);
+  transform: scale(1.04);
+}
+
 #cps-button {
   position: fixed;
   box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / 0.13), 0 0 30px rgb(var(--accent-rgb) / 0.53), 0 0 60px rgb(var(--accent-rgb) / 0.2), inset 0 2px 8px rgb(255 200 200 / 0.25);
@@ -348,7 +377,8 @@ input[type=range]::-webkit-slider-thumb:hover {
   flex-wrap: wrap;
 }
 
-.speed-opt {
+.speed-opt,
+.pattern-opt {
   font-family: 'Share Tech Mono', monospace;
   font-size: 10px;
   letter-spacing: 2px;
@@ -361,13 +391,15 @@ input[type=range]::-webkit-slider-thumb:hover {
   text-transform: uppercase;
 }
 
-.speed-opt.active {
+.speed-opt.active,
+.pattern-opt.active {
   border-color: rgb(var(--accent-rgb) / 0.33);
   color: var(--accent);
   background: rgb(var(--accent-rgb) / 0.07);
 }
 
-.speed-opt:hover:not(.active) {
+.speed-opt:hover:not(.active),
+.pattern-opt:hover:not(.active) {
   border-color: #2e2e2e;
   color: #555;
 }

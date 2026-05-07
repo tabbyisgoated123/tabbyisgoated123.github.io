@@ -104,6 +104,22 @@
           <div class="setting-label">Look sensitivity <span id="sensitivity-value">1.0</span></div>
           <input id="sensitivity-slider" type="range" min="5" max="20" step="1" value="10">
         </div>
+        <div class="setting-row">
+          <div class="setting-label">Field of view <span id="fov-value">75</span></div>
+          <input id="fov-slider" type="range" min="50" max="110" step="1" value="75">
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Walk speed <span id="walk-speed-value">1.0x</span></div>
+          <input id="walk-speed-slider" type="range" min="5" max="20" step="1" value="10">
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Jump strength <span id="jump-value">1.0x</span></div>
+          <input id="jump-slider" type="range" min="5" max="20" step="1" value="10">
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Gravity <span id="gravity-value">1.0x</span></div>
+          <input id="gravity-slider" type="range" min="5" max="20" step="1" value="10">
+        </div>
         <label class="craft-toggle">
           <input id="sprint-toggle" type="checkbox" checked>
           <span>Hold shift to sprint</span>
@@ -111,6 +127,69 @@
         <label class="craft-toggle">
           <input id="auto-jump-toggle" type="checkbox">
           <span>Auto jump</span>
+        </label>
+        <label class="craft-toggle">
+          <input id="bobbing-toggle" type="checkbox" checked>
+          <span>View bobbing</span>
+        </label>
+        <label class="craft-toggle">
+          <input id="invert-toggle" type="checkbox">
+          <span>Invert mouse Y</span>
+        </label>
+      </div>
+
+      <div class="craft-section">
+        <div class="craft-section-title">Visuals</div>
+        <div class="setting-row">
+          <div class="setting-label">Brightness <span id="brightness-value">1.0x</span></div>
+          <input id="brightness-slider" type="range" min="5" max="20" step="1" value="10">
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Particle level <span id="particle-value">Medium</span></div>
+          <select id="particle-select">
+            <option value="none">None</option>
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Crosshair <span id="crosshair-value">Cross</span></div>
+          <select id="crosshair-select">
+            <option value="cross" selected>Cross</option>
+            <option value="dot">Dot</option>
+            <option value="circle">Circle</option>
+            <option value="hidden">Hidden</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Weather <span id="weather-value">Clear</span></div>
+          <select id="weather-select">
+            <option value="clear" selected>Clear</option>
+            <option value="rain">Rain</option>
+            <option value="snow">Snow</option>
+            <option value="storm">Storm</option>
+          </select>
+        </div>
+        <label class="craft-toggle">
+          <input id="texture-toggle" type="checkbox" checked>
+          <span>Pixel textures</span>
+        </label>
+        <label class="craft-toggle">
+          <input id="smooth-light-toggle" type="checkbox" checked>
+          <span>Smooth lighting</span>
+        </label>
+        <label class="craft-toggle">
+          <input id="sky-toggle" type="checkbox" checked>
+          <span>Sky & celestial bodies</span>
+        </label>
+        <label class="craft-toggle">
+          <input id="hand-toggle" type="checkbox" checked>
+          <span>First-person hand</span>
+        </label>
+        <label class="craft-toggle">
+          <input id="fps-toggle" type="checkbox">
+          <span>Show FPS</span>
         </label>
       </div>
 
@@ -135,6 +214,26 @@
         <label class="craft-toggle">
           <input id="lowpoly-toggle" type="checkbox">
           <span>Low poly mode</span>
+        </label>
+      </div>
+
+      <div class="craft-section">
+        <div class="craft-section-title">Audio</div>
+        <div class="setting-row">
+          <div class="setting-label">Master volume <span id="master-vol-value">60%</span></div>
+          <input id="master-vol-slider" type="range" min="0" max="100" step="5" value="60">
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">SFX volume <span id="sfx-vol-value">70%</span></div>
+          <input id="sfx-vol-slider" type="range" min="0" max="100" step="5" value="70">
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Music volume <span id="music-vol-value">40%</span></div>
+          <input id="music-vol-slider" type="range" min="0" max="100" step="5" value="40">
+        </div>
+        <label class="craft-toggle">
+          <input id="ambient-toggle" type="checkbox" checked>
+          <span>Ambient soundscape</span>
         </label>
       </div>
 

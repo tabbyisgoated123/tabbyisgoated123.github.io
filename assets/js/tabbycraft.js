@@ -28,8 +28,27 @@ const difficultySelect = document.getElementById('difficulty-select');
 const dayLengthSlider = document.getElementById('day-length-slider');
 const mobileToggle = document.getElementById('mobile-toggle');
 const sensitivitySlider = document.getElementById('sensitivity-slider');
+const fovSlider = document.getElementById('fov-slider');
+const walkSpeedSlider = document.getElementById('walk-speed-slider');
+const jumpSlider = document.getElementById('jump-slider');
+const gravitySlider = document.getElementById('gravity-slider');
+const brightnessSlider = document.getElementById('brightness-slider');
 const sprintToggle = document.getElementById('sprint-toggle');
 const autoJumpToggle = document.getElementById('auto-jump-toggle');
+const bobbingToggle = document.getElementById('bobbing-toggle');
+const invertToggle = document.getElementById('invert-toggle');
+const particleSelect = document.getElementById('particle-select');
+const crosshairSelect = document.getElementById('crosshair-select');
+const weatherSelect = document.getElementById('weather-select');
+const textureToggle = document.getElementById('texture-toggle');
+const smoothLightToggle = document.getElementById('smooth-light-toggle');
+const skyToggle = document.getElementById('sky-toggle');
+const handToggle = document.getElementById('hand-toggle');
+const fpsToggle = document.getElementById('fps-toggle');
+const masterVolSlider = document.getElementById('master-vol-slider');
+const sfxVolSlider = document.getElementById('sfx-vol-slider');
+const musicVolSlider = document.getElementById('music-vol-slider');
+const ambientToggle = document.getElementById('ambient-toggle');
 const entityCullingToggle = document.getElementById('entity-culling-toggle');
 const fogToggle = document.getElementById('fog-toggle');
 const cloudToggle = document.getElementById('cloud-toggle');
@@ -47,6 +66,17 @@ const modeValue = document.getElementById('mode-value');
 const difficultyValue = document.getElementById('difficulty-value');
 const dayLengthValue = document.getElementById('day-length-value');
 const sensitivityValue = document.getElementById('sensitivity-value');
+const fovValue = document.getElementById('fov-value');
+const walkSpeedValue = document.getElementById('walk-speed-value');
+const jumpValue = document.getElementById('jump-value');
+const gravityValue = document.getElementById('gravity-value');
+const brightnessValue = document.getElementById('brightness-value');
+const particleValue = document.getElementById('particle-value');
+const crosshairValue = document.getElementById('crosshair-value');
+const weatherValue = document.getElementById('weather-value');
+const masterVolValue = document.getElementById('master-vol-value');
+const sfxVolValue = document.getElementById('sfx-vol-value');
+const musicVolValue = document.getElementById('music-vol-value');
 const botCountValue = document.getElementById('bot-count-value');
 
 const randomSeedBtn = document.getElementById('random-seed-btn');
@@ -72,30 +102,31 @@ const RECIPES = [
 ];
 const BOT_NAMES = ['Nova', 'Pixel', 'Moss', 'Luna', 'Stone', 'Twig', 'Echo', 'Spark'];
 const PRESET_COLORS = {
-  plains: { grass: '#6db85f', dirt: '#8a623f', stone: '#9097a3', sand: '#d9c77a', water: '#59a9eb' },
-  forest: { grass: '#5aa54c', dirt: '#734d31', stone: '#8d939d', sand: '#d6c477', water: '#53a5e6' },
-  desert: { grass: '#d6c477', dirt: '#c8af67', stone: '#b7b1a0', sand: '#e4d07d', water: '#63a9eb' },
-  islands: { grass: '#67b35d', dirt: '#7f5a38', stone: '#9399a5', sand: '#dbc973', water: '#58b8ff' },
+  plains: { grass: '#79c05a', dirt: '#8b5a2b', stone: '#828282', sand: '#dbd3a0', water: '#3f76e4' },
+  forest: { grass: '#59ae3d', dirt: '#79553a', stone: '#7c8087', sand: '#d4c98c', water: '#3f76e4' },
+  desert: { grass: '#dbcf8e', dirt: '#c5a76a', stone: '#a39c84', sand: '#dbd3a0', water: '#3f76e4' },
+  islands: { grass: '#7ac35a', dirt: '#7f5530', stone: '#828282', sand: '#dbd3a0', water: '#3f76e4' },
 };
+// Palette is closer to vanilla MC textures; faces define top/side/bottom.
 const BLOCKS = {
   air: { name: 'Air', solid: false, transparent: true, placeable: false, color: '#000000' },
-  grass: { name: 'Grass', solid: true, transparent: false, placeable: true, faces: { top: '#74d65a', side: '#5ca545', bottom: '#8b5a34' }, drop: 'dirt' },
-  dirt: { name: 'Dirt', solid: true, transparent: false, placeable: true, color: '#8a623f', drop: 'dirt' },
-  stone: { name: 'Stone', solid: true, transparent: false, placeable: true, color: '#9aa1ad', drop: 'stone' },
-  wood: { name: 'Wood', solid: true, transparent: false, placeable: true, faces: { top: '#b07a43', side: '#91602f', bottom: '#7d4f26' }, drop: 'wood' },
-  planks: { name: 'Planks', solid: true, transparent: false, placeable: true, color: '#c58a52', drop: 'planks' },
-  sand: { name: 'Sand', solid: true, transparent: false, placeable: true, color: '#e0cf7b', drop: 'sand' },
-  water: { name: 'Water', solid: false, transparent: true, placeable: true, color: '#56aae6', alpha: 0.68, drop: 'water' },
-  leaves: { name: 'Leaves', solid: false, transparent: true, placeable: false, color: '#67c15e', alpha: 0.78, drop: 'leaves' },
-  tnt: { name: 'TNT', solid: true, transparent: false, placeable: true, faces: { top: '#f06059', side: '#cc4b46', bottom: '#9e2d29' }, drop: 'tnt' },
-  lucky: { name: 'Lucky Block', solid: true, transparent: false, placeable: true, faces: { top: '#ffd94c', side: '#efbf1f', bottom: '#b98b00' }, drop: 'lucky' },
-  stonebrick: { name: 'Stone Bricks', solid: true, transparent: false, placeable: true, color: '#9ea5ad', drop: 'stonebrick' },
-  workbench: { name: 'Workbench', solid: true, transparent: false, placeable: true, faces: { top: '#b16d34', side: '#8c5a2d', bottom: '#674321' }, drop: 'workbench' },
-  coal_ore: { name: 'Coal Ore', solid: true, transparent: false, placeable: false, faces: { top: '#727272', side: '#636363', bottom: '#535353' }, drop: 'coal' },
-  iron_ore: { name: 'Iron Ore', solid: true, transparent: false, placeable: false, faces: { top: '#bea28c', side: '#ab8d78', bottom: '#8d7360' }, drop: 'iron' },
-  gold_ore: { name: 'Gold Ore', solid: true, transparent: false, placeable: false, faces: { top: '#e0c15a', side: '#c49d2a', bottom: '#9c790e' }, drop: 'gold' },
-  diamond_ore: { name: 'Diamond Ore', solid: true, transparent: false, placeable: false, faces: { top: '#77e3ff', side: '#4bb9d8', bottom: '#2b8aa8' }, drop: 'diamond' },
-  cactus: { name: 'Cactus', solid: true, transparent: false, placeable: false, faces: { top: '#4caf62', side: '#389349', bottom: '#2d7140' }, drop: 'cactus' },
+  grass: { name: 'Grass', solid: true, transparent: false, placeable: true, faces: { top: '#79c05a', side: '#79c05a', sideLower: '#8b5a2b', bottom: '#8b5a2b' }, texture: 'grass', drop: 'dirt' },
+  dirt: { name: 'Dirt', solid: true, transparent: false, placeable: true, color: '#8b5a2b', texture: 'dirt', drop: 'dirt' },
+  stone: { name: 'Stone', solid: true, transparent: false, placeable: true, color: '#828282', texture: 'stone', drop: 'stone' },
+  wood: { name: 'Wood', solid: true, transparent: false, placeable: true, faces: { top: '#a07842', side: '#6b4f2a', bottom: '#a07842' }, texture: 'log', drop: 'wood' },
+  planks: { name: 'Planks', solid: true, transparent: false, placeable: true, color: '#b07e44', texture: 'planks', drop: 'planks' },
+  sand: { name: 'Sand', solid: true, transparent: false, placeable: true, color: '#dbd3a0', texture: 'sand', drop: 'sand' },
+  water: { name: 'Water', solid: false, transparent: true, placeable: true, color: '#3f76e4', alpha: 0.7, texture: 'water', drop: 'water' },
+  leaves: { name: 'Leaves', solid: false, transparent: true, placeable: false, color: '#48761d', alpha: 0.85, texture: 'leaves', drop: 'leaves' },
+  tnt: { name: 'TNT', solid: true, transparent: false, placeable: true, faces: { top: '#bd2c2c', side: '#cf3838', bottom: '#7e1c1c' }, texture: 'tnt', drop: 'tnt' },
+  lucky: { name: 'Lucky Block', solid: true, transparent: false, placeable: true, faces: { top: '#ffd94c', side: '#efbf1f', bottom: '#b98b00' }, texture: 'lucky', drop: 'lucky' },
+  stonebrick: { name: 'Stone Bricks', solid: true, transparent: false, placeable: true, color: '#7c7c7c', texture: 'brick', drop: 'stonebrick' },
+  workbench: { name: 'Workbench', solid: true, transparent: false, placeable: true, faces: { top: '#a76b35', side: '#7a4d22', bottom: '#5e3915' }, texture: 'workbench', drop: 'workbench' },
+  coal_ore: { name: 'Coal Ore', solid: true, transparent: false, placeable: false, color: '#828282', texture: 'coal_ore', drop: 'coal' },
+  iron_ore: { name: 'Iron Ore', solid: true, transparent: false, placeable: false, color: '#828282', texture: 'iron_ore', drop: 'iron' },
+  gold_ore: { name: 'Gold Ore', solid: true, transparent: false, placeable: false, color: '#828282', texture: 'gold_ore', drop: 'gold' },
+  diamond_ore: { name: 'Diamond Ore', solid: true, transparent: false, placeable: false, color: '#828282', texture: 'diamond_ore', drop: 'diamond' },
+  cactus: { name: 'Cactus', solid: true, transparent: false, placeable: false, faces: { top: '#5c8b3a', side: '#3e7530', bottom: '#3a5d28' }, texture: 'cactus', drop: 'cactus' },
 };
 const FACE_DEFS = [
   { name: 'north', offset: [0, 0, 1], verts: [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]], shade: 0.94 },
@@ -115,8 +146,27 @@ const DEFAULT_SETTINGS = {
   dayLength: 3,
   mobileControls: false,
   sensitivity: 1,
+  fov: 75,
+  walkSpeed: 1.0,
+  jumpStrength: 1.0,
+  gravity: 1.0,
+  brightness: 1.0,
   sprintToggle: true,
   autoJump: false,
+  bobbing: true,
+  invertY: false,
+  particleLevel: 'medium',
+  crosshair: 'cross',
+  weather: 'clear',
+  textures: true,
+  smoothLight: true,
+  sky: true,
+  hand: true,
+  showFps: false,
+  masterVolume: 0.6,
+  sfxVolume: 0.7,
+  musicVolume: 0.4,
+  ambient: true,
   entityCulling: true,
   fogRemover: false,
   cloudRemover: false,
@@ -249,8 +299,27 @@ function normalizeSettings(raw) {
   merged.dayLength = clamp(Number(merged.dayLength || DEFAULT_SETTINGS.dayLength), 1, 6);
   merged.mobileControls = !!merged.mobileControls;
   merged.sensitivity = clamp(Number(merged.sensitivity || DEFAULT_SETTINGS.sensitivity), 0.5, 2);
+  merged.fov = clamp(Number(merged.fov || DEFAULT_SETTINGS.fov), 50, 110);
+  merged.walkSpeed = clamp(Number(merged.walkSpeed || DEFAULT_SETTINGS.walkSpeed), 0.5, 2);
+  merged.jumpStrength = clamp(Number(merged.jumpStrength || DEFAULT_SETTINGS.jumpStrength), 0.5, 2);
+  merged.gravity = clamp(Number(merged.gravity || DEFAULT_SETTINGS.gravity), 0.5, 2);
+  merged.brightness = clamp(Number(merged.brightness || DEFAULT_SETTINGS.brightness), 0.5, 2);
   merged.sprintToggle = merged.sprintToggle !== false;
   merged.autoJump = !!merged.autoJump;
+  merged.bobbing = merged.bobbing !== false;
+  merged.invertY = !!merged.invertY;
+  merged.particleLevel = ['none', 'low', 'medium', 'high'].includes(merged.particleLevel) ? merged.particleLevel : DEFAULT_SETTINGS.particleLevel;
+  merged.crosshair = ['cross', 'dot', 'circle', 'hidden'].includes(merged.crosshair) ? merged.crosshair : DEFAULT_SETTINGS.crosshair;
+  merged.weather = ['clear', 'rain', 'snow', 'storm'].includes(merged.weather) ? merged.weather : DEFAULT_SETTINGS.weather;
+  merged.textures = merged.textures !== false;
+  merged.smoothLight = merged.smoothLight !== false;
+  merged.sky = merged.sky !== false;
+  merged.hand = merged.hand !== false;
+  merged.showFps = !!merged.showFps;
+  merged.masterVolume = clamp(Number(merged.masterVolume ?? DEFAULT_SETTINGS.masterVolume), 0, 1);
+  merged.sfxVolume = clamp(Number(merged.sfxVolume ?? DEFAULT_SETTINGS.sfxVolume), 0, 1);
+  merged.musicVolume = clamp(Number(merged.musicVolume ?? DEFAULT_SETTINGS.musicVolume), 0, 1);
+  merged.ambient = merged.ambient !== false;
   merged.entityCulling = merged.entityCulling !== false;
   merged.fogRemover = !!merged.fogRemover;
   merged.cloudRemover = !!merged.cloudRemover;
@@ -291,8 +360,27 @@ function applySettingsToUi() {
   dayLengthSlider.value = settings.dayLength;
   mobileToggle.checked = settings.mobileControls;
   sensitivitySlider.value = Math.round(settings.sensitivity * 10);
+  if (fovSlider) fovSlider.value = settings.fov;
+  if (walkSpeedSlider) walkSpeedSlider.value = Math.round(settings.walkSpeed * 10);
+  if (jumpSlider) jumpSlider.value = Math.round(settings.jumpStrength * 10);
+  if (gravitySlider) gravitySlider.value = Math.round(settings.gravity * 10);
+  if (brightnessSlider) brightnessSlider.value = Math.round(settings.brightness * 10);
   sprintToggle.checked = settings.sprintToggle;
   autoJumpToggle.checked = settings.autoJump;
+  if (bobbingToggle) bobbingToggle.checked = settings.bobbing;
+  if (invertToggle) invertToggle.checked = settings.invertY;
+  if (particleSelect) particleSelect.value = settings.particleLevel;
+  if (crosshairSelect) crosshairSelect.value = settings.crosshair;
+  if (weatherSelect) weatherSelect.value = settings.weather;
+  if (textureToggle) textureToggle.checked = settings.textures;
+  if (smoothLightToggle) smoothLightToggle.checked = settings.smoothLight;
+  if (skyToggle) skyToggle.checked = settings.sky;
+  if (handToggle) handToggle.checked = settings.hand;
+  if (fpsToggle) fpsToggle.checked = settings.showFps;
+  if (masterVolSlider) masterVolSlider.value = Math.round(settings.masterVolume * 100);
+  if (sfxVolSlider) sfxVolSlider.value = Math.round(settings.sfxVolume * 100);
+  if (musicVolSlider) musicVolSlider.value = Math.round(settings.musicVolume * 100);
+  if (ambientToggle) ambientToggle.checked = settings.ambient;
   entityCullingToggle.checked = settings.entityCulling;
   fogToggle.checked = settings.fogRemover;
   cloudToggle.checked = settings.cloudRemover;
@@ -311,11 +399,30 @@ function applySettingsToUi() {
   difficultyValue.textContent = settings.difficulty;
   dayLengthValue.textContent = String(settings.dayLength);
   sensitivityValue.textContent = (settings.sensitivity).toFixed(1);
+  if (fovValue) fovValue.textContent = String(settings.fov);
+  if (walkSpeedValue) walkSpeedValue.textContent = settings.walkSpeed.toFixed(1) + 'x';
+  if (jumpValue) jumpValue.textContent = settings.jumpStrength.toFixed(1) + 'x';
+  if (gravityValue) gravityValue.textContent = settings.gravity.toFixed(1) + 'x';
+  if (brightnessValue) brightnessValue.textContent = settings.brightness.toFixed(1) + 'x';
+  if (particleValue) particleValue.textContent = capitalize(settings.particleLevel);
+  if (crosshairValue) crosshairValue.textContent = capitalize(settings.crosshair);
+  if (weatherValue) weatherValue.textContent = capitalize(settings.weather);
+  if (masterVolValue) masterVolValue.textContent = Math.round(settings.masterVolume * 100) + '%';
+  if (sfxVolValue) sfxVolValue.textContent = Math.round(settings.sfxVolume * 100) + '%';
+  if (musicVolValue) musicVolValue.textContent = Math.round(settings.musicVolume * 100) + '%';
   botCountValue.textContent = String(settings.botCount);
   mobileControls.classList.toggle('hidden', !settings.mobileControls);
+  applyCrosshairStyle();
   renderHotbar();
   updateCraftPanel();
   updateHud();
+}
+
+function applyCrosshairStyle() {
+  const ch = document.getElementById('craft-crosshair');
+  if (!ch) return;
+  ch.dataset.style = settings.crosshair;
+  ch.style.display = settings.crosshair === 'hidden' ? 'none' : '';
 }
 
 function capitalize(text) {
@@ -341,8 +448,27 @@ function bindUi() {
   bindSetting(dayLengthSlider, () => { settings.dayLength = +dayLengthSlider.value; });
   bindSetting(mobileToggle, () => { settings.mobileControls = mobileToggle.checked; }, 'change');
   bindSetting(sensitivitySlider, () => { settings.sensitivity = +sensitivitySlider.value / 10; });
+  if (fovSlider) bindSetting(fovSlider, () => { settings.fov = +fovSlider.value; });
+  if (walkSpeedSlider) bindSetting(walkSpeedSlider, () => { settings.walkSpeed = +walkSpeedSlider.value / 10; });
+  if (jumpSlider) bindSetting(jumpSlider, () => { settings.jumpStrength = +jumpSlider.value / 10; });
+  if (gravitySlider) bindSetting(gravitySlider, () => { settings.gravity = +gravitySlider.value / 10; });
+  if (brightnessSlider) bindSetting(brightnessSlider, () => { settings.brightness = +brightnessSlider.value / 10; });
   bindSetting(sprintToggle, () => { settings.sprintToggle = sprintToggle.checked; }, 'change');
   bindSetting(autoJumpToggle, () => { settings.autoJump = autoJumpToggle.checked; }, 'change');
+  if (bobbingToggle) bindSetting(bobbingToggle, () => { settings.bobbing = bobbingToggle.checked; }, 'change');
+  if (invertToggle) bindSetting(invertToggle, () => { settings.invertY = invertToggle.checked; }, 'change');
+  if (particleSelect) bindSetting(particleSelect, () => { settings.particleLevel = particleSelect.value; }, 'change');
+  if (crosshairSelect) bindSetting(crosshairSelect, () => { settings.crosshair = crosshairSelect.value; }, 'change');
+  if (weatherSelect) bindSetting(weatherSelect, () => { settings.weather = weatherSelect.value; }, 'change');
+  if (textureToggle) bindSetting(textureToggle, () => { settings.textures = textureToggle.checked; }, 'change');
+  if (smoothLightToggle) bindSetting(smoothLightToggle, () => { settings.smoothLight = smoothLightToggle.checked; }, 'change');
+  if (skyToggle) bindSetting(skyToggle, () => { settings.sky = skyToggle.checked; }, 'change');
+  if (handToggle) bindSetting(handToggle, () => { settings.hand = handToggle.checked; }, 'change');
+  if (fpsToggle) bindSetting(fpsToggle, () => { settings.showFps = fpsToggle.checked; }, 'change');
+  if (masterVolSlider) bindSetting(masterVolSlider, () => { settings.masterVolume = +masterVolSlider.value / 100; });
+  if (sfxVolSlider) bindSetting(sfxVolSlider, () => { settings.sfxVolume = +sfxVolSlider.value / 100; });
+  if (musicVolSlider) bindSetting(musicVolSlider, () => { settings.musicVolume = +musicVolSlider.value / 100; });
+  if (ambientToggle) bindSetting(ambientToggle, () => { settings.ambient = ambientToggle.checked; }, 'change');
   bindSetting(entityCullingToggle, () => { settings.entityCulling = entityCullingToggle.checked; }, 'change');
   bindSetting(fogToggle, () => { settings.fogRemover = fogToggle.checked; }, 'change');
   bindSetting(cloudToggle, () => { settings.cloudRemover = cloudToggle.checked; }, 'change');
@@ -389,7 +515,10 @@ function bindUi() {
   inventoryBtn?.addEventListener('click', () => toggleCraftPanel());
   mobileJumpBtn?.addEventListener('click', () => {
     if (!gameActive) return;
-    if (settings.mode === 'creative' || player.onGround) player.vy = 6.5;
+    if (settings.mode === 'creative' || player.onGround) {
+      const jumpV = settings.mode === 'creative' ? 5.6 : 8.4;
+      player.vy = jumpV * settings.jumpStrength;
+    }
   });
   mobileBreakBtn?.addEventListener('click', () => breakTarget());
   mobilePlaceBtn?.addEventListener('click', () => placeTarget());
@@ -693,16 +822,33 @@ function noise2d(x, z) {
 }
 
 function placeTree(x, y, z, trunkHeight) {
+  // Trunk.
   for (let i = 0; i < trunkHeight; i++) {
     setBlock(x, y + i, z, 'wood');
   }
-  for (let ox = -2; ox <= 2; ox++) {
-    for (let oz = -2; oz <= 2; oz++) {
-      for (let oy = trunkHeight - 1; oy <= trunkHeight + 1; oy++) {
-        if (Math.abs(ox) + Math.abs(oz) + Math.abs(oy - trunkHeight) > 4) continue;
-        if (rand2(x + ox, z + oz, y + oy) > 0.15) {
-          setBlock(x + ox, y + oy, z + oz, 'leaves');
+  // Oak canopy: 5x5 lower (3 high), 3x3 cap, with corner gaps for that vanilla shape.
+  const top = y + trunkHeight - 1;
+  for (let oy = 0; oy < 2; oy++) {
+    for (let ox = -2; ox <= 2; ox++) {
+      for (let oz = -2; oz <= 2; oz++) {
+        if (Math.abs(ox) === 2 && Math.abs(oz) === 2 && rand2(x + ox, z + oz, oy + 17) > 0.5) continue;
+        if (ox === 0 && oz === 0) continue; // trunk slot
+        const ty = top + oy;
+        if (getBlock(x + ox, ty, z + oz) === 'air') setBlock(x + ox, ty, z + oz, 'leaves');
+      }
+    }
+  }
+  for (let oy = 2; oy <= 3; oy++) {
+    const r = oy === 2 ? 1 : 1;
+    for (let ox = -r; ox <= r; ox++) {
+      for (let oz = -r; oz <= r; oz++) {
+        if (Math.abs(ox) === r && Math.abs(oz) === r && rand2(x + ox, z + oz, oy + 41) > 0.4) continue;
+        const ty = top + oy;
+        if (ox === 0 && oz === 0 && oy === 2) {
+          setBlock(x, ty, z, 'leaves');
+          continue;
         }
+        if (getBlock(x + ox, ty, z + oz) === 'air') setBlock(x + ox, ty, z + oz, 'leaves');
       }
     }
   }
@@ -906,7 +1052,9 @@ function handleKeyDown(ev) {
   }
   if (ev.key === ' ') {
     if (settings.mode === 'creative' || player.onGround || settings.autoJump) {
-      player.vy = settings.mode === 'creative' ? 5.6 : 6.4;
+      // Vanilla jump initial velocity ≈ sqrt(2 * g * h) where h ≈ 1.252 blocks.
+      const jumpV = settings.mode === 'creative' ? 5.6 : 8.4;
+      player.vy = jumpV * settings.jumpStrength;
       player.onGround = false;
     }
   }
@@ -921,8 +1069,9 @@ function handleKeyUp(ev) {
 }
 
 function rotateCamera(dx, dy) {
-  player.yaw -= dx * 0.0028 * settings.sensitivity;
-  player.pitch = clamp(player.pitch - dy * 0.0026 * settings.sensitivity, -1.45, 1.45);
+  player.yaw += dx * 0.0028 * settings.sensitivity;
+  const invert = settings.invertY ? -1 : 1;
+  player.pitch = clamp(player.pitch - dy * 0.0026 * settings.sensitivity * invert, -1.45, 1.45);
 }
 
 function update(dt) {
@@ -964,15 +1113,31 @@ function updatePlayer(dt) {
   wishX /= len;
   wishZ /= len;
 
-  const moveSpeed = (settings.mode === 'creative' ? 7.5 : settings.sprintToggle && keys.has('shift') ? 6.5 : 4.3) * (settings.difficulty === 'hard' ? 1.12 : settings.difficulty === 'easy' ? 0.9 : 1);
+  // Vanilla MC walking ≈ 4.317 m/s, sprinting ≈ 5.612 m/s.
+  const baseWalk = 4.317;
+  const baseSprint = 5.612;
+  const baseFly = 10.92;
+  const sprinting = settings.sprintToggle && keys.has('shift');
+  const groundSpeed = (settings.mode === 'creative' ? baseFly : sprinting ? baseSprint : baseWalk) *
+    settings.walkSpeed *
+    (settings.difficulty === 'hard' ? 1.12 : settings.difficulty === 'easy' ? 0.9 : 1);
   const accel = settings.mode === 'creative' ? 16 : 12;
-  player.vx = lerp(player.vx, wishX * moveSpeed, clamp(accel * dt, 0, 1));
-  player.vz = lerp(player.vz, wishZ * moveSpeed, clamp(accel * dt, 0, 1));
+  player.vx = lerp(player.vx, wishX * groundSpeed, clamp(accel * dt, 0, 1));
+  player.vz = lerp(player.vz, wishZ * groundSpeed, clamp(accel * dt, 0, 1));
+
+  // Walking distance for view bob.
+  const moving = Math.hypot(player.vx, player.vz) > 0.5 && (player.onGround || settings.mode === 'creative');
+  if (moving && settings.bobbing) {
+    player.bobPhase = (player.bobPhase || 0) + dt * (sprinting ? 14 : 10);
+  } else {
+    player.bobPhase = lerp(player.bobPhase || 0, 0, clamp(8 * dt, 0, 1));
+  }
 
   if (settings.mode === 'creative' && (keys.has(' ') || mobileJumpBtn.matches(':active'))) {
-    player.vy = 6;
+    player.vy = 6 * settings.jumpStrength;
   } else if (!player.fly) {
-    player.vy -= 18 * dt;
+    // Default gravity ~18 — multiplier scales it.
+    player.vy -= 18 * settings.gravity * dt;
   }
 
   const speedCap = settings.mode === 'creative' ? 0.6 : 0.35;
@@ -1053,6 +1218,7 @@ function updateBots(dt) {
       bot.messageTimer = 1.8;
     }
     if (bot.messageTimer > 0) bot.messageTimer -= dt;
+    bot.moveTimer = (bot.moveTimer || 0) + dt * (Math.hypot(bot.vx, bot.vz) > 0.3 ? 1.2 : 0.2);
 
     const targetSpeed = settings.difficulty === 'hard' ? 2.2 : 1.8;
     let wishX = Math.sin(bot.yaw);
@@ -1304,7 +1470,10 @@ function triggerLuckyBlock(x, y, z) {
 }
 
 function spawnParticles(x, y, z, color, count) {
-  for (let i = 0; i < count; i++) {
+  const factor = { none: 0, low: 0.4, medium: 1, high: 1.8 }[settings.particleLevel] ?? 1;
+  if (factor === 0) return;
+  const adjusted = Math.max(1, Math.round(count * factor));
+  for (let i = 0; i < adjusted; i++) {
     particles.push({
       x, y, z,
       vx: (Math.random() - 0.5) * 6,
@@ -1367,8 +1536,20 @@ function render() {
           if (points.some(p => !p)) continue;
           const depth = points.reduce((sum, p) => sum + p.depth, 0) / points.length;
           const base = getFaceColor(type, face.name);
-          const lit = applyLighting(base, face.shade * (day * 0.55 + 0.5), type);
-          faces.push({ points, depth, color: lit, stroke: settings.lowPoly ? 'transparent' : 'rgba(0,0,0,0.22)' });
+          const lightFactor = face.shade * (day * 0.55 + 0.5);
+          const lit = applyLighting(base, lightFactor, type);
+          faces.push({
+            points,
+            depth,
+            color: lit,
+            stroke: settings.lowPoly ? 'transparent' : 'rgba(0,0,0,0.22)',
+            type,
+            faceName: face.name,
+            blockX: x,
+            blockY: y,
+            blockZ: z,
+            lightFactor,
+          });
         }
       }
     }
@@ -1376,14 +1557,21 @@ function render() {
 
   if (!settings.cloudRemover) {
     for (const cloud of cloudLayer) {
-      const p = projectPoint(cloud.x, cloud.y, cloud.z, camera);
-      if (!p) continue;
-      const size = cloud.s * (w / 28);
+      const cx = cloud.x;
+      const cz = cloud.z;
+      const cy = cloud.y;
+      const half = cloud.s * 0.5;
+      const p1 = projectPoint(cx - half, cy, cz - half, camera);
+      const p2 = projectPoint(cx + half, cy, cz + half, camera);
+      if (!p1 || !p2) continue;
+      const left = Math.min(p1.x, p2.x);
+      const right = Math.max(p1.x, p2.x);
+      const top = Math.min(p1.y, p2.y);
+      const bottom = Math.max(p1.y, p2.y);
       ctx.save();
-      ctx.globalAlpha = 0.32;
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      roundRect(ctx, p.x - size * 0.35, p.y - size * 0.15, size, size * 0.35, 14);
-      ctx.fill();
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      ctx.fillRect(left, top, right - left, Math.max(2, (bottom - top) * 0.45));
       ctx.globalAlpha = 1;
       ctx.restore();
     }
@@ -1395,35 +1583,181 @@ function render() {
   drawEntities(camera);
   drawParticles(camera);
   drawSelection(camera);
+  drawHand(camera);
+  drawWeather();
 
   if (!settings.fogRemover) {
     ctx.fillStyle = `rgba(10, 12, 20, ${0.08 + (1 - day) * 0.13})`;
     ctx.fillRect(0, 0, w, h);
   }
+
+  if (settings.showFps) drawFps();
+}
+
+let _fpsLast = 0;
+let _fpsAcc = 0;
+let _fpsFrames = 0;
+let _fpsValue = 0;
+function drawFps() {
+  const now = performance.now();
+  if (_fpsLast) {
+    _fpsAcc += now - _fpsLast;
+    _fpsFrames++;
+    if (_fpsAcc > 500) {
+      _fpsValue = Math.round((_fpsFrames * 1000) / _fpsAcc);
+      _fpsAcc = 0;
+      _fpsFrames = 0;
+    }
+  }
+  _fpsLast = now;
+  ctx.save();
+  ctx.font = '12px Share Tech Mono, monospace';
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillText(`FPS ${_fpsValue}`, 12, 56);
+  ctx.fillStyle = '#9bff9b';
+  ctx.fillText(`FPS ${_fpsValue}`, 11, 55);
+  ctx.restore();
 }
 
 function drawSkyOrbs(day) {
+  if (!settings.sky) return;
   const w = window.innerWidth;
   const h = window.innerHeight;
-  const sunX = w * (0.15 + day * 0.7);
-  const sunY = h * (0.18 + Math.sin(dayPhase * Math.PI * 2) * 0.06);
+
+  // Sun and moon orbit opposite each other: angle = dayPhase * 2π.
+  const angle = dayPhase * Math.PI * 2 - Math.PI * 0.5;
+  const orbitR = Math.min(w, h) * 0.42;
+  const cx = w * 0.5;
+  const horizonY = h * 0.55;
+  const sunX = cx + Math.cos(angle) * orbitR;
+  const sunY = horizonY - Math.sin(angle) * orbitR;
+  const moonX = cx - Math.cos(angle) * orbitR;
+  const moonY = horizonY + Math.sin(angle) * orbitR;
+
   ctx.save();
-  ctx.globalAlpha = 0.9;
-  ctx.fillStyle = 'rgba(255, 232, 146, 0.9)';
-  ctx.beginPath();
-  ctx.arc(sunX, sunY, 22, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.globalAlpha = 0.18;
-  ctx.beginPath();
-  ctx.arc(sunX, sunY, 60, 0, Math.PI * 2);
-  ctx.fill();
-  if (day < 0.45) {
-    ctx.globalAlpha = 0.85;
-    ctx.fillStyle = 'rgba(220, 230, 255, 0.92)';
-    ctx.beginPath();
-    ctx.arc(w * 0.78, h * 0.2, 16, 0, Math.PI * 2);
-    ctx.fill();
+
+  // Stars at night.
+  if (day < 0.35) {
+    const starAlpha = clamp((0.35 - day) * 3, 0, 1);
+    ctx.fillStyle = `rgba(255,255,255,${starAlpha})`;
+    for (let i = 0; i < 70; i++) {
+      const sx = (Math.sin(i * 92.7 + worldSeed) * 0.5 + 0.5) * w;
+      const sy = (Math.cos(i * 41.3 + worldSeed) * 0.5 + 0.5) * h * 0.55;
+      const sz = (Math.sin(i * 13.4) * 0.5 + 0.5) * 1.6 + 0.4;
+      ctx.fillRect(sx, sy, sz, sz);
+    }
   }
+
+  if (sunY < horizonY + 80) {
+    // Square Minecraft sun.
+    const sz = 26;
+    ctx.globalAlpha = 0.22;
+    ctx.fillStyle = 'rgba(255, 220, 120, 1)';
+    ctx.fillRect(sunX - 70, sunY - 70, 140, 140);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#fff5b6';
+    ctx.fillRect(sunX - sz, sunY - sz, sz * 2, sz * 2);
+    ctx.fillStyle = '#ffe07a';
+    ctx.fillRect(sunX - sz + 4, sunY - sz + 4, sz * 2 - 8, sz * 2 - 8);
+  }
+
+  if (moonY < horizonY + 80) {
+    const mz = 22;
+    ctx.globalAlpha = 0.85;
+    ctx.fillStyle = '#e7eaf3';
+    ctx.fillRect(moonX - mz, moonY - mz, mz * 2, mz * 2);
+    ctx.fillStyle = '#cdd2dc';
+    ctx.fillRect(moonX - mz + 6, moonY - mz + 4, 8, 8);
+    ctx.fillRect(moonX - mz + 18, moonY - mz + 14, 6, 6);
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.restore();
+}
+
+let weatherDrops = [];
+function drawWeather() {
+  if (settings.weather === 'clear') return;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const target = settings.weather === 'storm' ? 220 : 130;
+  while (weatherDrops.length < target) {
+    weatherDrops.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      v: 0.5 + Math.random() * 1.0,
+      l: 6 + Math.random() * 8,
+    });
+  }
+  if (weatherDrops.length > target) weatherDrops.length = target;
+
+  ctx.save();
+  if (settings.weather === 'snow') {
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    for (const d of weatherDrops) {
+      d.y += d.v * 1.6;
+      d.x += Math.sin((d.y + d.v) * 0.02) * 0.3;
+      if (d.y > h) { d.y = -10; d.x = Math.random() * w; }
+      ctx.fillRect(d.x, d.y, 2, 2);
+    }
+  } else {
+    ctx.strokeStyle = settings.weather === 'storm' ? 'rgba(180,200,255,0.55)' : 'rgba(150,180,230,0.45)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (const d of weatherDrops) {
+      d.y += d.v * (settings.weather === 'storm' ? 14 : 10);
+      d.x += d.v * 1.2;
+      if (d.y > h) { d.y = -10; d.x = Math.random() * w; }
+      ctx.moveTo(d.x, d.y);
+      ctx.lineTo(d.x - 1, d.y - d.l);
+    }
+    ctx.stroke();
+    if (settings.weather === 'storm' && Math.random() < 0.012) {
+      ctx.fillStyle = 'rgba(255,255,255,0.45)';
+      ctx.fillRect(0, 0, w, h);
+    }
+  }
+  ctx.restore();
+}
+
+function drawHand(camera) {
+  if (!settings.hand) return;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const phase = player.bobPhase || 0;
+  const swing = Math.sin(phase) * 18;
+  const drop = Math.abs(Math.sin(phase)) * 8;
+  // Floating block held in hand showing selected slot.
+  const type = PLACEABLE_BLOCKS[selectedSlot];
+  const def = type ? BLOCKS[type] : null;
+  const baseColor = def?.faces?.side || def?.color || '#c58a52';
+  const hx = w * 0.78 + swing;
+  const hy = h - 110 + drop;
+  const sz = 96;
+  ctx.save();
+  ctx.translate(hx, hy);
+  ctx.rotate(-0.14);
+  // Side face shadow.
+  ctx.fillStyle = mixColor(baseColor, '#000000', 0.35);
+  ctx.fillRect(-sz * 0.35, -sz * 0.25, sz * 0.7, sz * 0.7);
+  // Top.
+  ctx.fillStyle = mixColor(baseColor, '#ffffff', 0.18);
+  ctx.beginPath();
+  ctx.moveTo(-sz * 0.35, -sz * 0.25);
+  ctx.lineTo(0, -sz * 0.5);
+  ctx.lineTo(sz * 0.55, -sz * 0.4);
+  ctx.lineTo(sz * 0.35, -sz * 0.25);
+  ctx.closePath();
+  ctx.fill();
+  // Right.
+  ctx.fillStyle = baseColor;
+  ctx.beginPath();
+  ctx.moveTo(sz * 0.35, -sz * 0.25);
+  ctx.lineTo(sz * 0.55, -sz * 0.4);
+  ctx.lineTo(sz * 0.55, sz * 0.3);
+  ctx.lineTo(sz * 0.35, sz * 0.45);
+  ctx.closePath();
+  ctx.fill();
   ctx.restore();
 }
 
@@ -1448,17 +1782,30 @@ function buildCamera() {
   const sp = Math.sin(player.pitch);
   const forward = { x: sy * cp, y: sp, z: cy * cp };
   const right = { x: cy, y: 0, z: -sy };
+  // up = forward × right, so the basis stays orthonormal as pitch changes;
+  // the previous z sign was flipped, which warped the view when looking up/down.
   const up = {
     x: -sy * sp,
     y: cp,
-    z: cy * sp,
+    z: -cy * sp,
   };
+  const phase = player.bobPhase || 0;
+  const bobAmp = settings.bobbing ? 0.06 : 0;
+  const bobY = Math.abs(Math.sin(phase)) * bobAmp;
+  const bobX = Math.sin(phase * 0.5) * bobAmp * 0.4;
+  // FOV → focal length mapping; vanilla default 70-75 deg.
+  const fovRad = (settings.fov || 75) * Math.PI / 180;
+  const focal = (Math.min(window.innerWidth, window.innerHeight) * 0.5) / Math.tan(fovRad / 2);
   return {
-    pos: { x: player.x, y: player.y + 1.62, z: player.z },
+    pos: {
+      x: player.x + bobX * right.x,
+      y: player.y + 1.62 - bobY,
+      z: player.z + bobX * right.z,
+    },
     forward,
     right,
     up,
-    focal: Math.min(window.innerWidth, window.innerHeight) * 0.95,
+    focal,
   };
 }
 
@@ -1480,7 +1827,13 @@ function projectPoint(x, y, z, camera) {
 function getFaceColor(type, face) {
   const def = BLOCKS[type];
   if (!def) return '#fff';
-  if (def.faces && def.faces[face]) return def.faces[face];
+  if (def.faces) {
+    if (def.faces[face]) return def.faces[face];
+    // Cardinal side faces fall back to a generic 'side' color.
+    if ((face === 'north' || face === 'south' || face === 'east' || face === 'west') && def.faces.side) {
+      return def.faces.side;
+    }
+  }
   return def.color || '#ffffff';
 }
 
@@ -1489,8 +1842,9 @@ function applyLighting(color, factor, type) {
   const hex = color.startsWith('#') ? color : '#ffffff';
   const [r, g, b] = hexToRgb(hex);
   const shadowBoost = settings.shadow ? 1 : 1.1;
-  const light = clamp(factor * shadowBoost, 0.35, 1.15);
-  return `rgba(${Math.round(r * light)}, ${Math.round(g * light)}, ${Math.round(b * light)}, ${alpha})`;
+  const brightness = settings.brightness ?? 1;
+  const light = clamp(factor * shadowBoost * brightness, 0.32, 1.4);
+  return `rgba(${Math.round(clamp(r * light, 0, 255))}, ${Math.round(clamp(g * light, 0, 255))}, ${Math.round(clamp(b * light, 0, 255))}, ${alpha})`;
 }
 
 function isFaceHidden(type, neighbor) {
@@ -1508,6 +1862,11 @@ function drawFace(face) {
   ctx.closePath();
   ctx.fillStyle = face.color;
   ctx.fill();
+
+  if (settings.textures && !settings.lowPoly && face.type) {
+    drawFaceTexture(face);
+  }
+
   if (!settings.lowPoly) {
     ctx.strokeStyle = face.stroke;
     ctx.lineWidth = 1;
@@ -1515,14 +1874,172 @@ function drawFace(face) {
   }
 }
 
+// Per-block, per-face deterministic texture overlay. Drives a pixelated
+// Minecraft-ish look on top of the base fill without true UV mapping.
+function drawFaceTexture(face) {
+  const def = BLOCKS[face.type];
+  if (!def || !def.texture) return;
+  const pts = face.points;
+
+  // Bounding box on screen.
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const p of pts) {
+    if (p.x < minX) minX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y > maxY) maxY = p.y;
+  }
+  const w = maxX - minX;
+  const h = maxY - minY;
+  if (w < 4 || h < 4 || w > 1400 || h > 1400) return;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.closePath();
+  ctx.clip();
+
+  const tex = TEXTURE_PATTERNS[def.texture] || TEXTURE_PATTERNS.default;
+  const cells = 6; // Coarse 6x6 noise grid per face — fast, reads as pixels.
+  const cellW = w / cells;
+  const cellH = h / cells;
+  const seed = (face.blockX * 73856093) ^ (face.blockY * 19349663) ^ (face.blockZ * 83492791) ^ hashFace(face.faceName);
+  for (let cy = 0; cy < cells; cy++) {
+    for (let cx = 0; cx < cells; cx++) {
+      const noise = rand(seed + cx * 17 + cy * 31);
+      const sample = tex(cx, cy, noise, face.faceName);
+      if (!sample) continue;
+      const lit = applyLighting(sample.color, face.lightFactor * (sample.shade ?? 1), face.type);
+      ctx.fillStyle = lit;
+      ctx.globalAlpha = sample.alpha ?? 1;
+      ctx.fillRect(minX + cx * cellW - 0.5, minY + cy * cellH - 0.5, cellW + 1, cellH + 1);
+    }
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function hashFace(name) {
+  switch (name) {
+    case 'top': return 1;
+    case 'bottom': return 2;
+    case 'north': return 3;
+    case 'south': return 4;
+    case 'east': return 5;
+    default: return 6;
+  }
+}
+
+// Texture sampling functions return { color, shade?, alpha? } per cell or null
+// to skip drawing. They produce deterministic pixel patterns.
+const TEXTURE_PATTERNS = {
+  grass: (cx, cy, n, face) => {
+    if (face === 'top') {
+      const variants = ['#79c05a', '#82c95a', '#6db14e', '#7fbd55'];
+      return { color: variants[Math.floor(n * variants.length)] };
+    }
+    if (face === 'bottom') return { color: ['#8b5a2b', '#7d4f24'][Math.floor(n * 2)] };
+    // Side: top row grass overhang, rest dirt.
+    if (cy === 0) return { color: ['#79c05a', '#6db14e'][Math.floor(n * 2)] };
+    if (cy === 1 && n > 0.5) return { color: '#6db14e' };
+    return { color: ['#8b5a2b', '#7d4f24', '#956336'][Math.floor(n * 3)] };
+  },
+  dirt: (cx, cy, n) => ({ color: ['#8b5a2b', '#7d4f24', '#956336', '#724729'][Math.floor(n * 4)] }),
+  stone: (cx, cy, n) => ({ color: ['#828282', '#787878', '#8a8a8a', '#727272'][Math.floor(n * 4)] }),
+  log: (cx, cy, n, face) => {
+    if (face === 'top' || face === 'bottom') {
+      const r = Math.hypot(cx - 2.5, cy - 2.5);
+      if (r < 1.2) return { color: '#a07842' };
+      if (r < 2.2) return { color: '#8a6332' };
+      return { color: '#6b4f2a' };
+    }
+    // Vertical stripes for bark.
+    return { color: cx % 2 === 0 ? '#6b4f2a' : '#7d5e36' };
+  },
+  planks: (cx, cy, n) => {
+    // Horizontal plank rows.
+    const row = cy % 2;
+    return { color: row === 0 ? '#b07e44' : '#9c6e3a' };
+  },
+  sand: (cx, cy, n) => ({ color: ['#dbd3a0', '#d3ca94', '#e0d8a8', '#cdc28b'][Math.floor(n * 4)] }),
+  water: (cx, cy, n) => ({
+    color: ['#3f76e4', '#4880ee', '#3a6ed5'][Math.floor(n * 3)],
+    alpha: 0.78,
+  }),
+  leaves: (cx, cy, n) => {
+    if (n < 0.18) return null; // sparkle gaps
+    return { color: ['#48761d', '#5b8b29', '#3d6418', '#52821f'][Math.floor(n * 4)], alpha: 0.95 };
+  },
+  tnt: (cx, cy, n, face) => {
+    if (face === 'top' || face === 'bottom') return { color: ['#bd2c2c', '#a02525'][Math.floor(n * 2)] };
+    // T-N-T stripes: middle band lighter (white "TNT" lettering simulated).
+    if (cy === 2 || cy === 3) return { color: cx % 2 === 0 ? '#e6e6e6' : '#cf3838' };
+    return { color: ['#cf3838', '#bd2c2c'][Math.floor(n * 2)] };
+  },
+  lucky: (cx, cy, n) => {
+    if ((cx === 2 || cx === 3) && (cy === 2 || cy === 3)) return { color: '#fff48a' };
+    return { color: ['#ffd94c', '#efbf1f'][Math.floor(n * 2)] };
+  },
+  brick: (cx, cy, n) => {
+    // Stone brick pattern: alternating rows offset.
+    const row = Math.floor(cy / 2);
+    const offset = (row % 2) * 1.5;
+    const col = Math.floor(cx + offset);
+    if ((col + cy) % 3 === 0) return { color: '#6c6c6c' };
+    return { color: ['#7c7c7c', '#888888', '#717171'][Math.floor(n * 3)] };
+  },
+  workbench: (cx, cy, n, face) => {
+    if (face === 'top') {
+      // Crafting grid look.
+      if ((cx + 1) % 2 === 0 && (cy + 1) % 2 === 0) return { color: '#5e3a14' };
+      return { color: '#a76b35' };
+    }
+    return { color: cx % 2 === 0 ? '#7a4d22' : '#8a5827' };
+  },
+  coal_ore: (cx, cy, n) => {
+    if (n > 0.78) return { color: '#1c1c1c' };
+    return { color: ['#828282', '#787878', '#8a8a8a'][Math.floor(n * 3)] };
+  },
+  iron_ore: (cx, cy, n) => {
+    if (n > 0.78) return { color: '#cba07e' };
+    return { color: ['#828282', '#787878', '#8a8a8a'][Math.floor(n * 3)] };
+  },
+  gold_ore: (cx, cy, n) => {
+    if (n > 0.78) return { color: '#fce06a' };
+    return { color: ['#828282', '#787878', '#8a8a8a'][Math.floor(n * 3)] };
+  },
+  diamond_ore: (cx, cy, n) => {
+    if (n > 0.78) return { color: '#5be1ff' };
+    return { color: ['#828282', '#787878', '#8a8a8a'][Math.floor(n * 3)] };
+  },
+  cactus: (cx, cy, n, face) => {
+    if (face === 'top' || face === 'bottom') return { color: ['#5c8b3a', '#4d7430'][Math.floor(n * 2)] };
+    if (cx === 0 || cx === 5) return { color: '#3a5d28' };
+    return { color: ['#3e7530', '#4d8a36'][Math.floor(n * 2)] };
+  },
+  default: (cx, cy, n) => ({ color: '#888' }),
+};
+
 function drawEntities(camera) {
   for (const bot of bots) {
     const dist = Math.hypot(bot.x - player.x, bot.z - player.z);
     if (settings.entityCulling && dist > settings.renderDistance + 7) continue;
     const bodyColor = bot.color;
-    renderBox(bot.x - 0.3, bot.y - 0.02, bot.z - 0.3, 0.6, 1.78, 0.6, bodyColor, camera);
-    const headColor = mixColor(bodyColor, '#ffffff', 0.3);
-    renderBox(bot.x - 0.23, bot.y + 1.25, bot.z - 0.23, 0.46, 0.48, 0.46, headColor, camera);
+    const skin = '#f0bfa1';
+    const pants = mixColor(bodyColor, '#000000', 0.55);
+    // Steve-like proportions: head 0.5, body 0.5w x 0.75h x 0.25d, arms 0.25 wide, legs 0.25 wide.
+    // Legs.
+    renderBox(bot.x - 0.25, bot.y, bot.z - 0.125, 0.25, 0.75, 0.25, pants, camera);
+    renderBox(bot.x, bot.y, bot.z - 0.125, 0.25, 0.75, 0.25, pants, camera);
+    // Body torso.
+    renderBox(bot.x - 0.25, bot.y + 0.75, bot.z - 0.125, 0.5, 0.75, 0.25, bodyColor, camera);
+    // Arms — sway slightly with movement.
+    const sway = Math.sin((bot.moveTimer || 0) * 6) * 0.08;
+    renderBox(bot.x - 0.5, bot.y + 0.78 + sway, bot.z - 0.125, 0.25, 0.7, 0.25, bodyColor, camera);
+    renderBox(bot.x + 0.25, bot.y + 0.78 - sway, bot.z - 0.125, 0.25, 0.7, 0.25, bodyColor, camera);
+    // Head.
+    renderBox(bot.x - 0.25, bot.y + 1.5, bot.z - 0.25, 0.5, 0.5, 0.5, skin, camera);
     const tag = projectPoint(bot.x, bot.y + 2.0, bot.z, camera);
     if (tag) {
       ctx.save();
