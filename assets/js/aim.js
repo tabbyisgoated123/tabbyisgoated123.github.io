@@ -87,7 +87,7 @@ document.querySelectorAll('.shape-opt').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.shape-opt').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    settings.shape = btn.dataset.shape;
+    settings.shape = SHAPES.includes(btn.dataset.shape) ? btn.dataset.shape : 'circle';
   });
 });
 

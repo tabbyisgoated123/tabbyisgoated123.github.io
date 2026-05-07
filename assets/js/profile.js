@@ -545,7 +545,9 @@
       homeLinkEl = document.createElement('a');
       homeLinkEl.className = 'profile-home-link';
       homeLinkEl.href = 'index.html';
-      homeLinkEl.textContent = 'Home';
+      homeLinkEl.textContent = 'HOME';
+      homeLinkEl.title = 'Home';
+      homeLinkEl.setAttribute('aria-label', 'Go to home page');
       dock.insertBefore(homeLinkEl, panelEl);
     }
   }
