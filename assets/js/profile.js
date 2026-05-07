@@ -13,6 +13,15 @@
     { value: '#e5e7eb', label: 'White' },
   ];
 
+  const DEFAULT_PREFS = {
+    scanline: true,
+    vignette: true,
+    reduceMotion: false,
+    cursor: 'crosshair',
+    fontScale: 1,
+    panelOpacity: 0.92,
+  };
+
   const defaultState = {
     activeId: DEFAULT_PROFILE_ID,
     profiles: [
@@ -57,15 +66,6 @@
     }
     return '255 26 26';
   }
-
-  const DEFAULT_PREFS = {
-    scanline: true,
-    vignette: true,
-    reduceMotion: false,
-    cursor: 'crosshair',
-    fontScale: 1,
-    panelOpacity: 0.92,
-  };
 
   function safePrefs(raw) {
     const prefs = raw && typeof raw === 'object' ? raw : {};
