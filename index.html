@@ -3,199 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TABBY // GAMES</title>
+<title>Tabby's Games</title>
 <link rel="stylesheet" href="assets/css/shared.css">
 <link rel="stylesheet" href="assets/css/profile.css">
 <link rel="stylesheet" href="assets/css/index.css">
 </head>
-<body class="home-body has-cursor">
+<body>
 
-<canvas id="bg-canvas"></canvas>
-<div class="bg-aurora" aria-hidden="true"></div>
-<div class="bg-noise" aria-hidden="true"></div>
+<div class="screen">
+  <div class="home-title">Tabby's Games</div>
+  <div class="home-subtitle">choose your challenge</div>
 
-<div id="cursor-glow" aria-hidden="true"></div>
-<div id="cursor-dot" aria-hidden="true"></div>
-
-<!-- BOOT SEQUENCE -->
-<div id="boot-screen">
-  <div class="boot-inner bracketed-full">
-    <span class="br-tl"></span><span class="br-tr"></span><span class="br-bl"></span><span class="br-br"></span>
-    <div class="boot-logo">TABBY/OS</div>
-    <pre id="boot-log"></pre>
-    <div class="boot-bar"><div class="boot-bar-fill"></div></div>
-    <div class="boot-tag">authenticating profile · loading modules · arming reactor</div>
+  <div class="home-menu">
+    <a href="aim.html">Aim Trainer</a>
+    <a href="cps.html">CPS Trainer</a>
+    <a href="typing.html">TabbyTyping</a>
+    <a href="#">More Soon</a>
   </div>
+
+  <div class="home-note">built from the same site theme</div>
 </div>
 
-<main class="home" id="home" aria-hidden="true">
-  <!-- HUD ribbons -->
-  <div class="ribbon ribbon-top">
-    <span class="ribbon-tag" id="profile-tag">profile · —</span>
-    <span class="ribbon-tag" id="rank-tag">rank · —</span>
-    <span class="ribbon-tag" id="clock-tag">--:--:--</span>
-  </div>
-
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-eyebrow">// reflex training suite</div>
-    <h1 class="hero-title" data-text="TABBY">
-      <span class="t-letter" data-l="T">T</span><span class="t-letter" data-l="A">A</span><span class="t-letter" data-l="B">B</span><span class="t-letter" data-l="B">B</span><span class="t-letter" data-l="Y">Y</span>
-    </h1>
-    <div class="hero-sub">
-      <span class="hero-sub-bar"></span>
-      <span class="hero-sub-text" id="typewriter">choose your challenge_</span>
-      <span class="hero-sub-bar"></span>
-    </div>
-
-    <div class="hero-stats">
-      <div class="hero-stat">
-        <div class="hs-num" id="stat-sessions">0</div>
-        <div class="hs-label">sessions</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hs-num" id="stat-best">0</div>
-        <div class="hs-label">peak score</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hs-num" id="stat-rank">—</div>
-        <div class="hs-label">rank</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hs-num" id="stat-streak">0</div>
-        <div class="hs-label">day streak</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- GAME CARDS -->
-  <section class="cards" id="cards">
-
-    <a class="card" href="aim.html" data-game="aim" style="--c: 0">
-      <div class="card-frame">
-        <div class="card-corner tl"></div><div class="card-corner tr"></div>
-        <div class="card-corner bl"></div><div class="card-corner br"></div>
-
-        <div class="card-preview" data-preview="aim">
-          <div class="aim-prev-target a"></div>
-          <div class="aim-prev-target b"></div>
-          <div class="aim-prev-target c"></div>
-          <div class="aim-prev-cross"></div>
-        </div>
-
-        <div class="card-meta">
-          <div class="card-tag">01 · reflex</div>
-          <h2 class="card-title">AIM TRAINER</h2>
-          <p class="card-desc">click. acquire. erase. classic spawn drills and a moving tracking dummy.</p>
-          <div class="card-row">
-            <span class="chip">2 modes</span>
-            <span class="chip">click-based</span>
-          </div>
-          <div class="card-cta">launch <span class="card-arrow">→</span></div>
-        </div>
-      </div>
-    </a>
-
-    <a class="card" href="cps.html" data-game="cps" style="--c: 1">
-      <div class="card-frame">
-        <div class="card-corner tl"></div><div class="card-corner tr"></div>
-        <div class="card-corner bl"></div><div class="card-corner br"></div>
-
-        <div class="card-preview" data-preview="cps">
-          <div class="cps-ring r1"></div>
-          <div class="cps-ring r2"></div>
-          <div class="cps-ring r3"></div>
-          <div class="cps-num">15.0</div>
-        </div>
-
-        <div class="card-meta">
-          <div class="card-tag">02 · velocity</div>
-          <h2 class="card-title">CPS TRAINER</h2>
-          <p class="card-desc">no targets, no rules. just clicks per second. find your ceiling, then break it.</p>
-          <div class="card-row">
-            <span class="chip">1–60s</span>
-            <span class="chip">solo</span>
-          </div>
-          <div class="card-cta">launch <span class="card-arrow">→</span></div>
-        </div>
-      </div>
-    </a>
-
-    <a class="card" href="typing.html" data-game="typing" style="--c: 2">
-      <div class="card-frame">
-        <div class="card-corner tl"></div><div class="card-corner tr"></div>
-        <div class="card-corner bl"></div><div class="card-corner br"></div>
-
-        <div class="card-preview" data-preview="typing">
-          <div class="typ-word w1">storm</div>
-          <div class="typ-word w2">vector</div>
-          <div class="typ-word w3">rapid</div>
-          <div class="typ-cursor"></div>
-        </div>
-
-        <div class="card-meta">
-          <div class="card-tag">03 · precision</div>
-          <h2 class="card-title">TABBYTYPING</h2>
-          <p class="card-desc">words fall. type them before they hit the floor. miss enough, you lose.</p>
-          <div class="card-row">
-            <span class="chip">custom banks</span>
-            <span class="chip">5 tiers</span>
-          </div>
-          <div class="card-cta">launch <span class="card-arrow">→</span></div>
-        </div>
-      </div>
-    </a>
-
-    <a class="card card-locked" href="#" data-game="next" style="--c: 3" aria-disabled="true">
-      <div class="card-frame">
-        <div class="card-corner tl"></div><div class="card-corner tr"></div>
-        <div class="card-corner bl"></div><div class="card-corner br"></div>
-
-        <div class="card-preview" data-preview="locked">
-          <div class="lock-grid">
-            <span></span><span></span><span></span><span></span>
-            <span></span><span></span><span></span><span></span>
-            <span></span><span></span><span></span><span></span>
-          </div>
-          <div class="lock-icon">[ LOCKED ]</div>
-        </div>
-
-        <div class="card-meta">
-          <div class="card-tag">04 · classified</div>
-          <h2 class="card-title">??? ???????</h2>
-          <p class="card-desc">prototype in cold storage. coming soon to the suite.</p>
-          <div class="card-row">
-            <span class="chip">soon</span>
-            <span class="chip">untested</span>
-          </div>
-          <div class="card-cta">unavailable <span class="card-arrow">×</span></div>
-        </div>
-      </div>
-    </a>
-
-  </section>
-
-  <!-- FOOTER -->
-  <footer class="home-footer">
-    <div class="hf-col">
-      <div class="hf-label">// activity</div>
-      <div class="hf-bars" id="signal-bars">
-        <span></span><span></span><span></span><span></span><span></span>
-      </div>
-    </div>
-    <div class="hf-col hf-center">
-      <div class="hf-label">tabby/games · all systems nominal</div>
-      <div class="hf-marquee"><div class="hf-track" id="marquee-track"></div></div>
-    </div>
-    <div class="hf-col hf-right">
-      <button class="hf-btn" id="theme-shift">shift palette</button>
-      <button class="hf-btn" id="audio-toggle">audio · off</button>
-    </div>
-  </footer>
-</main>
-
 <script src="assets/js/profile.js" defer></script>
-<script src="assets/js/bg.js" defer></script>
-<script src="assets/js/index.js" defer></script>
 </body>
 </html>

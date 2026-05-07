@@ -8,10 +8,7 @@
 <link rel="stylesheet" href="assets/css/profile.css">
 <link rel="stylesheet" href="assets/css/aim.css">
 </head>
-<body class="bg-dim">
-
-<canvas id="bg-canvas"></canvas>
-<div class="bg-aurora" aria-hidden="true"></div>
+<body>
 
 <div id="arena"></div>
 <div id="tracking-target"></div>
@@ -28,11 +25,10 @@
   <div id="accuracy-val">—</div>
 </div>
 <div id="timer-bar-wrap"><div id="timer-bar"></div></div>
-<div id="timer-display">60s</div>
+<div id="timer-display">60 s</div>
 
 <!-- ── START SCREEN ── -->
 <div class="screen" id="start-screen">
-  <div class="screen-eyebrow">// 01 · reflex training</div>
   <div class="screen-title">
     Tabby's<span class="sub-title">Aim Trainer</span>
   </div>
@@ -43,8 +39,7 @@
     <button class="mode-btn" id="btn-tracking">Tracking</button>
   </div>
 
-  <div class="settings-panel bracketed-full">
-    <span class="br-tl"></span><span class="br-tr"></span><span class="br-bl"></span><span class="br-br"></span>
+  <div class="settings-panel">
     <!-- CLASSIC -->
     <div id="classic-settings">
       <div class="setting-row">
@@ -56,7 +51,7 @@
         <input type="range" id="size-slider" min="1" max="3" value="2">
       </div>
       <div class="setting-row">
-        <div class="setting-label">Duration <span id="dur-val">30s</span></div>
+<div class="setting-label">Duration <span id="dur-val">30 s</span></div>
         <input type="range" id="dur-slider" min="1" max="5" value="2">
       </div>
     </div>
@@ -77,7 +72,7 @@
         <input type="range" id="track-size-slider" min="1" max="3" value="2">
       </div>
       <div class="setting-row">
-        <div class="setting-label">Duration <span id="track-dur-val">30s</span></div>
+<div class="setting-label">Duration <span id="track-dur-val">30 s</span></div>
         <input type="range" id="track-dur-slider" min="1" max="5" value="2">
       </div>
     </div>
@@ -88,7 +83,6 @@
 
 <!-- ── END SCREEN ── -->
 <div class="screen hidden" id="end-screen">
-  <div class="screen-eyebrow">// run complete</div>
   <div class="end-mode-tag" id="end-mode-tag">classic mode</div>
   <div class="mode-note">TIME'S UP</div>
   <div class="big-score" id="final-score">0</div>
@@ -107,7 +101,6 @@
 </div>
 
 <script src="assets/js/profile.js" defer></script>
-<script src="assets/js/bg.js" defer></script>
 <script src="assets/js/aim.js" defer></script>
 </body>
 </html>

@@ -21,7 +21,7 @@ let liveInterval = null;
 
 durSlider.addEventListener('input', () => {
   durKey = +durSlider.value;
-  durVal.textContent = DUR_MAP[durKey] + 's';
+  durVal.textContent = DUR_MAP[durKey] + ' s';
 });
 
 document.getElementById('start-btn').addEventListener('click', startGame);
@@ -43,7 +43,7 @@ function startGame() {
   requestAnimationFrame(() => {
     timerBar.style.transition = 'width 1s linear';
   });
-  timerDisp.textContent = timeLeft + 's';
+  timerDisp.textContent = timeLeft + ' s';
 
   clearInterval(countdownInterval);
   clearInterval(liveInterval);
@@ -54,7 +54,6 @@ function startGame() {
 
   startScreen.classList.add('hidden');
   endScreen.classList.add('hidden');
-  document.body.classList.add('bg-paused');
   gameActive = true;
 
   document.getElementById('cps-hud').style.display = 'block';
@@ -62,7 +61,7 @@ function startGame() {
 
   countdownInterval = setInterval(() => {
     timeLeft--;
-    timerDisp.textContent = timeLeft + 's';
+    timerDisp.textContent = timeLeft + ' s';
     timerBar.style.width = `${(timeLeft / DUR_MAP[durKey]) * 100}%`;
     if (timeLeft <= 0) endGame();
   }, 1000);
@@ -108,7 +107,6 @@ function startCPS() {
 
 function endGame() {
   gameActive = false;
-  document.body.classList.remove('bg-paused');
   clearInterval(countdownInterval);
   clearInterval(liveInterval);
   if (cpsSurfaceHandler) {
@@ -122,24 +120,6 @@ function endGame() {
   document.getElementById('final-clicks').textContent = cpsClicks;
   document.getElementById('final-peak').textContent = cpsPeak.toFixed(1);
   document.getElementById('final-avg').textContent = (cpsClicks / DUR_MAP[durKey]).toFixed(1);
-
-  // persist
-  try {
-    const KEY = 'tabby_profiles_v1';
-    const raw = localStorage.getItem(KEY);
-    if (raw) {
-      const data = JSON.parse(raw);
-      const prof = (data.profiles || []).find((p) => p.id === data.activeId);
-      if (prof) {
-        prof.gameStats = prof.gameStats || {};
-        const slot = prof.gameStats.cps = prof.gameStats.cps || {};
-        if (!Number.isFinite(slot.high) || cpsClicks > slot.high) slot.high = cpsClicks;
-        if (!Number.isFinite(slot.peakCps) || cpsPeak > slot.peakCps) slot.peakCps = cpsPeak;
-        slot.runs = (slot.runs || 0) + 1;
-        localStorage.setItem(KEY, JSON.stringify(data));
-      }
-    }
-  } catch (e) { /* ignore */ }
 
   endScreen.classList.remove('hidden');
 }
