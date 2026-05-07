@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TabbyCraft</title>
+<link rel="stylesheet" href="assets/css/shared.css">
+<link rel="stylesheet" href="assets/css/profile.css">
+<link rel="stylesheet" href="assets/css/tabbycraft.css">
+</head>
+<body>
+
+<canvas id="craft-canvas"></canvas>
+
+<div id="craft-overlay">
+  <div id="craft-stats">
+    <div class="craft-stat"><span>blocks</span> <strong id="stat-blocks">0</strong></div>
+    <div class="craft-stat"><span>day</span> <strong id="stat-day">1</strong></div>
+    <div class="craft-stat"><span>mode</span> <strong id="stat-mode">survival</strong></div>
+    <div class="craft-stat"><span>bots</span> <strong id="stat-bots">0</strong></div>
+  </div>
+  <div id="craft-message"></div>
+  <div id="craft-crosshair"></div>
+  <div id="craft-hotbar"></div>
+  <button type="button" class="action-btn sm craft-menu-btn" id="craft-menu-btn">settings</button>
+</div>
+
+<div id="craft-craft-panel" class="craft-panel hidden">
+  <div class="craft-panel-title">inventory & crafting</div>
+  <div id="craft-inventory-list"></div>
+  <div id="craft-recipes"></div>
+</div>
+
+<div id="craft-mobile-controls" class="craft-mobile hidden">
+  <div class="craft-stick" id="move-stick"><div class="craft-stick-knob"></div></div>
+  <div class="craft-look" id="look-pad"></div>
+  <div class="craft-mobile-actions">
+    <button type="button" class="craft-mobile-btn" id="mobile-jump">jump</button>
+    <button type="button" class="craft-mobile-btn" id="mobile-break">break</button>
+    <button type="button" class="craft-mobile-btn" id="mobile-place">place</button>
+    <button type="button" class="craft-mobile-btn" id="mobile-inventory">craft</button>
+  </div>
+</div>
+
+<div class="screen" id="craft-start-screen">
+  <div class="screen-title">
+    Tabby<span class="sub-title">Craft</span>
+  </div>
+  <p>// a voxel sandbox inspired by the block-building classic</p>
+
+  <div class="settings-panel craft-settings">
+    <div class="craft-grid">
+      <div class="craft-section">
+        <div class="craft-section-title">World</div>
+        <div class="setting-row">
+          <div class="setting-label">Seed <span id="seed-value">tabby</span></div>
+          <input id="seed-input" type="text" maxlength="32" spellcheck="false" />
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Preset <span id="preset-value">Plains</span></div>
+          <select id="preset-select">
+            <option value="plains">Plains</option>
+            <option value="forest">Forest</option>
+            <option value="desert">Desert</option>
+            <option value="islands">Islands</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">World size <span id="world-size-value">48</span></div>
+          <input id="world-size-slider" type="range" min="24" max="72" step="8" value="48">
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Render distance <span id="render-value">8</span></div>
+          <input id="render-slider" type="range" min="4" max="12" step="1" value="8">
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Game mode <span id="mode-value">survival</span></div>
+          <select id="mode-select">
+            <option value="survival">Survival</option>
+            <option value="creative">Creative</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Difficulty <span id="difficulty-value">normal</span></div>
+          <select id="difficulty-select">
+            <option value="easy">Easy</option>
+            <option value="normal">Normal</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Day length <span id="day-length-value">3</span></div>
+          <input id="day-length-slider" type="range" min="1" max="6" step="1" value="3">
+        </div>
+      </div>
+
+      <div class="craft-section">
+        <div class="craft-section-title">Controls</div>
+        <label class="craft-toggle">
+          <input id="mobile-toggle" type="checkbox">
+          <span>Optional mobile controls</span>
+        </label>
+        <div class="setting-row">
+          <div class="setting-label">Look sensitivity <span id="sensitivity-value">1.0</span></div>
+          <input id="sensitivity-slider" type="range" min="5" max="20" step="1" value="10">
+        </div>
+        <label class="craft-toggle">
+          <input id="sprint-toggle" type="checkbox" checked>
+          <span>Hold shift to sprint</span>
+        </label>
+        <label class="craft-toggle">
+          <input id="auto-jump-toggle" type="checkbox">
+          <span>Auto jump</span>
+        </label>
+      </div>
+
+      <div class="craft-section">
+        <div class="craft-section-title">Performance</div>
+        <label class="craft-toggle">
+          <input id="entity-culling-toggle" type="checkbox" checked>
+          <span>Entity culling</span>
+        </label>
+        <label class="craft-toggle">
+          <input id="fog-toggle" type="checkbox">
+          <span>Fog remover</span>
+        </label>
+        <label class="craft-toggle">
+          <input id="cloud-toggle" type="checkbox">
+          <span>Cloud remover</span>
+        </label>
+        <label class="craft-toggle">
+          <input id="shadow-toggle" type="checkbox" checked>
+          <span>Shadows</span>
+        </label>
+        <label class="craft-toggle">
+          <input id="lowpoly-toggle" type="checkbox">
+          <span>Low poly mode</span>
+        </label>
+      </div>
+
+      <div class="craft-section">
+        <div class="craft-section-title">Mods</div>
+        <label class="craft-toggle">
+          <input id="lucky-toggle" type="checkbox" checked>
+          <span>Lucky blocks</span>
+        </label>
+        <label class="craft-toggle">
+          <input id="crazy-tnt-toggle" type="checkbox" checked>
+          <span>Crazy TNT</span>
+        </label>
+        <label class="craft-toggle">
+          <input id="bots-toggle" type="checkbox" checked>
+          <span>Bots that play alongside you</span>
+        </label>
+        <div class="setting-row">
+          <div class="setting-label">Bot count <span id="bot-count-value">3</span></div>
+          <input id="bot-count-slider" type="range" min="0" max="8" step="1" value="3">
+        </div>
+      </div>
+    </div>
+
+    <div class="craft-actions">
+      <button type="button" class="action-btn" id="random-seed-btn">random seed</button>
+      <button type="button" class="action-btn" id="regenerate-btn">new world</button>
+      <button type="button" class="action-btn" id="play-btn">play</button>
+    </div>
+    <div class="craft-help">
+      WASD to move, mouse to look, left click to break, right click to place, <kbd>E</kbd> to open crafting, <kbd>Esc</kbd> to pause.
+    </div>
+  </div>
+</div>
+
+<div class="screen hidden" id="craft-pause-screen">
+  <div class="screen-title">
+    Tabby<span class="sub-title">Craft</span>
+  </div>
+  <div class="mode-note">PAUSED</div>
+  <div class="craft-pause-copy">
+    <div>blocks mined <strong id="pause-blocks">0</strong></div>
+    <div>day <strong id="pause-day">1</strong></div>
+    <div>bots <strong id="pause-bots">0</strong></div>
+  </div>
+  <button type="button" class="action-btn" id="resume-btn">resume</button>
+  <button type="button" class="action-btn sm" id="new-world-btn">new world</button>
+  <button type="button" class="action-btn sm" id="back-home-btn">main menu</button>
+</div>
+
+<script src="assets/js/profile.js" defer></script>
+<script src="assets/js/tabbycraft.js" defer></script>
+</body>
+</html>

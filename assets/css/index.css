@@ -18,16 +18,20 @@
 
 .home-menu {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   border: 1px solid rgb(var(--accent-rgb) / 0.33);
   overflow: hidden;
 }
 
 .home-menu a {
+  flex: 1 1 160px;
   padding: 12px 30px;
   text-decoration: none;
   color: #555;
   border-right: 1px solid rgb(var(--accent-rgb) / 0.2);
   transition: color 0.18s, background 0.18s;
+  text-align: center;
 }
 
 .home-menu a:last-child {
