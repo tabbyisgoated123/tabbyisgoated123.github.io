@@ -8,7 +8,10 @@
 <link rel="stylesheet" href="assets/css/profile.css">
 <link rel="stylesheet" href="assets/css/typing.css">
 </head>
-<body>
+<body class="bg-dim">
+
+<canvas id="bg-canvas"></canvas>
+<div class="bg-aurora" aria-hidden="true"></div>
 
 <div id="typing-field"></div>
 <div id="miss-flash"></div>
@@ -24,19 +27,21 @@
 </div>
 
 <div id="timer-bar-wrap"><div id="timer-bar"></div></div>
-<div id="timer-display">60 s</div>
+<div id="timer-display">60s</div>
 
 <div class="screen" id="start-screen">
+  <div class="screen-eyebrow">// 03 · precision training</div>
   <div class="screen-title">
     Tabby<span class="sub-title">Typing</span>
   </div>
-  <p>// catch the falling words before they hit bottom</p>
+  <p>// type the falling words before they hit bottom</p>
   <div class="typing-best-banner">profile best <strong id="start-best">0</strong></div>
 
-  <div class="settings-panel typing-panel">
+  <div class="settings-panel typing-panel bracketed-full">
+    <span class="br-tl"></span><span class="br-tr"></span><span class="br-bl"></span><span class="br-br"></span>
     <div class="typing-grid">
       <div class="setting-row">
-        <div class="setting-label">Round length <span id="dur-val">60 s</span></div>
+        <div class="setting-label">Round length <span id="dur-val">60s</span></div>
         <input type="range" id="dur-slider" min="1" max="5" value="2">
       </div>
       <div class="setting-row">
@@ -85,6 +90,7 @@
 </div>
 
 <div class="screen hidden" id="end-screen">
+  <div class="screen-eyebrow">// run complete</div>
   <div class="end-mode-tag" id="end-mode-tag">typing mode</div>
   <div class="mode-note">TIME'S UP</div>
   <div class="big-score" id="final-score">0</div>
@@ -102,6 +108,7 @@
 </div>
 
 <script src="assets/js/profile.js" defer></script>
+<script src="assets/js/bg.js" defer></script>
 <script src="assets/js/typing.js" defer></script>
 </body>
 </html>

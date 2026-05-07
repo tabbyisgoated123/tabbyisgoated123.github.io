@@ -47,7 +47,7 @@ wire('size-slider', 'size-val', v => {
 });
 wire('dur-slider', 'dur-val', v => {
   settings.classic.durKey = v;
-  return DUR_MAP[v] + ' s';
+  return DUR_MAP[v] + 's';
 });
 wire('track-size-slider', 'track-size-val', v => {
   settings.tracking.sizeKey = v;
@@ -55,7 +55,7 @@ wire('track-size-slider', 'track-size-val', v => {
 });
 wire('track-dur-slider', 'track-dur-val', v => {
   settings.tracking.durKey = v;
-  return DUR_MAP[v] + ' s';
+  return DUR_MAP[v] + 's';
 });
 
 document.querySelectorAll('.speed-opt').forEach(btn => {
@@ -91,6 +91,8 @@ let trailRaf = null;
 let trackSize = 44;
 let trackCurX = 0;
 let trackCurY = 0;
+let combo = 0;
+let bestCombo = 0;
 
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('restart-btn').addEventListener('click', startGame);
@@ -107,17 +109,20 @@ function startGame() {
   score = 0;
   hits = 0;
   misses = 0;
+  combo = 0;
+  bestCombo = 0;
   timeLeft = getDuration();
 
   scoreEl.textContent = '0';
   accVal.textContent = '—';
+  updateCombo();
 
   timerBar.style.transition = 'none';
   timerBar.style.width = '100%';
   requestAnimationFrame(() => {
     timerBar.style.transition = 'width 1s linear';
   });
-  timerDisp.textContent = timeLeft + ' s';
+  timerDisp.textContent = timeLeft + 's';
 
   arena.innerHTML = '';
   arena.onclick = null;
@@ -134,6 +139,7 @@ function startGame() {
 
   startScreen.classList.add('hidden');
   endScreen.classList.add('hidden');
+  document.body.classList.add('bg-paused');
   gameActive = true;
 
   const dur = getDuration();
@@ -149,7 +155,7 @@ function startGame() {
 
   countdownInterval = setInterval(() => {
     timeLeft--;
-    timerDisp.textContent = timeLeft + ' s';
+    timerDisp.textContent = timeLeft + 's';
     timerBar.style.width = `${(timeLeft / dur) * 100}%`;
     if (timeLeft <= 0) endGame();
   }, 1000);
@@ -166,7 +172,9 @@ function startClassic() {
   arena.onclick = e => {
     if (!gameActive || e.target !== arena) return;
     misses++;
+    combo = 0;
     updateAcc();
+    updateCombo();
     flashMiss();
   };
 }
@@ -184,27 +192,17 @@ function spawnTarget() {
   btn.style.cssText = `width:${size}px;height:${size}px;left:${x - size / 2}px;top:${y - size / 2}px;`;
   arena.appendChild(btn);
 
-  const lifetime = Math.max(750, 2000 - settings.classic.maxTargets * 110);
-  const to = setTimeout(() => {
-    if (btn.parentNode && !btn.classList.contains('dying')) {
-      btn.classList.add('dying');
-      misses++;
-      updateAcc();
-      flashMiss();
-      btn.addEventListener('animationend', () => btn.remove(), { once: true });
-      targetTimeouts.delete(btn);
-    }
-  }, lifetime);
-  targetTimeouts.set(btn, to);
+  // Targets persist until clicked — no auto-despawn.
 
   btn.addEventListener('click', e => {
     if (!gameActive || btn.classList.contains('dying')) return;
-    clearTimeout(targetTimeouts.get(btn));
-    targetTimeouts.delete(btn);
-    score++;
+    combo += 1;
+    if (combo > bestCombo) bestCombo = combo;
+    score += 1 + Math.floor(combo / 5);
     hits++;
     updateScore();
     updateAcc();
+    updateCombo();
     spawnHitEffect(e.clientX, e.clientY);
     btn.classList.add('dying');
     btn.style.pointerEvents = 'none';
@@ -242,10 +240,13 @@ function startTracking() {
 
   trackingEl.onclick = e => {
     if (!gameActive) return;
-    score++;
+    combo += 1;
+    if (combo > bestCombo) bestCombo = combo;
+    score += 1 + Math.floor(combo / 5);
     hits++;
     updateScore();
     updateAcc();
+    updateCombo();
     spawnHitEffect(e.clientX, e.clientY);
     trackingEl.style.boxShadow = '0 0 0 4px var(--accent), 0 0 50px var(--accent-glow), 0 0 100px rgb(var(--accent-rgb) / 0.55)';
     setTimeout(() => {
@@ -256,7 +257,9 @@ function startTracking() {
   arena.onclick = e => {
     if (!gameActive || e.target !== arena) return;
     misses++;
+    combo = 0;
     updateAcc();
+    updateCombo();
     flashMiss();
   };
 
@@ -294,6 +297,7 @@ function startTrail() {
 
 function endGame() {
   gameActive = false;
+  document.body.classList.remove('bg-paused');
   clearInterval(spawnInterval);
   clearInterval(countdownInterval);
   clearInterval(trackMoveInterval);
@@ -316,7 +320,26 @@ function endGame() {
   const total = hits + misses;
   document.getElementById('final-acc').textContent = total > 0 ? Math.round((hits / total) * 100) + '%' : '—';
 
+  persistResult();
   endScreen.classList.remove('hidden');
+}
+
+// ── persist best score onto active profile (real data home reads) ──
+function persistResult() {
+  try {
+    const KEY = 'tabby_profiles_v1';
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    const prof = (data.profiles || []).find((p) => p.id === data.activeId);
+    if (!prof) return;
+    prof.gameStats = prof.gameStats || {};
+    const slot = prof.gameStats['aim.' + currentMode] = prof.gameStats['aim.' + currentMode] || {};
+    if (!Number.isFinite(slot.high) || score > slot.high) slot.high = score;
+    if (!Number.isFinite(slot.bestCombo) || bestCombo > slot.bestCombo) slot.bestCombo = bestCombo;
+    slot.runs = (slot.runs || 0) + 1;
+    localStorage.setItem(KEY, JSON.stringify(data));
+  } catch (e) { /* ignore */ }
 }
 
 function updateScore() {
@@ -325,6 +348,43 @@ function updateScore() {
   void scoreEl.offsetWidth;
   scoreEl.classList.add('pop');
   setTimeout(() => scoreEl.classList.remove('pop'), 120);
+  shake(combo >= 10 ? 6 : 3);
+}
+
+function updateCombo() {
+  let chip = document.getElementById('combo-chip');
+  if (!chip) {
+    chip = document.createElement('div');
+    chip.id = 'combo-chip';
+    document.body.appendChild(chip);
+  }
+  if (combo < 2) {
+    chip.classList.remove('show');
+    return;
+  }
+  chip.textContent = `× ${combo}`;
+  chip.classList.add('show');
+  chip.classList.remove('flash');
+  void chip.offsetWidth;
+  chip.classList.add('flash');
+  if (combo >= 10) chip.classList.add('hot'); else chip.classList.remove('hot');
+}
+
+let shakeRaf = null;
+function shake(intensity = 4) {
+  cancelAnimationFrame(shakeRaf);
+  const start = performance.now();
+  const dur = 220;
+  function frame(t) {
+    const p = (t - start) / dur;
+    if (p >= 1) { document.body.style.transform = ''; return; }
+    const decay = 1 - p;
+    const x = (Math.random() - 0.5) * intensity * decay;
+    const y = (Math.random() - 0.5) * intensity * decay;
+    document.body.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px)`;
+    shakeRaf = requestAnimationFrame(frame);
+  }
+  shakeRaf = requestAnimationFrame(frame);
 }
 
 function updateAcc() {

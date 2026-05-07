@@ -246,6 +246,37 @@
   z-index: 190;
 }
 
+#combo-chip {
+  position: fixed;
+  top: 110px;
+  right: 24px;
+  z-index: 210;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 4px;
+  padding: 6px 12px;
+  border: 1px solid rgb(var(--accent-rgb) / 0.5);
+  background: rgb(var(--accent-rgb) / 0.1);
+  color: var(--accent-glow);
+  text-shadow: 0 0 12px rgb(var(--accent-rgb) / 0.7);
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s, border-color 0.2s, background 0.2s;
+  pointer-events: none;
+}
+#combo-chip.show { opacity: 1; transform: translateX(0); }
+#combo-chip.flash { animation: combo-pop 0.18s ease-out; }
+#combo-chip.hot {
+  color: #fff;
+  border-color: var(--accent);
+  background: rgb(var(--accent-rgb) / 0.25);
+  box-shadow: 0 0 24px rgb(var(--accent-rgb) / 0.5);
+}
+@keyframes combo-pop {
+  0% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
 .mode-select {
   display: flex;
   gap: 0;

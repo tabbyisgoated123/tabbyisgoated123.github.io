@@ -8,12 +8,15 @@
 <link rel="stylesheet" href="assets/css/profile.css">
 <link rel="stylesheet" href="assets/css/cps.css">
 </head>
-<body>
+<body class="bg-dim">
+
+<canvas id="bg-canvas"></canvas>
+<div class="bg-aurora" aria-hidden="true"></div>
 
 <div id="cps-field"></div>
 
 <div id="timer-bar-wrap"><div id="timer-bar"></div></div>
-<div id="timer-display">5 s</div>
+<div id="timer-display">5s</div>
 
 <div id="cps-hud">
   <div class="label">clicks / sec</div>
@@ -21,14 +24,16 @@
 </div>
 
 <div class="screen" id="start-screen">
+  <div class="screen-eyebrow">// 02 · velocity training</div>
   <div class="screen-title">
     Tabby's<span class="sub-title">CPS Trainer</span>
   </div>
   <p>// click anywhere as fast as possible</p>
 
-  <div class="settings-panel cps-panel">
+  <div class="settings-panel cps-panel bracketed-full">
+    <span class="br-tl"></span><span class="br-tr"></span><span class="br-bl"></span><span class="br-br"></span>
     <div class="setting-row">
-<div class="setting-label">Duration <span id="dur-val">5 s</span></div>
+      <div class="setting-label">Duration <span id="dur-val">5s</span></div>
       <input type="range" id="dur-slider" min="1" max="5" value="1">
     </div>
     <div class="cps-help">Every click counts. The ring appears where you clicked.</div>
@@ -38,6 +43,7 @@
 </div>
 
 <div class="screen hidden" id="end-screen">
+  <div class="screen-eyebrow">// run complete</div>
   <div class="end-mode-tag" id="end-mode-tag">cps mode</div>
   <div class="mode-note">TIME'S UP</div>
   <div class="big-score" id="final-score">0</div>
@@ -51,6 +57,7 @@
 </div>
 
 <script src="assets/js/profile.js" defer></script>
+<script src="assets/js/bg.js" defer></script>
 <script src="assets/js/cps.js" defer></script>
 </body>
 </html>

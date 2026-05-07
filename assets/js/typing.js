@@ -114,7 +114,7 @@ function refreshProfileHighScore() {
 }
 
 function loadUi() {
-  setUiValue('dur-val', DUR_MAP[state.durKey] + ' s');
+  setUiValue('dur-val', DUR_MAP[state.durKey] + 's');
   setUiValue('lives-val', String(state.lives));
   setUiValue('spawn-val', labelForSpawn(state.spawnKey));
   setUiValue('speed-val', labelForSpeed(state.speedKey));
@@ -134,7 +134,7 @@ function labelForSpeed(key) {
 
 durSlider.addEventListener('input', () => {
   state.durKey = +durSlider.value;
-  setUiValue('dur-val', DUR_MAP[state.durKey] + ' s');
+  setUiValue('dur-val', DUR_MAP[state.durKey] + 's');
 });
 
 livesSlider.addEventListener('input', () => {
@@ -250,7 +250,7 @@ function startGame() {
   requestAnimationFrame(() => {
     timerBar.style.transition = 'width 1s linear';
   });
-  timerDisp.textContent = timeLeft + ' s';
+  timerDisp.textContent = timeLeft + 's';
 
   clearInterval(countdownInterval);
   clearInterval(spawnInterval);
@@ -259,6 +259,7 @@ function startGame() {
 
   startScreen.classList.add('hidden');
   endScreen.classList.add('hidden');
+  document.body.classList.add('bg-paused');
   gameActive = true;
 
   spawnInitialWords();
@@ -294,7 +295,7 @@ function startGame() {
 
   countdownInterval = setInterval(() => {
     timeLeft--;
-    timerDisp.textContent = timeLeft + ' s';
+    timerDisp.textContent = timeLeft + 's';
     timerBar.style.width = `${(timeLeft / DUR_MAP[state.durKey]) * 100}%`;
     if (timeLeft <= 0) endGame();
   }, 1000);
@@ -487,6 +488,7 @@ function flashMiss() {
 
 function endGame() {
   gameActive = false;
+  document.body.classList.remove('bg-paused');
   clearInterval(countdownInterval);
   clearInterval(spawnInterval);
   clearInterval(difficultyInterval);
