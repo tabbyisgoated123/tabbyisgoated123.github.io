@@ -18,6 +18,7 @@ if (trackingLegacy) trackingLegacy.remove();
 const DUR_MAP = { 1: 15, 2: 30, 3: 60, 4: 90, 5: 120 };
 const SIZE_MAP = { 1: [18, 32], 2: [30, 54], 3: [48, 76] };
 const SIZE_LBL = { 1: 'Small', 2: 'Med', 3: 'Large' };
+const SHAPES = ['circle', 'square', 'diamond'];
 // Pixel-per-second baselines so it feels deliberate.
 const SPEED_PRESETS = {
   crawl:  { speed: 80,  amp: 80 },
@@ -38,6 +39,7 @@ let settings = {
     sizeKey: 2,
     durKey: 2,
   },
+  shape: 'circle',
 };
 
 function wire(sliderId, labelId, mapOrFn) {
@@ -79,6 +81,14 @@ wire('track-mult-slider', 'track-mult-val', v => {
 wire('track-count-slider', 'track-count-val', v => {
   settings.tracking.count = v;
   return v;
+});
+
+document.querySelectorAll('.shape-opt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.shape-opt').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    settings.shape = btn.dataset.shape;
+  });
 });
 
 document.querySelectorAll('.speed-opt').forEach(btn => {
@@ -220,7 +230,7 @@ function spawnTarget() {
   const y = Math.random() * (window.innerHeight - margin * 2 - 40) + margin;
 
   const btn = document.createElement('button');
-  btn.className = 'target';
+  btn.className = `target shape-${settings.shape}`;
   btn.style.cssText = `width:${size}px;height:${size}px;left:${x - size / 2}px;top:${y - size / 2}px;`;
   arena.appendChild(btn);
 
@@ -258,7 +268,7 @@ function startTracking() {
   for (let i = 0; i < count; i++) {
     const size = Math.floor(Math.random() * (maxS - minS)) + minS;
     const el = document.createElement('div');
-    el.className = 'slide-target';
+    el.className = `slide-target shape-${settings.shape}`;
     el.style.width = size + 'px';
     el.style.height = size + 'px';
     arena.appendChild(el);
@@ -425,8 +435,8 @@ function updateAcc() {
 }
 
 function flashMiss() {
-  missFlash.style.opacity = '1';
-  setTimeout(() => (missFlash.style.opacity = '0'), 100);
+  // Aim trainer misses no longer use a full-screen color flash.
+  if (missFlash) missFlash.style.opacity = '0';
 }
 
 function spawnHitEffect(cx, cy) {
