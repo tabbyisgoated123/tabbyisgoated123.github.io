@@ -11,6 +11,60 @@
     radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0, rgba(255, 255, 255, 0.02) 20%, transparent 42%);
 }
 
+#arena.mode-threeD::after {
+  content: '';
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgb(var(--accent-rgb) / 0.74);
+  border-radius: 50%;
+  box-shadow: 0 0 18px rgb(var(--accent-rgb) / 0.36);
+  pointer-events: none;
+  z-index: 120;
+}
+
+#arena.mode-threeD::before {
+  content: '';
+  position: fixed;
+  left: calc(50% - 11px);
+  top: 50%;
+  width: 22px;
+  height: 1px;
+  background: rgb(var(--accent-rgb) / 0.74);
+  box-shadow: 0 -10px 0 -0.5px rgb(var(--accent-rgb) / 0.5), 0 10px 0 -0.5px rgb(var(--accent-rgb) / 0.5);
+  pointer-events: none;
+  z-index: 121;
+}
+
+.three-aim-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+}
+
+.three-error {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 130;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgb(var(--accent-rgb) / 0.34);
+  background: rgba(0, 0, 0, 0.74);
+  color: var(--accent);
+  font-family: 'Share Tech Mono', monospace;
+  cursor: pointer;
+  padding: 18px 22px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  text-align: center;
+  box-shadow: 0 0 42px rgb(var(--accent-rgb) / 0.16);
+}
+
 #hud {
   position: fixed;
   top: 20px;

@@ -29,7 +29,9 @@ body {
 }
 
 body {
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 50% 0%, rgb(var(--accent-rgb) / 0.12), transparent 34%),
+    linear-gradient(180deg, #080808 0%, #020202 100%);
   font-family: 'Share Tech Mono', monospace;
   overflow: hidden;
   height: 100vh;
@@ -95,8 +97,12 @@ body[data-cursor="none"] {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  background: rgba(0, 0, 0, 0.95);
+  padding: 24px;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(4, 4, 4, 0.96)),
+    repeating-linear-gradient(90deg, transparent 0 54px, rgb(var(--accent-rgb) / 0.035) 54px 55px);
   transition: opacity 0.35s ease;
+  overflow: auto;
 }
 
 .screen.hidden {
@@ -118,9 +124,20 @@ body[data-cursor="none"] {
   padding: 14px 52px;
   cursor: pointer;
   text-transform: uppercase;
-  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, color 0.2s, border-color 0.2s, background 0.2s, box-shadow 0.2s, letter-spacing 0.2s;
   text-shadow: 0 0 10px rgb(var(--accent-rgb) / 0.35);
   margin-top: 4px;
+}
+
+.action-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgb(var(--accent-rgb) / 0.22), transparent);
+  transform: translateX(-120%);
+  transition: transform 0.34s ease;
 }
 
 .action-btn:hover {
@@ -128,6 +145,11 @@ body[data-cursor="none"] {
   border-color: var(--accent);
   box-shadow: 0 0 40px rgb(var(--accent-rgb) / 0.22);
   letter-spacing: 8px;
+  transform: translateY(-1px);
+}
+
+.action-btn:hover::before {
+  transform: translateX(120%);
 }
 
 .action-btn.sm {

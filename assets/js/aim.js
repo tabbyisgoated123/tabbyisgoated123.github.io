@@ -19,8 +19,9 @@ const DUR_MAP = { 1: 15, 2: 30, 3: 60, 4: 90, 5: 120 };
 const SIZE_MAP = { 1: [18, 32], 2: [30, 54], 3: [48, 76] };
 const SIZE_LBL = { 1: 'Small', 2: 'Med', 3: 'Large' };
 const SHAPES = ['circle', 'square', 'diamond'];
-const THREE_SPEED = { 1: 90, 2: 150, 3: 220, 4: 310, 5: 420 };
-const THREE_DEPTH = { 1: 0.55, 2: 0.75, 3: 1.0, 4: 1.25, 5: 1.55 };
+const THREE_SPEED = { 1: 1.4, 2: 2.2, 3: 3.1, 4: 4.2, 5: 5.8 };
+const THREE_TARGET_SIZE = { 1: 0.24, 2: 0.34, 3: 0.48 };
+const THREE_WORLD_LIMIT = 18;
 // Pixel-per-second baselines so it feels deliberate.
 const SPEED_PRESETS = {
   crawl:  { speed: 80,  amp: 80 },
@@ -175,6 +176,7 @@ let threeTargets = [];
 let threeRaf = null;
 let threeLastTs = 0;
 let threeElapsed = 0;
+let threeState = null;
 
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('restart-btn').addEventListener('click', startGame);
@@ -203,6 +205,7 @@ function startGame() {
   });
   timerDisp.textContent = timeLeft + ' s';
 
+  destroyThreeDScene();
   arena.innerHTML = '';
   arena.onclick = null;
   arena.classList.toggle('mode-threeD', currentMode === 'threeD');
@@ -215,7 +218,7 @@ function startGame() {
   targetTimeouts.clear();
   trackTargets.forEach(t => t.el.remove());
   trackTargets = [];
-  threeTargets.forEach(t => t.el.remove());
+  threeTargets.forEach(t => t.el?.remove?.());
   threeTargets = [];
   trackElapsed = 0;
   trackOnTime = 0;
@@ -246,6 +249,7 @@ function startGame() {
     }
   }
 
+  if (!gameActive) return;
   countdownInterval = setInterval(() => {
     timeLeft--;
     timerDisp.textContent = timeLeft + ' s';
@@ -346,168 +350,312 @@ function startTracking() {
 }
 
 function startThreeD() {
-  const count = settings.threeD.count;
-  const angleRad = (settings.threeD.angleDeg % 360) * Math.PI / 180;
-  const speed = THREE_SPEED[settings.threeD.speedKey] || THREE_SPEED[3];
-  const baseDir = { x: Math.cos(angleRad), y: Math.sin(angleRad) };
-
-  for (let i = 0; i < count; i++) {
-    spawnThreeDTarget(i, baseDir, speed);
+  if (!window.THREE) {
+    modeLbl.textContent = '// 3d engine unavailable';
+    const errBtn = document.createElement('button');
+    errBtn.type = 'button';
+    errBtn.className = 'three-error';
+    errBtn.textContent = '3D engine failed to load';
+    errBtn.addEventListener('click', () => {
+      arena.innerHTML = '';
+      arena.classList.remove('mode-threeD');
+      startScreen.classList.remove('hidden');
+    }, { once: true });
+    arena.appendChild(errBtn);
+    gameActive = false;
+    clearInterval(countdownInterval);
+    return;
   }
 
-  arena.onclick = null;
+  setupThreeDScene();
+  for (let i = 0; i < settings.threeD.count; i++) spawnThreeDTarget(i);
   threeLastTs = 0;
   threeRaf = requestAnimationFrame(threeLoop);
 }
 
-function spawnThreeDTarget(index, dir, speed) {
-  const [minS, maxS] = SIZE_MAP[settings.threeD.sizeKey];
-  const baseSize = Math.floor(Math.random() * (maxS - minS)) + minS;
-  const capsuleW = Math.round(baseSize * 0.72);
-  const capsuleH = Math.round(baseSize * 1.72);
-  const marginX = capsuleW + 24;
-  const marginY = capsuleH + 24;
-  const xRange = Math.max(0, window.innerWidth - marginX * 2);
-  const yRange = Math.max(0, window.innerHeight - marginY * 2 - 40);
-  const x = marginX + Math.random() * xRange;
-  const y = marginY + Math.random() * yRange;
-  const depthPhase = Math.random() * Math.PI * 2;
-  const lifeLeft = 1600 + Math.random() * 900;
+function setupThreeDScene() {
+  destroyThreeDScene();
 
-  const el = document.createElement('button');
-  el.type = 'button';
-  el.className = 'target three-target shape-capsule';
-  el.style.width = capsuleW + 'px';
-  el.style.height = capsuleH + 'px';
-  arena.appendChild(el);
+  const THREE = window.THREE;
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ff1a1a';
+  const accentColor = new THREE.Color(accent);
+  const dimAccent = accentColor.clone().multiplyScalar(0.22);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x050505);
+  scene.fog = new THREE.FogExp2(0x050505, 0.035);
 
-  const target = {
-    el,
-    x,
-    y,
-    z: 0.5 + Math.random() * 0.5,
-    depthPhase,
-    lifeLeft,
-    speed,
-    vx: dir.x * speed,
-    vy: dir.y * speed,
-    baseW: capsuleW,
-    baseH: capsuleH,
-    scale: 1,
+  const camera = new THREE.PerspectiveCamera(76, window.innerWidth / window.innerHeight, 0.05, 95);
+  camera.position.set(0, 1.7, 9);
+  camera.rotation.order = 'YXZ';
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.domElement.className = 'three-aim-canvas';
+  arena.appendChild(renderer.domElement);
+
+  const raycaster = new THREE.Raycaster();
+  const keys = new Set();
+  threeState = {
+    scene,
+    camera,
+    renderer,
+    raycaster,
+    keys,
+    yaw: 0,
+    pitch: 0,
+    accentColor,
+    targetMaterial: null,
+    targetWireMaterial: null,
+    onResize: null,
+    onMouseMove: null,
+    onPointerDown: null,
+    onKeyDown: null,
+    onKeyUp: null,
   };
 
-  el.addEventListener('click', e => {
-    if (!gameActive || target.dead) return;
+  buildThreeDArena(dimAccent, accentColor);
+
+  threeState.onResize = () => {
+    if (!threeState) return;
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  };
+  threeState.onMouseMove = e => {
+    if (!gameActive || currentMode !== 'threeD' || document.pointerLockElement !== arena) return;
+    threeState.yaw -= e.movementX * 0.0024;
+    threeState.pitch -= e.movementY * 0.0024;
+    threeState.pitch = Math.max(-1.38, Math.min(1.38, threeState.pitch));
+    camera.rotation.set(threeState.pitch, threeState.yaw, 0);
+  };
+  threeState.onPointerDown = e => {
+    if (!gameActive || currentMode !== 'threeD') return;
+    if (e.target && e.target.closest && e.target.closest('.profile-dock')) return;
+    if (document.pointerLockElement !== arena) {
+      arena.requestPointerLock?.();
+      return;
+    }
+    shootThreeD(e.clientX, e.clientY);
+  };
+  threeState.onKeyDown = e => {
+    if (!gameActive || currentMode !== 'threeD') return;
+    keys.add(e.code);
+  };
+  threeState.onKeyUp = e => keys.delete(e.code);
+
+  window.addEventListener('resize', threeState.onResize);
+  document.addEventListener('mousemove', threeState.onMouseMove);
+  document.addEventListener('keydown', threeState.onKeyDown);
+  document.addEventListener('keyup', threeState.onKeyUp);
+  arena.addEventListener('pointerdown', threeState.onPointerDown);
+}
+
+function buildThreeDArena(dimAccent, accentColor) {
+  const THREE = window.THREE;
+  const { scene } = threeState;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x080000, 1.45));
+
+  const key = new THREE.PointLight(accentColor, 7, 34);
+  key.position.set(-6, 8, 8);
+  scene.add(key);
+  const back = new THREE.PointLight(0xffffff, 1.2, 26);
+  back.position.set(7, 4, -10);
+  scene.add(back);
+
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(44, 44),
+    new THREE.MeshStandardMaterial({
+      color: 0x050505,
+      roughness: 0.68,
+      metalness: 0.18,
+      emissive: 0x110000,
+      emissiveIntensity: 0.28,
+    })
+  );
+  floor.rotation.x = -Math.PI / 2;
+  scene.add(floor);
+
+  const grid = new THREE.GridHelper(44, 44, accentColor, dimAccent);
+  grid.material.transparent = true;
+  grid.material.opacity = 0.78;
+  scene.add(grid);
+
+  const wallMaterial = new THREE.LineBasicMaterial({ color: dimAccent, transparent: true, opacity: 0.32 });
+  for (const z of [-22, 22]) {
+    const wall = new THREE.GridHelper(44, 22, dimAccent, dimAccent);
+    wall.material = wallMaterial.clone();
+    wall.rotation.x = Math.PI / 2;
+    wall.position.z = z;
+    wall.position.y = 11;
+    scene.add(wall);
+  }
+  for (const x of [-22, 22]) {
+    const wall = new THREE.GridHelper(44, 22, dimAccent, dimAccent);
+    wall.material = wallMaterial.clone();
+    wall.rotation.z = Math.PI / 2;
+    wall.position.x = x;
+    wall.position.y = 11;
+    scene.add(wall);
+  }
+
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(7.5, 0.025, 10, 96),
+    new THREE.MeshBasicMaterial({ color: accentColor, transparent: true, opacity: 0.28 })
+  );
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = 0.04;
+  scene.add(ring);
+
+  threeState.targetMaterial = new THREE.MeshStandardMaterial({
+    color: accentColor,
+    roughness: 0.36,
+    metalness: 0.24,
+    emissive: accentColor,
+    emissiveIntensity: 0.42,
+  });
+  threeState.targetWireMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.22,
+  });
+}
+
+function spawnThreeDTarget(index, target = null) {
+  if (!threeState) return;
+  const THREE = window.THREE;
+  const radius = THREE_TARGET_SIZE[settings.threeD.sizeKey] || THREE_TARGET_SIZE[2];
+  const bodyHeight = radius * 2.5;
+  const angle = ((settings.threeD.angleDeg % 360) + (index % 2 ? 180 : 0)) * Math.PI / 180;
+  const speed = (THREE_SPEED[settings.threeD.speedKey] || THREE_SPEED[3]) * (0.82 + Math.random() * 0.34);
+  const distance = 7 + Math.random() * 13;
+  const theta = Math.random() * Math.PI * 2;
+  const position = new THREE.Vector3(
+    Math.cos(theta) * distance,
+    1.4 + Math.random() * 3.8,
+    Math.sin(theta) * distance
+  );
+
+  if (!target) {
+    const group = new THREE.Group();
+    const body = new THREE.Mesh(
+      new THREE.CapsuleGeometry(radius, bodyHeight, 8, 18),
+      threeState.targetMaterial.clone()
+    );
+    body.userData.targetIndex = index;
+    const wire = new THREE.Mesh(
+      new THREE.CapsuleGeometry(radius * 1.05, bodyHeight * 1.02, 6, 12),
+      threeState.targetWireMaterial
+    );
+    group.add(body, wire);
+    threeState.scene.add(group);
+    target = { group, body, wire, velocity: new THREE.Vector3(), phase: 0, lifeLeft: 0, radius };
+    threeTargets.push(target);
+  }
+
+  target.group.position.copy(position);
+  target.group.rotation.set(Math.random() * 0.35, Math.random() * Math.PI, Math.random() * 0.25);
+  target.velocity.set(Math.sin(angle) * speed, 0, Math.cos(angle) * speed);
+  target.phase = Math.random() * Math.PI * 2;
+  target.lifeLeft = 2.2 + Math.random() * 1.25;
+  target.radius = radius;
+  target.body.scale.setScalar(1);
+  target.wire.scale.setScalar(1);
+  target.body.userData.target = target;
+}
+
+function shootThreeD(cx, cy) {
+  if (!threeState) return;
+  threeState.raycaster.setFromCamera({ x: 0, y: 0 }, threeState.camera);
+  const hits3d = threeState.raycaster.intersectObjects(threeTargets.map(t => t.body), false);
+  if (hits3d.length) {
+    const target = hits3d[0].object.userData.target;
     score++;
     hits++;
     updateScore();
     updateAcc();
-    spawnHitEffect(e.clientX, e.clientY);
-    respawnThreeDTarget(target, true);
-  });
-
-  threeTargets.push(target);
-  updateThreeDTarget(target, index);
-}
-
-function respawnThreeDTarget(target, keepDirection = false) {
-  const [minS, maxS] = SIZE_MAP[settings.threeD.sizeKey];
-  const baseSize = Math.floor(Math.random() * (maxS - minS)) + minS;
-  const capsuleW = Math.round(baseSize * 0.72);
-  const capsuleH = Math.round(baseSize * 1.72);
-  const marginX = capsuleW + 24;
-  const marginY = capsuleH + 24;
-  const xRange = Math.max(0, window.innerWidth - marginX * 2);
-  const yRange = Math.max(0, window.innerHeight - marginY * 2 - 40);
-  const x = marginX + Math.random() * xRange;
-  const y = marginY + Math.random() * yRange;
-
-  target.x = x;
-  target.y = y;
-  target.z = 0.35 + Math.random() * 0.65;
-  target.depthPhase = Math.random() * Math.PI * 2;
-  target.lifeLeft = 1600 + Math.random() * 900;
-  target.baseW = capsuleW;
-  target.baseH = capsuleH;
-  target.el.style.width = capsuleW + 'px';
-  target.el.style.height = capsuleH + 'px';
-  if (!keepDirection) {
-    const angleRad = (settings.threeD.angleDeg % 360) * Math.PI / 180;
-    const speed = THREE_SPEED[settings.threeD.speedKey] || THREE_SPEED[3];
-    target.speed = speed;
-    target.vx = Math.cos(angleRad) * speed;
-    target.vy = Math.sin(angleRad) * speed;
+    spawnHitEffect(cx, cy);
+    spawnThreeDTarget(threeTargets.indexOf(target), target);
+  } else {
+    misses++;
+    updateAcc();
   }
-  updateThreeDTarget(target);
 }
 
-function updateThreeDTarget(target, index = 0) {
-  const depthScale = 0.66 + target.z * 0.72;
-  target.scale = depthScale;
-  const x = target.x - (target.baseW * depthScale) / 2;
-  const y = target.y - (target.baseH * depthScale) / 2;
-  target.el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${depthScale})`;
-  target.el.style.opacity = String(0.55 + target.z * 0.45);
-  target.el.style.filter = `brightness(${0.88 + target.z * 0.3})`;
-  target.el.style.zIndex = String(50 + Math.round(target.z * 20) + index);
+function updateThreeDMovement(dt) {
+  if (!threeState) return;
+  const THREE = window.THREE;
+  const { camera, keys, yaw } = threeState;
+  const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
+  const right = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
+  const move = new THREE.Vector3();
+  if (keys.has('KeyW')) move.add(forward);
+  if (keys.has('KeyS')) move.sub(forward);
+  if (keys.has('KeyD')) move.add(right);
+  if (keys.has('KeyA')) move.sub(right);
+  if (move.lengthSq() > 0) {
+    move.normalize().multiplyScalar(7.5 * dt);
+    camera.position.add(move);
+  }
+  camera.position.x = Math.max(-THREE_WORLD_LIMIT, Math.min(THREE_WORLD_LIMIT, camera.position.x));
+  camera.position.z = Math.max(-THREE_WORLD_LIMIT, Math.min(THREE_WORLD_LIMIT, camera.position.z));
 }
 
-function threeLoop(ts) {
-  if (!gameActive) return;
-  if (!threeLastTs) threeLastTs = ts;
-  const dt = Math.min(0.05, (ts - threeLastTs) / 1000);
-  threeLastTs = ts;
-  threeElapsed += dt;
-
-  const w = window.innerWidth;
-  const h = window.innerHeight - 60;
-  const depthRate = THREE_DEPTH[settings.threeD.speedKey] || THREE_DEPTH[3];
-
+function updateThreeDTargets(dt) {
+  const limit = THREE_WORLD_LIMIT + 1;
   for (let i = 0; i < threeTargets.length; i++) {
     const t = threeTargets[i];
-    t.lifeLeft -= dt * 1000;
+    t.lifeLeft -= dt;
+    t.group.position.addScaledVector(t.velocity, dt);
+    t.group.position.y += Math.sin(threeElapsed * 2.2 + t.phase) * dt * 0.8;
+    t.group.position.y = Math.max(1.0, Math.min(5.8, t.group.position.y));
+    t.group.rotation.y += dt * 1.4;
+    t.group.rotation.z = Math.sin(threeElapsed * 1.9 + t.phase) * 0.16;
 
-    t.x += t.vx * dt;
-    t.y += t.vy * dt;
-    t.z = 0.5 + Math.sin(threeElapsed * depthRate + t.depthPhase) * 0.34;
-
-    const xMin = t.baseW * 0.6;
-    const xMax = w - t.baseW * 0.6;
-    const yMin = t.baseH * 0.6;
-    const yMax = h - t.baseH * 0.6;
-
-    if (t.x < xMin) {
-      t.x = xMin;
-      t.vx *= -1;
-    } else if (t.x > xMax) {
-      t.x = xMax;
-      t.vx *= -1;
+    if (Math.abs(t.group.position.x) > limit) {
+      t.group.position.x = Math.sign(t.group.position.x) * limit;
+      t.velocity.x *= -1;
     }
-
-    if (t.y < yMin) {
-      t.y = yMin;
-      t.vy *= -1;
-    } else if (t.y > yMax) {
-      t.y = yMax;
-      t.vy *= -1;
+    if (Math.abs(t.group.position.z) > limit) {
+      t.group.position.z = Math.sign(t.group.position.z) * limit;
+      t.velocity.z *= -1;
     }
-
     if (t.lifeLeft <= 0) {
       misses++;
       updateAcc();
-      flashMiss();
-      respawnThreeDTarget(t, true);
-      continue;
+      spawnThreeDTarget(i, t);
     }
-
-    updateThreeDTarget(t, i);
   }
+}
 
+function threeLoop(ts) {
+  if (!gameActive || !threeState) return;
+  if (!threeLastTs) threeLastTs = ts;
+  const dt = Math.min(0.033, (ts - threeLastTs) / 1000);
+  threeLastTs = ts;
+  threeElapsed += dt;
+
+  updateThreeDMovement(dt);
+  updateThreeDTargets(dt);
   scoreEl.textContent = String(Math.floor(score));
-  const total = hits + misses;
-  accVal.textContent = total > 0 ? Math.round((hits / total) * 100) + '%' : '—';
+  threeState.renderer.render(threeState.scene, threeState.camera);
 
   threeRaf = requestAnimationFrame(threeLoop);
+}
+
+function destroyThreeDScene() {
+  if (!threeState) return;
+  window.removeEventListener('resize', threeState.onResize);
+  document.removeEventListener('mousemove', threeState.onMouseMove);
+  document.removeEventListener('keydown', threeState.onKeyDown);
+  document.removeEventListener('keyup', threeState.onKeyUp);
+  arena.removeEventListener('pointerdown', threeState.onPointerDown);
+  if (document.pointerLockElement === arena) document.exitPointerLock?.();
+  if (threeState.renderer?.domElement?.parentNode) threeState.renderer.domElement.remove();
+  threeTargets = [];
+  threeState = null;
 }
 
 function onTrackMove(e) {
@@ -601,6 +749,7 @@ function endGame() {
   cancelAnimationFrame(trackRaf);
   cancelAnimationFrame(threeRaf);
 
+  destroyThreeDScene();
   arena.innerHTML = '';
   arena.onclick = null;
   arena.classList.remove('mode-threeD');
