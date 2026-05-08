@@ -480,6 +480,7 @@
   background: rgba(6, 6, 6, var(--ui-panel-opacity, 0.92));
 }
 
-body.has-profile-dock #mode-label {
-  top: 84px;
+body.has-profile-dock #mode-label,
+body.has-profile-dock .craft-menu-btn {
+  top: 132px;
 }

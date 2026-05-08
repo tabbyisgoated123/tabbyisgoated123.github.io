@@ -19,6 +19,8 @@ const DUR_MAP = { 1: 15, 2: 30, 3: 60, 4: 90, 5: 120 };
 const SIZE_MAP = { 1: [18, 32], 2: [30, 54], 3: [48, 76] };
 const SIZE_LBL = { 1: 'Small', 2: 'Med', 3: 'Large' };
 const SHAPES = ['circle', 'square', 'diamond'];
+const THREE_SPEED = { 1: 90, 2: 150, 3: 220, 4: 310, 5: 420 };
+const THREE_DEPTH = { 1: 0.55, 2: 0.75, 3: 1.0, 4: 1.25, 5: 1.55 };
 // Pixel-per-second baselines so it feels deliberate.
 const SPEED_PRESETS = {
   crawl:  { speed: 80,  amp: 80 },
@@ -36,6 +38,13 @@ let settings = {
     multiplier: 1.0,
     count: 2,
     pattern: 'linear',
+    sizeKey: 2,
+    durKey: 2,
+  },
+  threeD: {
+    count: 3,
+    angleDeg: 45,
+    speedKey: 3,
     sizeKey: 2,
     durKey: 2,
   },
@@ -82,6 +91,26 @@ wire('track-count-slider', 'track-count-val', v => {
   settings.tracking.count = v;
   return v;
 });
+wire('three-count-slider', 'three-count-val', v => {
+  settings.threeD.count = v;
+  return v;
+});
+wire('three-angle-slider', 'three-angle-val', v => {
+  settings.threeD.angleDeg = v;
+  return v + '°';
+});
+wire('three-speed-slider', 'three-speed-val', v => {
+  settings.threeD.speedKey = v;
+  return { 1: 'Crawl', 2: 'Slow', 3: 'Med', 4: 'Fast', 5: 'Chaos' }[v] || 'Med';
+});
+wire('three-size-slider', 'three-size-val', v => {
+  settings.threeD.sizeKey = v;
+  return SIZE_LBL[v];
+});
+wire('three-dur-slider', 'three-dur-val', v => {
+  settings.threeD.durKey = v;
+  return DUR_MAP[v] + ' s';
+});
 
 document.querySelectorAll('.shape-opt').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -111,12 +140,16 @@ document.querySelectorAll('.pattern-opt').forEach(btn => {
   document.getElementById('btn-' + m).addEventListener('click', () => switchMode(m));
 });
 
+document.getElementById('btn-threeD').addEventListener('click', () => switchMode('threeD'));
+
 function switchMode(m) {
   currentMode = m;
-  ['classic', 'tracking'].forEach(n => {
+  ['classic', 'tracking', 'threeD'].forEach(n => {
     document.getElementById('btn-' + n).classList.toggle('active', n === m);
     document.getElementById(n + '-settings').classList.toggle('is-hidden', n !== m);
   });
+  const shapeSettings = document.getElementById('shape-settings');
+  if (shapeSettings) shapeSettings.classList.toggle('is-hidden', m === 'threeD');
 }
 
 let score = 0;
@@ -137,6 +170,11 @@ let trackStreak = 0;
 let trackBestStreak = 0;
 let trackRaf = null;
 let trackLastTs = 0;
+
+let threeTargets = [];
+let threeRaf = null;
+let threeLastTs = 0;
+let threeElapsed = 0;
 
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('restart-btn').addEventListener('click', startGame);
@@ -167,18 +205,23 @@ function startGame() {
 
   arena.innerHTML = '';
   arena.onclick = null;
+  arena.classList.toggle('mode-threeD', currentMode === 'threeD');
 
   clearInterval(spawnInterval);
   clearInterval(countdownInterval);
   cancelAnimationFrame(trackRaf);
+  cancelAnimationFrame(threeRaf);
   targetTimeouts.forEach(t => clearTimeout(t));
   targetTimeouts.clear();
   trackTargets.forEach(t => t.el.remove());
   trackTargets = [];
+  threeTargets.forEach(t => t.el.remove());
+  threeTargets = [];
   trackElapsed = 0;
   trackOnTime = 0;
   trackStreak = 0;
   trackBestStreak = 0;
+  threeElapsed = 0;
 
   startScreen.classList.add('hidden');
   endScreen.classList.add('hidden');
@@ -191,10 +234,16 @@ function startGame() {
     if (accuracyLabel) accuracyLabel.textContent = 'accuracy';
     startClassic();
   } else {
-    modeLbl.textContent = '// tracking mode — hover the targets';
     accuracyWrap.style.display = '';
-    if (accuracyLabel) accuracyLabel.textContent = 'on-target';
-    startTracking();
+    if (currentMode === 'tracking') {
+      modeLbl.textContent = '// tracking mode — hover the targets';
+      if (accuracyLabel) accuracyLabel.textContent = 'on-target';
+      startTracking();
+    } else {
+      modeLbl.textContent = '// 3d mode — capsule targets';
+      if (accuracyLabel) accuracyLabel.textContent = 'accuracy';
+      startThreeD();
+    }
   }
 
   countdownInterval = setInterval(() => {
@@ -296,6 +345,171 @@ function startTracking() {
   trackRaf = requestAnimationFrame(trackLoop);
 }
 
+function startThreeD() {
+  const count = settings.threeD.count;
+  const angleRad = (settings.threeD.angleDeg % 360) * Math.PI / 180;
+  const speed = THREE_SPEED[settings.threeD.speedKey] || THREE_SPEED[3];
+  const baseDir = { x: Math.cos(angleRad), y: Math.sin(angleRad) };
+
+  for (let i = 0; i < count; i++) {
+    spawnThreeDTarget(i, baseDir, speed);
+  }
+
+  arena.onclick = null;
+  threeLastTs = 0;
+  threeRaf = requestAnimationFrame(threeLoop);
+}
+
+function spawnThreeDTarget(index, dir, speed) {
+  const [minS, maxS] = SIZE_MAP[settings.threeD.sizeKey];
+  const baseSize = Math.floor(Math.random() * (maxS - minS)) + minS;
+  const capsuleW = Math.round(baseSize * 0.72);
+  const capsuleH = Math.round(baseSize * 1.72);
+  const marginX = capsuleW + 24;
+  const marginY = capsuleH + 24;
+  const xRange = Math.max(0, window.innerWidth - marginX * 2);
+  const yRange = Math.max(0, window.innerHeight - marginY * 2 - 40);
+  const x = marginX + Math.random() * xRange;
+  const y = marginY + Math.random() * yRange;
+  const depthPhase = Math.random() * Math.PI * 2;
+  const lifeLeft = 1600 + Math.random() * 900;
+
+  const el = document.createElement('button');
+  el.type = 'button';
+  el.className = 'target three-target shape-capsule';
+  el.style.width = capsuleW + 'px';
+  el.style.height = capsuleH + 'px';
+  arena.appendChild(el);
+
+  const target = {
+    el,
+    x,
+    y,
+    z: 0.5 + Math.random() * 0.5,
+    depthPhase,
+    lifeLeft,
+    speed,
+    vx: dir.x * speed,
+    vy: dir.y * speed,
+    baseW: capsuleW,
+    baseH: capsuleH,
+    scale: 1,
+  };
+
+  el.addEventListener('click', e => {
+    if (!gameActive || target.dead) return;
+    score++;
+    hits++;
+    updateScore();
+    updateAcc();
+    spawnHitEffect(e.clientX, e.clientY);
+    respawnThreeDTarget(target, true);
+  });
+
+  threeTargets.push(target);
+  updateThreeDTarget(target, index);
+}
+
+function respawnThreeDTarget(target, keepDirection = false) {
+  const [minS, maxS] = SIZE_MAP[settings.threeD.sizeKey];
+  const baseSize = Math.floor(Math.random() * (maxS - minS)) + minS;
+  const capsuleW = Math.round(baseSize * 0.72);
+  const capsuleH = Math.round(baseSize * 1.72);
+  const marginX = capsuleW + 24;
+  const marginY = capsuleH + 24;
+  const xRange = Math.max(0, window.innerWidth - marginX * 2);
+  const yRange = Math.max(0, window.innerHeight - marginY * 2 - 40);
+  const x = marginX + Math.random() * xRange;
+  const y = marginY + Math.random() * yRange;
+
+  target.x = x;
+  target.y = y;
+  target.z = 0.35 + Math.random() * 0.65;
+  target.depthPhase = Math.random() * Math.PI * 2;
+  target.lifeLeft = 1600 + Math.random() * 900;
+  target.baseW = capsuleW;
+  target.baseH = capsuleH;
+  target.el.style.width = capsuleW + 'px';
+  target.el.style.height = capsuleH + 'px';
+  if (!keepDirection) {
+    const angleRad = (settings.threeD.angleDeg % 360) * Math.PI / 180;
+    const speed = THREE_SPEED[settings.threeD.speedKey] || THREE_SPEED[3];
+    target.speed = speed;
+    target.vx = Math.cos(angleRad) * speed;
+    target.vy = Math.sin(angleRad) * speed;
+  }
+  updateThreeDTarget(target);
+}
+
+function updateThreeDTarget(target, index = 0) {
+  const depthScale = 0.66 + target.z * 0.72;
+  target.scale = depthScale;
+  const x = target.x - (target.baseW * depthScale) / 2;
+  const y = target.y - (target.baseH * depthScale) / 2;
+  target.el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${depthScale})`;
+  target.el.style.opacity = String(0.55 + target.z * 0.45);
+  target.el.style.filter = `brightness(${0.88 + target.z * 0.3})`;
+  target.el.style.zIndex = String(50 + Math.round(target.z * 20) + index);
+}
+
+function threeLoop(ts) {
+  if (!gameActive) return;
+  if (!threeLastTs) threeLastTs = ts;
+  const dt = Math.min(0.05, (ts - threeLastTs) / 1000);
+  threeLastTs = ts;
+  threeElapsed += dt;
+
+  const w = window.innerWidth;
+  const h = window.innerHeight - 60;
+  const depthRate = THREE_DEPTH[settings.threeD.speedKey] || THREE_DEPTH[3];
+
+  for (let i = 0; i < threeTargets.length; i++) {
+    const t = threeTargets[i];
+    t.lifeLeft -= dt * 1000;
+
+    t.x += t.vx * dt;
+    t.y += t.vy * dt;
+    t.z = 0.5 + Math.sin(threeElapsed * depthRate + t.depthPhase) * 0.34;
+
+    const xMin = t.baseW * 0.6;
+    const xMax = w - t.baseW * 0.6;
+    const yMin = t.baseH * 0.6;
+    const yMax = h - t.baseH * 0.6;
+
+    if (t.x < xMin) {
+      t.x = xMin;
+      t.vx *= -1;
+    } else if (t.x > xMax) {
+      t.x = xMax;
+      t.vx *= -1;
+    }
+
+    if (t.y < yMin) {
+      t.y = yMin;
+      t.vy *= -1;
+    } else if (t.y > yMax) {
+      t.y = yMax;
+      t.vy *= -1;
+    }
+
+    if (t.lifeLeft <= 0) {
+      misses++;
+      updateAcc();
+      flashMiss();
+      respawnThreeDTarget(t, true);
+      continue;
+    }
+
+    updateThreeDTarget(t, i);
+  }
+
+  scoreEl.textContent = String(Math.floor(score));
+  const total = hits + misses;
+  accVal.textContent = total > 0 ? Math.round((hits / total) * 100) + '%' : '—';
+
+  threeRaf = requestAnimationFrame(threeLoop);
+}
+
 function onTrackMove(e) {
   trackPointer.x = e.clientX;
   trackPointer.y = e.clientY;
@@ -385,18 +599,21 @@ function endGame() {
   clearInterval(spawnInterval);
   clearInterval(countdownInterval);
   cancelAnimationFrame(trackRaf);
+  cancelAnimationFrame(threeRaf);
 
   arena.innerHTML = '';
   arena.onclick = null;
+  arena.classList.remove('mode-threeD');
   arena.removeEventListener('mousemove', onTrackMove);
   arena.removeEventListener('mouseleave', onTrackLeave);
 
   trackTargets = [];
+  threeTargets = [];
 
   targetTimeouts.forEach(t => clearTimeout(t));
   targetTimeouts.clear();
 
-  document.getElementById('end-mode-tag').textContent = currentMode + ' mode';
+  document.getElementById('end-mode-tag').textContent = currentMode === 'threeD' ? '3d mode' : currentMode + ' mode';
   document.getElementById('final-score').textContent = Math.floor(score);
 
   const classicStats = document.getElementById('final-stats');

@@ -4,6 +4,13 @@
   z-index: 10;
 }
 
+#arena.mode-threeD {
+  perspective: 1200px;
+  background:
+    radial-gradient(circle at center, rgba(255, 40, 40, 0.07), transparent 28%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0, rgba(255, 255, 255, 0.02) 20%, transparent 42%);
+}
+
 #hud {
   position: fixed;
   top: 20px;
@@ -134,6 +141,11 @@
   --shape-rotate: 0deg;
 }
 
+.shape-capsule {
+  --shape-rotate: 0deg;
+  border-radius: 999px;
+}
+
 .target::after,
 #tracking-target::after,
 #cps-button::after {
@@ -179,6 +191,38 @@
 .shape-diamond {
   --shape-rotate: 45deg;
   border-radius: 10px;
+}
+
+.three-target {
+  position: fixed;
+  left: 0;
+  top: 0;
+  pointer-events: auto;
+  transform-origin: center center;
+  filter: saturate(1.08);
+  animation: none !important;
+  transform: none;
+}
+
+.three-target.shape-capsule {
+  border-radius: 999px;
+}
+
+.three-target::before {
+  content: '';
+  position: absolute;
+  inset: 10% 18%;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 40%);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.three-target::after {
+  top: 12%;
+  left: 24%;
+  width: 24%;
+  height: 16%;
 }
 
 #tracking-target {
