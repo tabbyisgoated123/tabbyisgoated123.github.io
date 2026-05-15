@@ -158,6 +158,8 @@ let hits = 0;
 let misses = 0;
 let timeLeft = 0;
 let gameActive = false;
+let combo = 0;
+let bestCombo = 0;
 let spawnInterval = null;
 let countdownInterval = null;
 let targetTimeouts = new Map();
@@ -225,6 +227,8 @@ function startGame() {
   trackStreak = 0;
   trackBestStreak = 0;
   threeElapsed = 0;
+  combo = 0;
+  bestCombo = 0;
 
   startScreen.classList.add('hidden');
   endScreen.classList.add('hidden');
@@ -286,16 +290,27 @@ function spawnTarget() {
   btn.className = `target shape-${settings.shape}`;
   btn.style.cssText = `width:${size}px;height:${size}px;left:${x - size / 2}px;top:${y - size / 2}px;`;
   arena.appendChild(btn);
+  const drift = { x: (Math.random() - 0.5) * 0.9, y: (Math.random() - 0.5) * 0.9 };
+  let driftId = requestAnimationFrame(function move() {
+    if (!gameActive || !btn.parentNode) return;
+    const left = parseFloat(btn.style.left || '0') + drift.x;
+    const top = parseFloat(btn.style.top || '0') + drift.y;
+    btn.style.left = Math.max(6, Math.min(window.innerWidth - size - 6, left)) + 'px';
+    btn.style.top = Math.max(6, Math.min(window.innerHeight - size - 6, top)) + 'px';
+    driftId = requestAnimationFrame(move);
+  });
 
   const lifetime = Math.max(750, 2000 - settings.classic.maxTargets * 110);
   const to = setTimeout(() => {
     if (btn.parentNode && !btn.classList.contains('dying')) {
       btn.classList.add('dying');
       misses++;
+      combo = 0;
       updateAcc();
       flashMiss();
       btn.addEventListener('animationend', () => btn.remove(), { once: true });
       targetTimeouts.delete(btn);
+      cancelAnimationFrame(driftId);
     }
   }, lifetime);
   targetTimeouts.set(btn, to);
@@ -306,12 +321,20 @@ function spawnTarget() {
     targetTimeouts.delete(btn);
     score++;
     hits++;
+    combo++;
+    if (combo > bestCombo) bestCombo = combo;
+    score += Math.floor(combo / 5);
     updateScore();
     updateAcc();
     spawnHitEffect(e.clientX, e.clientY);
+    if (window.TabbyFX) {
+      window.TabbyFX.beep(880 + Math.min(300, combo * 12), 0.03, 'square', 0.018);
+      if (combo > 0 && combo % 8 === 0) window.TabbyFX.unlock('aim_combo_' + combo, 'Aim combo x' + combo);
+    }
     btn.classList.add('dying');
     btn.style.pointerEvents = 'none';
     btn.addEventListener('animationend', () => btn.remove(), { once: true });
+    cancelAnimationFrame(driftId);
   });
 }
 
@@ -764,6 +787,10 @@ function endGame() {
 
   document.getElementById('end-mode-tag').textContent = currentMode === 'threeD' ? '3d mode' : currentMode + ' mode';
   document.getElementById('final-score').textContent = Math.floor(score);
+  if (window.TabbyFX) {
+    window.TabbyFX.setHighScore('aim', Math.floor(score));
+    if (bestCombo >= 20) window.TabbyFX.unlock('aim_combo20', 'Combo machine');
+  }
 
   const classicStats = document.getElementById('final-stats');
   const trackStatsRow = document.getElementById('track-stats');
@@ -803,6 +830,10 @@ function updateAcc() {
 function flashMiss() {
   // Aim trainer misses no longer use a full-screen color flash.
   if (missFlash) missFlash.style.opacity = '0';
+  if (window.TabbyFX) {
+    window.TabbyFX.shake();
+    window.TabbyFX.beep(180, 0.04, 'sawtooth', 0.02);
+  }
 }
 
 function spawnHitEffect(cx, cy) {

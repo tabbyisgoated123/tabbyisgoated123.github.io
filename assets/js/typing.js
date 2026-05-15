@@ -27,6 +27,7 @@ const DEFAULT_BANKS = {
   classic: ['cat', 'code', 'play', 'word', 'tap', 'drop', 'game', 'fast', 'glow', 'trail', 'target', 'combo', 'score', 'pulse'],
   tech: ['kernel', 'buffer', 'syntax', 'runtime', 'module', 'packet', 'cursor', 'render', 'thread', 'socket', 'compile', 'deploy'],
   chaos: ['starlight', 'interlocked', 'hyperdrift', 'whirlwind', 'catapult', 'moonbeam', 'electric', 'turbulence', 'ghosting', 'outburst'],
+  quote: ['stay hungry stay foolish', 'simplicity is the ultimate sophistication', 'code is poetry in motion', 'practice makes permanent', 'fall seven times stand up eight'],
 };
 
 const state = {
@@ -44,6 +45,7 @@ let gameActive = false;
 let countdownInterval = null;
 let spawnInterval = null;
 let difficultyInterval = null;
+let wpmInterval = null;
 let rafId = null;
 let wordId = 1;
 let score = 0;
@@ -56,6 +58,8 @@ let activeWords = [];
 let progress = 0;
 let currentBank = [];
 let highScore = 0;
+let typedChars = 0;
+let wpmTimeline = [];
 
 const bankEl = document.getElementById('word-bank');
 const durSlider = document.getElementById('dur-slider');
@@ -231,6 +235,8 @@ function startGame() {
   timeLeft = DUR_MAP[state.durKey];
   progress = 0;
   wordId = 1;
+  typedChars = 0;
+  wpmTimeline = [];
 
   activeWords = [];
   typingField.innerHTML = '';
@@ -255,6 +261,7 @@ function startGame() {
   clearInterval(countdownInterval);
   clearInterval(spawnInterval);
   clearInterval(difficultyInterval);
+  clearInterval(wpmInterval);
   cancelAnimationFrame(rafId);
 
   startScreen.classList.add('hidden');
@@ -291,6 +298,14 @@ function startGame() {
       setUiValue('speed-val', labelForSpeed(state.speedKey));
     }
   }, 8000);
+
+  wpmInterval = setInterval(() => {
+    if (!gameActive) return;
+    const elapsedMin = (DUR_MAP[state.durKey] - timeLeft) / 60;
+    if (elapsedMin <= 0) return;
+    const wpm = Math.round((typedChars / 5) / elapsedMin);
+    wpmTimeline.push(wpm);
+  }, 1000);
 
   countdownInterval = setInterval(() => {
     timeLeft--;
@@ -398,6 +413,7 @@ function resolveWord(word, comboSnapshot = combo) {
   if (word.dead) return;
   word.dead = true;
   typed++;
+  typedChars += word.text.length;
   const points = 10 + Math.floor(comboSnapshot / 3);
   score += points;
   updateScore();
@@ -490,6 +506,7 @@ function endGame() {
   clearInterval(countdownInterval);
   clearInterval(spawnInterval);
   clearInterval(difficultyInterval);
+  clearInterval(wpmInterval);
   cancelAnimationFrame(rafId);
   inputEl.disabled = true;
   typingField.innerHTML = '';
@@ -508,7 +525,39 @@ function endGame() {
   document.getElementById('final-acc').textContent = total > 0 ? Math.round((typed / total) * 100) + '%' : '—';
   finalBest.textContent = String(highScore);
   finalHigh.textContent = String(highScore);
+  drawWpmGraph();
+  if (window.TabbyFX) {
+    window.TabbyFX.setHighScore('typing', score);
+    const acc = typed + missed > 0 ? typed / (typed + missed) : 0;
+    if (acc >= 0.9) window.TabbyFX.unlock('typing_acc_90', 'Typing 90% accuracy');
+  }
   endScreen.classList.remove('hidden');
+}
+
+function drawWpmGraph() {
+  let canvas = document.getElementById('typing-wpm-graph');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.id = 'typing-wpm-graph';
+    canvas.width = 360;
+    canvas.height = 120;
+    canvas.style.marginTop = '14px';
+    canvas.style.border = '1px solid rgba(255,255,255,0.2)';
+    document.getElementById('end-screen').appendChild(canvas);
+  }
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!wpmTimeline.length) return;
+  const peak = Math.max(1, ...wpmTimeline);
+  ctx.strokeStyle = 'rgba(255,70,70,0.95)';
+  ctx.beginPath();
+  wpmTimeline.forEach((wpm, i) => {
+    const x = (i / Math.max(1, wpmTimeline.length - 1)) * (canvas.width - 8) + 4;
+    const y = canvas.height - ((wpm / peak) * (canvas.height - 12) + 6);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
 }
 
 window.addEventListener('resize', () => {
@@ -519,3 +568,11 @@ window.addEventListener('resize', () => {
 
 loadUi();
 refreshProfileHighScore();
+if (!document.querySelector('.pill[data-bank="quote"]')) {
+  const btn = document.createElement('button');
+  btn.className = 'pill';
+  btn.dataset.bank = 'quote';
+  btn.textContent = 'Quote';
+  btn.addEventListener('click', () => applyWordBankPreset('quote'));
+  document.querySelector('.typing-pills')?.appendChild(btn);
+}

@@ -1,0 +1,115 @@
+.fx-particles,
+.fx-cursor,
+.fx-loading,
+.fx-toast-wrap,
+.fx-achievement {
+  position: fixed;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.fx-particles {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.45;
+}
+
+.fx-cursor {
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgb(var(--accent-rgb) / 0.9);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 18px rgb(var(--accent-rgb) / 0.55);
+  transition: transform 0.08s linear;
+  z-index: 1000;
+}
+
+body[data-cursor="crosshair"] .fx-cursor {
+  display: block;
+}
+
+body[data-cursor="default"] .fx-cursor,
+body[data-cursor="none"] .fx-cursor {
+  display: none;
+}
+
+body.fx-shake {
+  animation: fxShake 0.18s linear;
+}
+
+@keyframes fxShake {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-5px, 3px); }
+  40% { transform: translate(6px, -3px); }
+  60% { transform: translate(-4px, 2px); }
+  80% { transform: translate(4px, -2px); }
+  100% { transform: translate(0, 0); }
+}
+
+.fx-loading {
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #020202, #0c0c0c);
+  pointer-events: auto;
+  transition: opacity 0.3s ease;
+}
+
+.fx-loading.hidden {
+  opacity: 0;
+}
+
+.fx-loading-text {
+  letter-spacing: 6px;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.fx-theme-toggle {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 900;
+  border: 1px solid rgb(var(--accent-rgb) / 0.45);
+  color: var(--text);
+  background: rgb(0 0 0 / 0.35);
+  padding: 8px 10px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.fx-toast-wrap {
+  right: 16px;
+  bottom: 16px;
+  display: grid;
+  gap: 8px;
+  z-index: 1300;
+}
+
+.fx-achievement {
+  position: static;
+  background: rgb(0 0 0 / 0.7);
+  border: 1px solid rgb(var(--accent-rgb) / 0.5);
+  color: var(--text);
+  padding: 8px 12px;
+  animation: fxToastIn 1.8s ease forwards;
+}
+
+@keyframes fxToastIn {
+  0% { opacity: 0; transform: translateY(8px); }
+  12% { opacity: 1; transform: translateY(0); }
+  86% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+
+body[data-theme="light"] {
+  --bg: #f7f7f7;
+  --text: #111;
+}
+
+body[data-theme="light"]::after {
+  opacity: 0.18;
+}

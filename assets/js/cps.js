@@ -18,6 +18,9 @@ let cpsClicks = 0;
 let cpsWindowClicks = [];
 let cpsPeak = 0;
 let liveInterval = null;
+let clickCombo = 0;
+let lastClickAt = 0;
+let cpsTimeline = [];
 
 durSlider.addEventListener('input', () => {
   durKey = +durSlider.value;
@@ -35,6 +38,9 @@ function startGame() {
   cpsClicks = 0;
   cpsWindowClicks = [];
   cpsPeak = 0;
+  clickCombo = 0;
+  lastClickAt = 0;
+  cpsTimeline = [];
   timeLeft = DUR_MAP[durKey];
 
   cpsDisp.textContent = '0.0';
@@ -77,12 +83,19 @@ function startCPS() {
     cpsClicks++;
 
     const now = performance.now();
+    clickCombo = now - lastClickAt < 220 ? clickCombo + 1 : 1;
+    lastClickAt = now;
     cpsWindowClicks.push(now);
     const cutoff = now - 1000;
     while (cpsWindowClicks.length && cpsWindowClicks[0] < cutoff) cpsWindowClicks.shift();
     const liveCPS = cpsWindowClicks.length;
     if (liveCPS > cpsPeak) cpsPeak = liveCPS;
     cpsDisp.textContent = liveCPS.toFixed(1);
+    cpsTimeline.push({ t: now, cps: liveCPS });
+    if (window.TabbyFX) {
+      window.TabbyFX.beep(440 + Math.min(500, clickCombo * 10), 0.02, 'triangle', 0.012);
+      if (clickCombo > 0 && clickCombo % 15 === 0) window.TabbyFX.unlock('cps_combo_' + clickCombo, 'Click combo x' + clickCombo);
+    }
 
     const ring = document.createElement('div');
     ring.className = 'cps-ring';
@@ -120,8 +133,41 @@ function endGame() {
   document.getElementById('final-clicks').textContent = cpsClicks;
   document.getElementById('final-peak').textContent = cpsPeak.toFixed(1);
   document.getElementById('final-avg').textContent = (cpsClicks / DUR_MAP[durKey]).toFixed(1);
+  drawCpsGraph();
+  if (window.TabbyFX) {
+    window.TabbyFX.setHighScore('cps', cpsClicks);
+    if (cpsPeak >= 12) window.TabbyFX.unlock('cps_peak_12', '12 CPS peak');
+  }
 
   endScreen.classList.remove('hidden');
+}
+
+function drawCpsGraph() {
+  let canvas = document.getElementById('cps-graph');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.id = 'cps-graph';
+    canvas.width = 360;
+    canvas.height = 120;
+    canvas.style.marginTop = '14px';
+    canvas.style.border = '1px solid rgba(255,255,255,0.2)';
+    document.getElementById('end-screen').appendChild(canvas);
+  }
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!cpsTimeline.length) return;
+  const minT = cpsTimeline[0].t;
+  const maxT = cpsTimeline[cpsTimeline.length - 1].t || minT + 1;
+  const peak = Math.max(1, ...cpsTimeline.map(p => p.cps));
+  ctx.strokeStyle = 'rgba(255,70,70,0.95)';
+  ctx.beginPath();
+  cpsTimeline.forEach((p, i) => {
+    const x = ((p.t - minT) / (maxT - minT)) * (canvas.width - 8) + 4;
+    const y = canvas.height - ((p.cps / peak) * (canvas.height - 12) + 6);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
 }
 
 function spawnHitEffect(cx, cy) {
