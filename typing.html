@@ -52,6 +52,14 @@
         <div class="setting-label">Fall speed <span id="speed-val">Medium</span></div>
         <input type="range" id="speed-slider" min="1" max="5" value="2">
       </div>
+      <div class="setting-row">
+        <div class="setting-label">Typing mode</div>
+        <select id="typing-mode">
+          <option value="arcade">Arcade</option>
+          <option value="quotes">Random Quotes</option>
+          <option value="story">Story Stream</option>
+        </select>
+      </div>
     </div>
 
     <div class="typing-custom">
@@ -94,10 +102,11 @@
     <div>missed <span id="final-missed">0</span></div>
     <div>accuracy <span id="final-acc">0%</span></div>
   </div>
-  <div class="stat-row">
+<div class="stat-row">
     <div>best profile score <span id="final-best">0</span></div>
     <div>high score <span id="final-high">0</span></div>
   </div>
+  <div id="typing-heatmap" class="typing-heatmap"></div>
   <button class="action-btn" id="restart-btn">PLAY AGAIN</button>
   <button class="action-btn sm" id="menu-btn">MAIN MENU</button>
 </div>

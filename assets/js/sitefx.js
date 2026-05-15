@@ -2,6 +2,7 @@
   const ACH_KEY = 'tabby_achievements_v1';
   const SCORE_KEY = 'tabby_local_scores_v1';
   const THEME_KEY = 'tabby_theme_v1';
+  const SOUND_KEY = 'tabby_sound_v1';
   const root = document.documentElement;
   const body = document.body;
 
@@ -57,8 +58,9 @@
   }
 
   const ctxAudio = window.AudioContext ? new AudioContext() : null;
+  let soundOn = localStorage.getItem(SOUND_KEY) !== 'off';
   function beep(freq = 440, duration = 0.06, type = 'square', gain = 0.02) {
-    if (!ctxAudio) return;
+    if (!ctxAudio || !soundOn) return;
     const o = ctxAudio.createOscillator();
     const g = ctxAudio.createGain();
     o.type = type;
@@ -146,8 +148,22 @@
 
     const footer = document.createElement('footer');
     footer.className = 'site-footer';
-    footer.innerHTML = '<span>Tabby Games</span><span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">GitHub</a></span>';
+    footer.innerHTML = '<span>Tabby Games</span><span><button id="fx-sound-btn" type="button">Sound</button> <button id="fx-full-btn" type="button">Fullscreen</button> <a href="https://github.com/" target="_blank" rel="noopener noreferrer">GitHub</a></span>';
     document.body.appendChild(footer);
+    const soundBtn = document.getElementById('fx-sound-btn');
+    const fullBtn = document.getElementById('fx-full-btn');
+    if (soundBtn) {
+      soundBtn.textContent = soundOn ? 'Sound:On' : 'Sound:Off';
+      soundBtn.addEventListener('click', () => {
+        soundOn = !soundOn;
+        localStorage.setItem(SOUND_KEY, soundOn ? 'on' : 'off');
+        soundBtn.textContent = soundOn ? 'Sound:On' : 'Sound:Off';
+      });
+    }
+    fullBtn?.addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    });
 
     document.querySelectorAll('a[href$=".html"]').forEach(link => {
       link.addEventListener('click', ev => {

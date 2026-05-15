@@ -12,6 +12,8 @@ const comboDisplay = document.getElementById('combo-display');
 const finalBest = document.getElementById('final-best');
 const finalHigh = document.getElementById('final-high');
 const startBest = document.getElementById('start-best');
+const typingModeEl = document.getElementById('typing-mode');
+const heatmapEl = document.getElementById('typing-heatmap');
 
 const DUR_MAP = { 1: 30, 2: 60, 3: 90, 4: 120, 5: 180 };
 const SPAWN_MAP = { 1: 2400, 2: 1800, 3: 1350, 4: 1000, 5: 760 };
@@ -39,6 +41,7 @@ const state = {
   maxWords: 4,
   bank: 'classic',
   customWords: [],
+  mode: 'arcade',
 };
 
 let gameActive = false;
@@ -60,6 +63,7 @@ let currentBank = [];
 let highScore = 0;
 let typedChars = 0;
 let wpmTimeline = [];
+let keyHeat = {};
 
 const bankEl = document.getElementById('word-bank');
 const durSlider = document.getElementById('dur-slider');
@@ -126,6 +130,7 @@ function loadUi() {
   setUiValue('max-val', String(state.maxWords));
   bankEl.value = DEFAULT_BANKS.classic.join('\n');
   currentBank = DEFAULT_BANKS.classic.slice();
+  if (typingModeEl) typingModeEl.value = state.mode;
 }
 
 function labelForSpawn(key) {
@@ -164,6 +169,10 @@ tierSlider.addEventListener('input', () => {
 maxSlider.addEventListener('input', () => {
   state.maxWords = +maxSlider.value;
   setUiValue('max-val', String(state.maxWords));
+});
+
+typingModeEl?.addEventListener('change', () => {
+  state.mode = typingModeEl.value;
 });
 
 bankEl.addEventListener('input', () => {
@@ -212,6 +221,10 @@ inputEl.addEventListener('keydown', ev => {
     inputEl.value = '';
   }
 });
+document.addEventListener('keydown', ev => {
+  const k = ev.key.length === 1 ? ev.key.toLowerCase() : ev.key.toLowerCase();
+  keyHeat[k] = (keyHeat[k] || 0) + 1;
+});
 
 function mountInput() {
   if (document.querySelector('.typing-input-wrap')) return;
@@ -237,6 +250,7 @@ function startGame() {
   wordId = 1;
   typedChars = 0;
   wpmTimeline = [];
+  keyHeat = {};
 
   activeWords = [];
   typingField.innerHTML = '';
@@ -323,6 +337,14 @@ function spawnInitialWords() {
 }
 
 function pickWord() {
+  if (state.mode === 'quotes') {
+    const quotes = DEFAULT_BANKS.quote || DEFAULT_BANKS.classic;
+    return quotes[Math.floor(Math.random() * quotes.length)];
+  }
+  if (state.mode === 'story') {
+    const story = ['you', 'walk', 'through', 'neon', 'rain', 'and', 'type', 'to', 'survive'];
+    return story[Math.floor(Math.random() * story.length)];
+  }
   const tier = Math.min(5, Math.max(1, state.tierKey + Math.floor(score / 5)));
   const pool = (state.bank === 'custom' && currentBank.length ? currentBank : (DEFAULT_BANKS[state.bank] || DEFAULT_BANKS.classic)).slice();
   const tierWords = TIER_WORDS[tier] || TIER_WORDS[1];
@@ -526,12 +548,29 @@ function endGame() {
   finalBest.textContent = String(highScore);
   finalHigh.textContent = String(highScore);
   drawWpmGraph();
+  drawHeatmap();
   if (window.TabbyFX) {
     window.TabbyFX.setHighScore('typing', score);
     const acc = typed + missed > 0 ? typed / (typed + missed) : 0;
     if (acc >= 0.9) window.TabbyFX.unlock('typing_acc_90', 'Typing 90% accuracy');
   }
   endScreen.classList.remove('hidden');
+}
+
+function drawHeatmap() {
+  if (!heatmapEl) return;
+  const keys = ['q','w','e','r','t','y','u','i','o','p','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m'];
+  const peak = Math.max(1, ...Object.values(keyHeat));
+  heatmapEl.innerHTML = '';
+  keys.forEach(k => {
+    const count = keyHeat[k] || 0;
+    const intensity = count / peak;
+    const cell = document.createElement('div');
+    cell.className = 'typing-heatmap-key';
+    cell.textContent = k.toUpperCase();
+    cell.style.background = `rgba(255,60,60,${0.08 + intensity * 0.62})`;
+    heatmapEl.appendChild(cell);
+  });
 }
 
 function drawWpmGraph() {

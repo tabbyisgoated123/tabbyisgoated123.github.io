@@ -39,6 +39,7 @@
     <button class="mode-btn active" id="btn-classic">Classic</button>
     <button class="mode-btn" id="btn-tracking">Tracking</button>
     <button class="mode-btn" id="btn-threeD">3D</button>
+    <button class="mode-btn" id="btn-reaction">Reaction</button>
   </div>
 
   <div class="settings-panel">
@@ -133,6 +134,24 @@
       <div class="setting-row">
         <div class="setting-label">Duration <span id="three-dur-val">30 s</span></div>
         <input type="range" id="three-dur-slider" min="1" max="5" value="2">
+      </div>
+    </div>
+
+    <div id="reaction-settings" class="is-hidden">
+      <div class="setting-row">
+        <div class="setting-label">// wait for target and click instantly</div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Duration <span id="reaction-dur-val">30 s</span></div>
+        <input type="range" id="reaction-dur-slider" min="1" max="5" value="2">
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Crosshair</div>
+        <div class="speed-opts">
+          <button class="cross-opt active" data-cross="ring">Ring</button>
+          <button class="cross-opt" data-cross="dot">Dot</button>
+          <button class="cross-opt" data-cross="plus">Plus</button>
+        </div>
       </div>
     </div>
   </div>

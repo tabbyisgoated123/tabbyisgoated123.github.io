@@ -81,6 +81,8 @@ const botCountValue = document.getElementById('bot-count-value');
 
 const randomSeedBtn = document.getElementById('random-seed-btn');
 const regenerateBtn = document.getElementById('regenerate-btn');
+const saveWorldBtn = document.getElementById('save-world-btn');
+const loadWorldBtn = document.getElementById('load-world-btn');
 const playBtn = document.getElementById('play-btn');
 const menuBtn = document.getElementById('craft-menu-btn');
 const resumeBtn = document.getElementById('resume-btn');
@@ -232,6 +234,11 @@ function settingsKey() {
   return `${STORAGE_PREFIX}:${profileId}`;
 }
 
+function worldSaveKey() {
+  const profileId = window.TabbyProfiles?.getActiveProfile?.()?.id || 'global';
+  return `tabbycraft_world_v1:${profileId}`;
+}
+
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
@@ -347,6 +354,54 @@ function saveSettings() {
     settingsDirty = false;
   } catch (err) {
     // Ignore storage issues.
+  }
+}
+
+function saveWorldState() {
+  try {
+    const payload = {
+      settings,
+      blocksMined,
+      blocksPlaced,
+      dayCount,
+      dayPhase,
+      timeClock,
+      player,
+      inventory,
+      world: Array.from(world.entries()),
+    };
+    localStorage.setItem(worldSaveKey(), JSON.stringify(payload));
+    showMessage('world saved locally');
+  } catch (err) {
+    showMessage('save failed');
+  }
+}
+
+function loadWorldState() {
+  try {
+    const raw = localStorage.getItem(worldSaveKey());
+    if (!raw) {
+      showMessage('no save found');
+      return;
+    }
+    const payload = JSON.parse(raw);
+    settings = normalizeSettings(payload.settings || settings);
+    world = new Map(Array.isArray(payload.world) ? payload.world : []);
+    blocksMined = Number(payload.blocksMined || 0);
+    blocksPlaced = Number(payload.blocksPlaced || 0);
+    dayCount = Number(payload.dayCount || 1);
+    dayPhase = Number(payload.dayPhase || 0);
+    timeClock = Number(payload.timeClock || 0);
+    inventory = payload.inventory && typeof payload.inventory === 'object' ? payload.inventory : {};
+    if (payload.player && typeof payload.player === 'object') {
+      Object.assign(player, payload.player);
+    }
+    applySettingsToUi();
+    updateHotbarUi();
+    updateHud();
+    showMessage('world loaded');
+  } catch (err) {
+    showMessage('load failed');
   }
 }
 
@@ -490,6 +545,8 @@ function bindUi() {
     regenerateWorld(false);
     showMessage('new world generated');
   });
+  saveWorldBtn?.addEventListener('click', () => saveWorldState());
+  loadWorldBtn?.addEventListener('click', () => loadWorldState());
 
   playBtn.addEventListener('click', () => {
     startGame();

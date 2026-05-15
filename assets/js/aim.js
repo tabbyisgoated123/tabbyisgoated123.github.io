@@ -49,6 +49,7 @@ let settings = {
     sizeKey: 2,
     durKey: 2,
   },
+  reaction: { durKey: 2 },
   shape: 'circle',
 };
 
@@ -112,6 +113,10 @@ wire('three-dur-slider', 'three-dur-val', v => {
   settings.threeD.durKey = v;
   return DUR_MAP[v] + ' s';
 });
+wire('reaction-dur-slider', 'reaction-dur-val', v => {
+  settings.reaction.durKey = v;
+  return DUR_MAP[v] + ' s';
+});
 
 document.querySelectorAll('.shape-opt').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -142,15 +147,24 @@ document.querySelectorAll('.pattern-opt').forEach(btn => {
 });
 
 document.getElementById('btn-threeD').addEventListener('click', () => switchMode('threeD'));
+document.getElementById('btn-reaction').addEventListener('click', () => switchMode('reaction'));
+
+document.querySelectorAll('.cross-opt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.cross-opt').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.body.dataset.aimCross = btn.dataset.cross || 'ring';
+  });
+});
 
 function switchMode(m) {
   currentMode = m;
-  ['classic', 'tracking', 'threeD'].forEach(n => {
+  ['classic', 'tracking', 'threeD', 'reaction'].forEach(n => {
     document.getElementById('btn-' + n).classList.toggle('active', n === m);
     document.getElementById(n + '-settings').classList.toggle('is-hidden', n !== m);
   });
   const shapeSettings = document.getElementById('shape-settings');
-  if (shapeSettings) shapeSettings.classList.toggle('is-hidden', m === 'threeD');
+  if (shapeSettings) shapeSettings.classList.toggle('is-hidden', m === 'threeD' || m === 'reaction');
 }
 
 let score = 0;
@@ -179,6 +193,10 @@ let threeRaf = null;
 let threeLastTs = 0;
 let threeElapsed = 0;
 let threeState = null;
+let reactionPending = false;
+let reactionSpawnAt = 0;
+let reactionTimes = [];
+let reactionTimerId = null;
 
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('restart-btn').addEventListener('click', startGame);
@@ -227,6 +245,10 @@ function startGame() {
   trackStreak = 0;
   trackBestStreak = 0;
   threeElapsed = 0;
+  reactionPending = false;
+  reactionSpawnAt = 0;
+  reactionTimes = [];
+  clearTimeout(reactionTimerId);
   combo = 0;
   bestCombo = 0;
 
@@ -246,10 +268,14 @@ function startGame() {
       modeLbl.textContent = '// tracking mode — hover the targets';
       if (accuracyLabel) accuracyLabel.textContent = 'on-target';
       startTracking();
-    } else {
+    } else if (currentMode === 'threeD') {
       modeLbl.textContent = '// 3d mode — capsule targets';
       if (accuracyLabel) accuracyLabel.textContent = 'accuracy';
       startThreeD();
+    } else {
+      modeLbl.textContent = '// reaction mode — click instantly';
+      if (accuracyLabel) accuracyLabel.textContent = 'avg ms';
+      startReaction();
     }
   }
 
@@ -394,6 +420,53 @@ function startThreeD() {
   for (let i = 0; i < settings.threeD.count; i++) spawnThreeDTarget(i);
   threeLastTs = 0;
   threeRaf = requestAnimationFrame(threeLoop);
+}
+
+function startReaction() {
+  arena.onclick = e => {
+    if (!gameActive || e.target !== arena) return;
+    if (reactionPending) {
+      misses++;
+      updateAcc();
+      flashMiss();
+    }
+  };
+  scheduleReactionTarget();
+}
+
+function scheduleReactionTarget() {
+  reactionPending = true;
+  clearTimeout(reactionTimerId);
+  reactionTimerId = setTimeout(() => {
+    if (!gameActive || currentMode !== 'reaction') return;
+    reactionPending = false;
+    spawnReactionTarget();
+  }, 600 + Math.random() * 1500);
+}
+
+function spawnReactionTarget() {
+  const size = 44;
+  const x = Math.random() * (window.innerWidth - 100) + 50;
+  const y = Math.random() * (window.innerHeight - 140) + 70;
+  const btn = document.createElement('button');
+  btn.className = 'target shape-circle';
+  btn.style.cssText = `width:${size}px;height:${size}px;left:${x - size / 2}px;top:${y - size / 2}px;`;
+  arena.appendChild(btn);
+  reactionSpawnAt = performance.now();
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    if (!gameActive) return;
+    const rt = performance.now() - reactionSpawnAt;
+    reactionTimes.push(rt);
+    hits++;
+    score += Math.max(1, Math.round(300 / Math.max(80, rt)));
+    updateScore();
+    const avg = reactionTimes.length ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length) : 0;
+    accVal.textContent = avg ? `${avg} ms` : '—';
+    if (window.TabbyFX) window.TabbyFX.beep(980, 0.03, 'square', 0.02);
+    btn.remove();
+    scheduleReactionTarget();
+  }, { once: true });
 }
 
 function setupThreeDScene() {
@@ -769,6 +842,7 @@ function endGame() {
   gameActive = false;
   clearInterval(spawnInterval);
   clearInterval(countdownInterval);
+  clearTimeout(reactionTimerId);
   cancelAnimationFrame(trackRaf);
   cancelAnimationFrame(threeRaf);
 

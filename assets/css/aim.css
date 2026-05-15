@@ -26,6 +26,20 @@
   z-index: 120;
 }
 
+body[data-aim-cross="dot"] #arena.mode-threeD::after {
+  width: 6px;
+  height: 6px;
+  border: none;
+  background: rgb(var(--accent-rgb) / 0.9);
+}
+
+body[data-aim-cross="plus"] #arena.mode-threeD::after {
+  width: 2px;
+  height: 18px;
+  border: none;
+  background: rgb(var(--accent-rgb) / 0.9);
+}
+
 #arena.mode-threeD::before {
   content: '';
   position: fixed;
@@ -509,7 +523,8 @@ input[type=range]::-webkit-slider-thumb:hover {
 
 .speed-opt,
 .shape-opt,
-.pattern-opt {
+.pattern-opt,
+.cross-opt {
   font-family: 'Share Tech Mono', monospace;
   font-size: 10px;
   letter-spacing: 2px;
@@ -524,7 +539,8 @@ input[type=range]::-webkit-slider-thumb:hover {
 
 .speed-opt.active,
 .shape-opt.active,
-.pattern-opt.active {
+.pattern-opt.active,
+.cross-opt.active {
   border-color: rgb(var(--accent-rgb) / 0.33);
   color: var(--accent);
   background: rgb(var(--accent-rgb) / 0.07);
@@ -532,7 +548,8 @@ input[type=range]::-webkit-slider-thumb:hover {
 
 .speed-opt:hover:not(.active),
 .shape-opt:hover:not(.active),
-.pattern-opt:hover:not(.active) {
+.pattern-opt:hover:not(.active),
+.cross-opt:hover:not(.active) {
   border-color: #2e2e2e;
   color: #555;
 }

@@ -136,6 +136,14 @@
   gap: 7px;
 }
 
+.setting-row select {
+  border: 1px solid rgb(var(--accent-rgb) / 0.22);
+  background: rgba(7, 7, 10, 0.8);
+  color: #fff;
+  padding: 9px 10px;
+  font: inherit;
+}
+
 .setting-label {
   font-size: 9px;
   letter-spacing: 4px;
@@ -335,6 +343,23 @@
   border: 2px solid rgb(var(--accent-rgb) / 0.55);
   pointer-events: none;
   animation: burstExpand 0.4s ease-out forwards;
+}
+
+.typing-heatmap {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(20px, 1fr));
+  gap: 4px;
+  width: min(460px, 90vw);
+  margin-bottom: 8px;
+}
+
+.typing-heatmap-key {
+  border: 1px solid rgb(var(--accent-rgb) / 0.18);
+  padding: 4px 0;
+  text-align: center;
+  font-size: 10px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 @keyframes flyUp {
