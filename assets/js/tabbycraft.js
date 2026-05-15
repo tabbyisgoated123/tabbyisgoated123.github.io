@@ -212,6 +212,7 @@ let lookTouchStart = { x: 0, y: 0 };
 let lookTouchVector = { x: 0, y: 0 };
 let moveInput = { x: 0, y: 0 };
 let keys = new Set();
+let hasLoadedWorld = false;
 
 const player = {
   x: 24,
@@ -396,6 +397,7 @@ function loadWorldState() {
     if (payload.player && typeof payload.player === 'object') {
       Object.assign(player, payload.player);
     }
+    hasLoadedWorld = true;
     applySettingsToUi();
     updateHotbarUi();
     updateHud();
@@ -698,6 +700,7 @@ function showMessage(text, duration = 1800) {
 }
 
 function showStartScreen() {
+  window.TabbyFX?.setGameplay?.(false);
   paused = true;
   inventoryOpen = false;
   startScreen.classList.remove('hidden');
@@ -709,6 +712,7 @@ function showStartScreen() {
 
 function pauseGame() {
   if (!gameActive) return;
+  window.TabbyFX?.setGameplay?.(false);
   paused = true;
   inventoryOpen = false;
   pauseScreen.classList.remove('hidden');
@@ -721,6 +725,7 @@ function pauseGame() {
 
 function resumeGame() {
   if (!gameActive) return;
+  window.TabbyFX?.setGameplay?.(true);
   if (document.activeElement && typeof document.activeElement.blur === 'function') {
     document.activeElement.blur();
   }
@@ -734,10 +739,13 @@ function resumeGame() {
 }
 
 function startGame() {
+  window.TabbyFX?.setGameplay?.(true);
   if (document.activeElement && typeof document.activeElement.blur === 'function') {
     document.activeElement.blur();
   }
-  regenerateWorld(true);
+  if (!hasLoadedWorld) {
+    regenerateWorld(true);
+  }
   startScreen.classList.add('hidden');
   pauseScreen.classList.add('hidden');
   craftPanel.classList.add('hidden');
@@ -750,10 +758,12 @@ function startGame() {
   if (settings.mobileControls) {
     mobileControls.classList.remove('hidden');
   }
+  hasLoadedWorld = false;
   showMessage(`${capitalize(settings.mode)} world loaded`);
 }
 
 function regenerateWorld(resetPlayer = true) {
+  hasLoadedWorld = false;
   settings = normalizeSettings(settings);
   saveSettings();
   worldSeed = hashString(`${settings.seed}:${settings.preset}:${settings.worldSize}`);

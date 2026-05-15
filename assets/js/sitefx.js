@@ -203,7 +203,11 @@
     });
   }
 
-  window.TabbyFX = { unlock, setHighScore, getHighScore, toast, shake, beep };
+  function setGameplay(active) {
+    document.body.dataset.gameplay = active ? 'on' : 'off';
+  }
+
+  window.TabbyFX = { unlock, setHighScore, getHighScore, toast, shake, beep, setGameplay };
 
   initLoader();
   initParticles();

@@ -162,3 +162,9 @@ body.fx-ready {
 .site-footer a:hover {
   color: #fff;
 }
+
+body[data-gameplay="on"] .site-nav,
+body[data-gameplay="on"] .site-footer {
+  opacity: 0;
+  pointer-events: none;
+}

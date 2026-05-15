@@ -156,6 +156,7 @@ document.querySelectorAll('.cross-opt').forEach(btn => {
     document.body.dataset.aimCross = btn.dataset.cross || 'ring';
   });
 });
+if (!document.body.dataset.aimCross) document.body.dataset.aimCross = 'ring';
 
 function switchMode(m) {
   currentMode = m;
@@ -203,6 +204,7 @@ document.getElementById('restart-btn').addEventListener('click', startGame);
 document.getElementById('menu-btn').addEventListener('click', () => {
   endScreen.classList.add('hidden');
   startScreen.classList.remove('hidden');
+  window.TabbyFX?.setGameplay?.(false);
 });
 
 function getDuration() {
@@ -210,6 +212,7 @@ function getDuration() {
 }
 
 function startGame() {
+  window.TabbyFX?.setGameplay?.(true);
   score = 0;
   hits = 0;
   misses = 0;
@@ -427,7 +430,12 @@ function startReaction() {
     if (!gameActive || e.target !== arena) return;
     if (reactionPending) {
       misses++;
-      updateAcc();
+      if (reactionTimes.length) {
+        const avg = Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length);
+        accVal.textContent = `${avg} ms`;
+      } else {
+        accVal.textContent = '—';
+      }
       flashMiss();
     }
   };
@@ -839,6 +847,7 @@ function trackLoop(ts) {
 }
 
 function endGame() {
+  window.TabbyFX?.setGameplay?.(false);
   gameActive = false;
   clearInterval(spawnInterval);
   clearInterval(countdownInterval);

@@ -32,9 +32,11 @@ document.getElementById('restart-btn').addEventListener('click', startGame);
 document.getElementById('menu-btn').addEventListener('click', () => {
   endScreen.classList.add('hidden');
   startScreen.classList.remove('hidden');
+  window.TabbyFX?.setGameplay?.(false);
 });
 
 function startGame() {
+  window.TabbyFX?.setGameplay?.(true);
   cpsClicks = 0;
   cpsWindowClicks = [];
   cpsPeak = 0;
@@ -119,6 +121,7 @@ function startCPS() {
 }
 
 function endGame() {
+  window.TabbyFX?.setGameplay?.(false);
   gameActive = false;
   clearInterval(countdownInterval);
   clearInterval(liveInterval);

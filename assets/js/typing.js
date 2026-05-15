@@ -192,6 +192,7 @@ document.getElementById('restart-btn').addEventListener('click', startGame);
 document.getElementById('menu-btn').addEventListener('click', () => {
   endScreen.classList.add('hidden');
   startScreen.classList.remove('hidden');
+  window.TabbyFX?.setGameplay?.(false);
 });
 
 document.addEventListener('tabby-profile-change', () => {
@@ -222,6 +223,7 @@ inputEl.addEventListener('keydown', ev => {
   }
 });
 document.addEventListener('keydown', ev => {
+  if (!gameActive) return;
   const k = ev.key.length === 1 ? ev.key.toLowerCase() : ev.key.toLowerCase();
   keyHeat[k] = (keyHeat[k] || 0) + 1;
 });
@@ -236,6 +238,7 @@ function mountInput() {
 }
 
 function startGame() {
+  window.TabbyFX?.setGameplay?.(true);
   mountInput();
   refreshProfileHighScore();
   rebuildCurrentBank();
@@ -524,6 +527,7 @@ function flashMiss() {
 }
 
 function endGame() {
+  window.TabbyFX?.setGameplay?.(false);
   gameActive = false;
   clearInterval(countdownInterval);
   clearInterval(spawnInterval);
