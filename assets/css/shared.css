@@ -101,7 +101,7 @@ body[data-cursor="none"] {
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(4, 4, 4, 0.96)),
     repeating-linear-gradient(90deg, transparent 0 54px, rgb(var(--accent-rgb) / 0.035) 54px 55px);
-  transition: opacity 0.35s ease;
+  transition: opacity 0.25s ease;
   overflow: auto;
 }
 
@@ -120,13 +120,14 @@ body[data-cursor="none"] {
   letter-spacing: 6px;
   color: var(--accent);
   background: transparent;
-  border: 1px solid rgb(var(--accent-rgb) / 0.4);
+  border: 1px solid rgb(var(--accent-rgb) / 0.35);
+  border-radius: 999px;
   padding: 14px 52px;
   cursor: pointer;
   text-transform: uppercase;
   position: relative;
   overflow: hidden;
-  transition: transform 0.2s, color 0.2s, border-color 0.2s, background 0.2s, box-shadow 0.2s, letter-spacing 0.2s;
+  transition: transform 0.18s, color 0.18s, border-color 0.18s, background 0.18s, box-shadow 0.18s, letter-spacing 0.18s;
   text-shadow: 0 0 10px rgb(var(--accent-rgb) / 0.35);
   margin-top: 4px;
 }

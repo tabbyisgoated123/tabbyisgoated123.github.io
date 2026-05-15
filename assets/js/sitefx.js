@@ -101,16 +101,6 @@
     requestAnimationFrame(draw);
   }
 
-  function initCursor() {
-    const cur = document.createElement('div');
-    cur.className = 'fx-cursor';
-    document.body.appendChild(cur);
-    window.addEventListener('pointermove', e => {
-      cur.style.left = e.clientX + 'px';
-      cur.style.top = e.clientY + 'px';
-    });
-  }
-
   function initTheme() {
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -136,8 +126,38 @@
     document.body.appendChild(overlay);
     setTimeout(() => {
       overlay.classList.add('hidden');
+      document.body.classList.add('fx-ready');
       setTimeout(() => overlay.remove(), 360);
     }, 650);
+  }
+
+  function initShell() {
+    const pages = [
+      ['index.html', 'Home'],
+      ['aim.html', 'Aim'],
+      ['cps.html', 'CPS'],
+      ['typing.html', 'Typing'],
+      ['tabbycraft.html', 'TabbyCraft'],
+    ];
+    const nav = document.createElement('nav');
+    nav.className = 'site-nav';
+    nav.innerHTML = pages.map(([href, label]) => `<a href="${href}">${label}</a>`).join('');
+    document.body.appendChild(nav);
+
+    const footer = document.createElement('footer');
+    footer.className = 'site-footer';
+    footer.innerHTML = '<span>Tabby Games</span><span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">GitHub</a></span>';
+    document.body.appendChild(footer);
+
+    document.querySelectorAll('a[href$=".html"]').forEach(link => {
+      link.addEventListener('click', ev => {
+        const href = link.getAttribute('href');
+        if (!href) return;
+        ev.preventDefault();
+        document.body.classList.remove('fx-ready');
+        setTimeout(() => { window.location.href = href; }, 180);
+      });
+    });
   }
 
   function initTypeEffect() {
@@ -171,8 +191,8 @@
 
   initLoader();
   initParticles();
-  initCursor();
   initTheme();
+  initShell();
   initTypeEffect();
   initEasterEgg();
 })();

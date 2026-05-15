@@ -664,6 +664,9 @@ function pauseGame() {
 
 function resumeGame() {
   if (!gameActive) return;
+  if (document.activeElement && typeof document.activeElement.blur === 'function') {
+    document.activeElement.blur();
+  }
   paused = false;
   pauseScreen.classList.add('hidden');
   startScreen.classList.add('hidden');
@@ -674,6 +677,9 @@ function resumeGame() {
 }
 
 function startGame() {
+  if (document.activeElement && typeof document.activeElement.blur === 'function') {
+    document.activeElement.blur();
+  }
   regenerateWorld(true);
   startScreen.classList.add('hidden');
   pauseScreen.classList.add('hidden');
@@ -1051,6 +1057,8 @@ function handleKeyDown(ev) {
     selectSlot(+ev.key - 1);
   }
   if (ev.key === ' ') {
+    ev.preventDefault();
+    ev.stopPropagation();
     if (settings.mode === 'creative' || player.onGround || settings.autoJump) {
       // Vanilla jump initial velocity ≈ sqrt(2 * g * h) where h ≈ 1.252 blocks.
       const jumpV = settings.mode === 'creative' ? 5.6 : 8.4;
