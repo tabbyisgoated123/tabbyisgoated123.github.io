@@ -1,106 +1,152 @@
-.home-screen {
-  isolation: isolate;
-  overflow: auto;
-  justify-content: flex-start;
-  gap: 22px;
-  padding-top: 110px;
-  padding-bottom: 90px;
-}
-
-.home-depth {
+.tabbyos {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at 12% 20%, rgb(var(--accent-rgb) / 0.12), transparent 40%);
-  z-index: -1;
+  overflow: hidden;
+  color: #dbe5ef;
 }
 
-.hero {
-  width: min(980px, calc(100vw - 40px));
+.tabbyos-wallpaper {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(120, 180, 255, 0.22), transparent 42%),
+    radial-gradient(circle at 80% 30%, rgba(255, 90, 120, 0.16), transparent 38%),
+    linear-gradient(165deg, #0b121c 0%, #111827 40%, #0a0f18 100%);
 }
 
-.home-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(46px, 9vw, 92px);
-  letter-spacing: 3px;
-  color: #fff;
+.tabbyos-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(10, 14, 20, 0.75);
+  backdrop-filter: blur(8px);
 }
 
-.home-subtitle {
-  margin-top: 6px;
-  color: rgb(255 255 255 / 0.7);
+.os-mark {
+  font-size: 11px;
   letter-spacing: 1px;
-  font-size: clamp(14px, 2vw, 17px);
-  max-width: 700px;
+  color: rgba(219, 229, 239, 0.82);
 }
 
-.home-menu {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(220px, 1fr));
-  gap: 14px;
-  width: min(980px, calc(100vw - 40px));
-}
-
-.home-menu a {
-  min-height: 120px;
-  border-radius: 16px;
-  border: 1px solid rgb(255 255 255 / 0.11);
-  background: rgb(12 12 15 / 0.7);
-  padding: 18px;
-  text-decoration: none;
-  color: #fff;
-  display: grid;
-  align-content: space-between;
-  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-}
-
-.home-menu a::after {
-  content: attr(data-meta);
-  color: rgb(255 255 255 / 0.55);
+#os-clock {
   font-size: 12px;
 }
 
-.home-menu a:hover {
-  transform: translateY(-2px);
-  border-color: rgb(var(--accent-rgb) / 0.45);
-  background: rgb(var(--accent-rgb) / 0.12);
-}
-
-.home-about,
-.home-highlights {
-  width: min(980px, calc(100vw - 40px));
-}
-
-.home-about h2 {
-  font-size: 20px;
-  margin-bottom: 8px;
-}
-
-.home-about p {
-  color: rgb(255 255 255 / 0.72);
-  max-width: 760px;
-  line-height: 1.6;
-}
-
-.home-highlights {
+.tabbyos-desktop {
+  position: absolute;
+  top: 56px;
+  left: 16px;
+  right: 16px;
+  bottom: 62px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(150px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
+  align-content: start;
 }
 
-.highlight {
+.app-icon {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
   border-radius: 12px;
-  border: 1px solid rgb(255 255 255 / 0.08);
-  background: rgb(8 8 10 / 0.6);
-  padding: 12px;
-  color: rgb(255 255 255 / 0.82);
+  color: #e8eef8;
+  min-height: 82px;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.app-icon:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.app-window {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1100px, calc(100vw - 24px));
+  height: min(78vh, 760px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(8, 12, 18, 0.96);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+  z-index: 500;
+}
+
+.app-window.hidden {
+  display: none;
+}
+
+.window-bar {
+  height: 38px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
   font-size: 12px;
 }
 
-@media (max-width: 740px) {
-  .home-menu {
-    grid-template-columns: 1fr;
-  }
-  .home-highlights {
-    grid-template-columns: 1fr;
-  }
+.window-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.window-actions button,
+.tabbyos-dock button {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+#app-frame,
+.terminal-view {
+  width: 100%;
+  height: calc(100% - 38px);
+  border: 0;
+  background: #090d13;
+}
+
+.terminal-view {
+  padding: 14px;
+  color: #9df7bf;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.terminal-view.hidden {
+  display: none;
+}
+
+.tabbyos-dock {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 44px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 14, 20, 0.78);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+}
+
+#dock-label {
+  font-size: 12px;
+  color: rgba(219, 229, 239, 0.8);
 }

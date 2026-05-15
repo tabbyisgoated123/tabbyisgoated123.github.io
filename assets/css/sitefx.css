@@ -47,20 +47,6 @@ body.fx-shake {
   text-transform: uppercase;
 }
 
-.fx-theme-toggle {
-  position: fixed;
-  top: 14px;
-  right: 14px;
-  z-index: 360;
-  border: 1px solid rgb(var(--accent-rgb) / 0.45);
-  color: var(--text);
-  background: rgb(0 0 0 / 0.35);
-  padding: 8px 10px;
-  font: inherit;
-  cursor: pointer;
-  border-radius: 999px;
-}
-
 .fx-toast-wrap {
   right: 16px;
   bottom: 16px;
@@ -83,15 +69,6 @@ body.fx-shake {
   12% { opacity: 1; transform: translateY(0); }
   86% { opacity: 1; transform: translateY(0); }
   100% { opacity: 0; transform: translateY(-6px); }
-}
-
-body[data-theme="light"] {
-  --bg: #f7f7f7;
-  --text: #111;
-}
-
-body[data-theme="light"]::after {
-  opacity: 0.18;
 }
 
 body {

@@ -9,33 +9,43 @@
 <link rel="stylesheet" href="assets/css/index.css">
 <link rel="stylesheet" href="assets/css/sitefx.css">
 </head>
-<body>
+<body class="tabbyos-page">
 
-<div class="screen home-screen">
-  <div class="home-depth" aria-hidden="true"></div>
-  <section class="hero">
-    <div class="home-title">Tabby Games</div>
-    <div class="home-subtitle">lightweight arcade experiments built for the browser</div>
+<main class="tabbyos">
+  <div class="tabbyos-wallpaper" aria-hidden="true"></div>
+  <header class="tabbyos-topbar">
+    <div class="os-mark">TabbyOS // Arch style sandbox</div>
+    <div id="os-clock">00:00</div>
+  </header>
+
+  <section class="tabbyos-desktop" id="os-desktop">
+    <button class="app-icon" data-app="aim.html">Aim Trainer</button>
+    <button class="app-icon" data-app="cps.html">CPS Trainer</button>
+    <button class="app-icon" data-app="typing.html">TabbyTyping</button>
+    <button class="app-icon" data-app="tabbycraft.html">TabbyCraft</button>
+    <button class="app-icon" data-app="terminal">Terminal</button>
   </section>
 
-  <div class="home-menu" id="projects">
-    <a href="aim.html" data-meta="reaction + tracking">Aim Trainer</a>
-    <a href="cps.html" data-meta="click speed + graph">CPS Trainer</a>
-    <a href="typing.html" data-meta="quote mode + wpm">TabbyTyping</a>
-    <a href="tabbycraft.html" data-meta="voxel sandbox">TabbyCraft</a>
-  </div>
-  <section class="home-about">
-    <h2>About</h2>
-    <p>This is an indie mini-game hub focused on smooth UX, replayability, and low-overhead web tech.</p>
+  <section class="app-window hidden" id="app-window">
+    <div class="window-bar">
+      <span id="window-title">TabbyOS App</span>
+      <div class="window-actions">
+        <button type="button" id="win-min">_</button>
+        <button type="button" id="win-close">x</button>
+      </div>
+    </div>
+    <iframe id="app-frame" title="TabbyOS App Frame"></iframe>
+    <div class="terminal-view hidden" id="terminal-view"></div>
   </section>
-  <section class="home-highlights">
-    <div class="highlight">Local achievements</div>
-    <div class="highlight">Theme system</div>
-    <div class="highlight">Performance first</div>
-  </section>
-</div>
+
+  <footer class="tabbyos-dock">
+    <button type="button" id="start-btn">start</button>
+    <span id="dock-label">Ready</span>
+  </footer>
+</main>
 
 <script src="assets/js/profile.js" defer></script>
 <script src="assets/js/sitefx.js" defer></script>
+<script src="assets/js/tabbyos.js" defer></script>
 </body>
 </html>

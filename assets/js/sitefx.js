@@ -1,7 +1,6 @@
 (function () {
   const ACH_KEY = 'tabby_achievements_v1';
   const SCORE_KEY = 'tabby_local_scores_v1';
-  const THEME_KEY = 'tabby_theme_v1';
   const SOUND_KEY = 'tabby_sound_v1';
   const root = document.documentElement;
   const body = document.body;
@@ -103,24 +102,6 @@
     requestAnimationFrame(draw);
   }
 
-  function initTheme() {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'fx-theme-toggle';
-    document.body.appendChild(btn);
-
-    const hour = new Date().getHours();
-    const autoTheme = hour >= 7 && hour <= 18 ? 'light' : 'dark';
-    body.dataset.theme = localStorage.getItem(THEME_KEY) || autoTheme;
-    btn.textContent = body.dataset.theme === 'light' ? 'Night' : 'Day';
-    btn.addEventListener('click', () => {
-      body.dataset.theme = body.dataset.theme === 'light' ? 'dark' : 'light';
-      localStorage.setItem(THEME_KEY, body.dataset.theme);
-      btn.textContent = body.dataset.theme === 'light' ? 'Night' : 'Day';
-      beep(520, 0.04, 'triangle', 0.015);
-    });
-  }
-
   function initLoader() {
     const overlay = document.createElement('div');
     overlay.className = 'fx-loading';
@@ -134,6 +115,7 @@
   }
 
   function initShell() {
+    if (document.body.classList.contains('tabbyos-page')) return;
     const pages = [
       ['index.html', 'Home'],
       ['aim.html', 'Aim'],
@@ -211,7 +193,6 @@
 
   initLoader();
   initParticles();
-  initTheme();
   initShell();
   initTypeEffect();
   initEasterEgg();
