@@ -15,35 +15,11 @@
     linear-gradient(165deg, #0b121c 0%, #111827 40%, #0a0f18 100%);
 }
 
-.os-settings {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  z-index: 620;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 12px;
-  background: rgba(10, 14, 20, 0.8);
-  padding: 10px;
-  display: grid;
-  gap: 8px;
-  width: 190px;
-}
-
-.os-settings-title {
-  font-size: 12px;
-}
-
-.os-settings label {
-  display: grid;
-  gap: 4px;
-  font-size: 11px;
-}
-
 .tabbyos-desktop {
   position: absolute;
   top: 16px;
   left: 16px;
-  right: 220px;
+  right: 16px;
   bottom: 62px;
   overflow: hidden;
 }
@@ -86,6 +62,46 @@
   text-align: left;
   align-items: center;
   padding: 10px 12px;
+}
+
+.settings-window {
+  position: absolute;
+  inset: 0;
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+  background: rgba(8, 12, 18, 0.96);
+}
+
+.settings-card {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.settings-title {
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.settings-card label {
+  display: grid;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.settings-card input[type="color"],
+.settings-card select,
+.settings-card button {
+  max-width: 240px;
+}
+
+.settings-note {
+  font-size: 11px;
+  color: rgba(219, 229, 239, 0.72);
 }
 
 #window-layer {
@@ -152,6 +168,9 @@
 
 .app-window iframe,
 .terminal-view {
+  position: absolute;
+  top: 38px;
+  left: 0;
   width: 100%;
   height: calc(100% - 38px);
   border: 0;
@@ -185,6 +204,35 @@
   align-items: center;
   gap: 10px;
   padding: 0 10px;
+}
+
+.taskbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 0 4px;
+}
+
+.taskbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.taskbar-btn.active {
+  border-color: color-mix(in srgb, var(--os-accent) 65%, white 20%);
+  background: color-mix(in srgb, var(--os-accent) 16%, transparent);
 }
 
 .term-line {

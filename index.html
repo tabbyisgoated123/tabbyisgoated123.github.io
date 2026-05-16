@@ -13,18 +13,9 @@
 
 <main class="tabbyos">
   <div class="tabbyos-wallpaper" aria-hidden="true"></div>
-  <aside class="os-settings" id="os-settings">
-    <div class="os-settings-title">TabbyOS Settings</div>
-    <label>Accent <input type="color" id="os-accent" value="#ff1a1a"></label>
-    <label>Layout
-      <select id="os-layout">
-        <option value="grid">Grid</option>
-        <option value="list">List</option>
-      </select>
-    </label>
-  </aside>
 
   <section class="tabbyos-desktop" id="os-desktop">
+    <button class="app-icon" data-app="settings"><span class="icon">⚙️</span><span>Settings</span></button>
     <button class="app-icon" data-app="aim.html"><span class="icon">🎯</span><span>Aim Trainer</span></button>
     <button class="app-icon" data-app="cps.html"><span class="icon">🖱️</span><span>CPS Trainer</span></button>
     <button class="app-icon" data-app="typing.html"><span class="icon">⌨️</span><span>TabbyTyping</span></button>
@@ -36,6 +27,7 @@
 
   <footer class="tabbyos-dock">
     <button type="button" id="start-btn">start</button>
+    <div id="taskbar" class="taskbar"></div>
     <span id="dock-label">Ready</span>
   </footer>
 </main>
