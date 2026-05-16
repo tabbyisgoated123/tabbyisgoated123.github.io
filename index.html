@@ -13,17 +13,23 @@
 
 <main class="tabbyos">
   <div class="tabbyos-wallpaper" aria-hidden="true"></div>
-  <header class="tabbyos-topbar">
-    <div class="os-mark">TabbyOS // Arch style sandbox</div>
-    <div id="os-clock">00:00</div>
-  </header>
+  <aside class="os-settings" id="os-settings">
+    <div class="os-settings-title">TabbyOS Settings</div>
+    <label>Accent <input type="color" id="os-accent" value="#ff1a1a"></label>
+    <label>Layout
+      <select id="os-layout">
+        <option value="grid">Grid</option>
+        <option value="list">List</option>
+      </select>
+    </label>
+  </aside>
 
   <section class="tabbyos-desktop" id="os-desktop">
-    <button class="app-icon" data-app="aim.html">Aim Trainer</button>
-    <button class="app-icon" data-app="cps.html">CPS Trainer</button>
-    <button class="app-icon" data-app="typing.html">TabbyTyping</button>
-    <button class="app-icon" data-app="tabbycraft.html">TabbyCraft</button>
-    <button class="app-icon" data-app="terminal">Terminal</button>
+    <button class="app-icon" data-app="aim.html"><span class="icon">🎯</span><span>Aim Trainer</span></button>
+    <button class="app-icon" data-app="cps.html"><span class="icon">🖱️</span><span>CPS Trainer</span></button>
+    <button class="app-icon" data-app="typing.html"><span class="icon">⌨️</span><span>TabbyTyping</span></button>
+    <button class="app-icon" data-app="tabbycraft.html"><span class="icon">🧱</span><span>TabbyCraft</span></button>
+    <button class="app-icon" data-app="terminal"><span class="icon">🖥️</span><span>Terminal</span></button>
   </section>
 
   <div id="window-layer"></div>

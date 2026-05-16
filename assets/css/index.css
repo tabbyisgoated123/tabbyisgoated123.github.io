@@ -3,6 +3,7 @@
   inset: 0;
   overflow: hidden;
   color: #dbe5ef;
+  --os-accent: #ff1a1a;
 }
 
 .tabbyos-wallpaper {
@@ -14,36 +15,35 @@
     linear-gradient(165deg, #0b121c 0%, #111827 40%, #0a0f18 100%);
 }
 
-.tabbyos-topbar {
+.os-settings {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
-  background: rgba(10, 14, 20, 0.75);
-  backdrop-filter: blur(8px);
+  top: 14px;
+  right: 14px;
+  z-index: 620;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  background: rgba(10, 14, 20, 0.8);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+  width: 190px;
 }
 
-.os-mark {
-  font-size: 11px;
-  letter-spacing: 1px;
-  color: rgba(219, 229, 239, 0.82);
-}
-
-#os-clock {
+.os-settings-title {
   font-size: 12px;
+}
+
+.os-settings label {
+  display: grid;
+  gap: 4px;
+  font-size: 11px;
 }
 
 .tabbyos-desktop {
   position: absolute;
-  top: 56px;
+  top: 16px;
   left: 16px;
-  right: 16px;
+  right: 220px;
   bottom: 62px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
@@ -59,12 +59,34 @@
   min-height: 82px;
   cursor: pointer;
   transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  align-content: center;
+  text-align: center;
 }
 
 .app-icon:hover {
   transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.32);
-  background: rgba(255, 255, 255, 0.1);
+  border-color: color-mix(in srgb, var(--os-accent) 60%, white 30%);
+  background: color-mix(in srgb, var(--os-accent) 20%, transparent);
+}
+
+.app-icon .icon {
+  font-size: 22px;
+}
+
+.tabbyos[data-layout="list"] .tabbyos-desktop {
+  grid-template-columns: minmax(220px, 320px);
+}
+
+.tabbyos[data-layout="list"] .app-icon {
+  min-height: 56px;
+  grid-template-columns: 28px 1fr;
+  justify-items: start;
+  text-align: left;
+  align-items: center;
+  padding: 10px 12px;
 }
 
 #window-layer {
@@ -143,6 +165,7 @@
   font-size: 13px;
   line-height: 1.6;
   white-space: pre-wrap;
+  font-family: Consolas, 'Courier New', monospace;
 }
 
 .terminal-view.hidden {
@@ -162,6 +185,19 @@
   align-items: center;
   gap: 10px;
   padding: 0 10px;
+}
+
+.term-line {
+  display: block;
+}
+
+.term-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #9df7bf;
+  font: inherit;
 }
 
 #dock-label {
