@@ -340,6 +340,19 @@
     setStatus('Profile saved');
   }
 
+  function updateActiveProfile(patch = {}) {
+    const current = getActiveProfile();
+    const next = safeProfile({
+      id: current.id,
+      name: patch.name ?? current.name,
+      color: patch.color ?? current.color,
+      prefs: Object.assign({}, current.prefs || DEFAULT_PREFS, patch.prefs || {}),
+      gameStats: current.gameStats,
+    });
+    applyProfile(next, { rerenderList: true, emitChange: true });
+    return next;
+  }
+
   function createProfile() {
     const base = getActiveProfile();
     const created = safeProfile({
@@ -582,7 +595,9 @@
   }
 
   function init() {
-    buildUI();
+    // TabbyOS now owns settings UI, so keep profile state/theme synced without mounting the old dock.
+    applyTheme(getActiveProfile());
+    persistState();
   }
 
   const api = {
@@ -597,6 +612,7 @@
     deleteActiveProfile,
     applyTheme,
     setProfileGameStat,
+    updateActiveProfile,
     togglePanel,
   };
 

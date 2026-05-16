@@ -24,6 +24,61 @@
   overflow: hidden;
 }
 
+.tabbyos[data-taskbar="top"] .tabbyos-desktop {
+  top: 68px;
+  bottom: 16px;
+}
+
+.tabbyos[data-taskbar="left"] .tabbyos-desktop {
+  left: 92px;
+}
+
+.tabbyos[data-taskbar="right"] .tabbyos-desktop {
+  right: 92px;
+}
+
+.tabbyos[data-taskbar="bottom"] .tabbyos-dock {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: auto;
+  width: auto;
+  height: 44px;
+  flex-direction: row;
+}
+
+.tabbyos[data-taskbar="top"] .tabbyos-dock {
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: auto;
+  width: auto;
+  height: 44px;
+  flex-direction: row;
+}
+
+.tabbyos[data-taskbar="left"] .tabbyos-dock,
+.tabbyos[data-taskbar="right"] .tabbyos-dock {
+  top: 0;
+  bottom: 0;
+  width: 72px;
+  height: auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 8px;
+}
+
+.tabbyos[data-taskbar="left"] .tabbyos-dock {
+  left: 0;
+  right: auto;
+}
+
+.tabbyos[data-taskbar="right"] .tabbyos-dock {
+  right: 0;
+  left: auto;
+}
+
 .app-icon {
   position: absolute;
   width: 110px;
@@ -102,6 +157,27 @@
 .settings-note {
   font-size: 11px;
   color: rgba(219, 229, 239, 0.72);
+}
+
+.profile-colors {
+  display: grid;
+  grid-template-columns: repeat(4, 24px);
+  gap: 8px;
+  max-width: 120px;
+}
+
+.profile-color-swatch {
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 #window-layer {
@@ -202,6 +278,7 @@
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   padding: 0 10px;
 }
@@ -210,6 +287,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  justify-content: center;
   flex: 1;
   min-width: 0;
   overflow-x: auto;
@@ -235,6 +313,22 @@
   background: color-mix(in srgb, var(--os-accent) 16%, transparent);
 }
 
+.tabbyos[data-taskbar="left"] .taskbar,
+.tabbyos[data-taskbar="right"] .taskbar {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.tabbyos[data-taskbar="left"] .taskbar-btn,
+.tabbyos[data-taskbar="right"] .taskbar-btn {
+  width: calc(100% - 6px);
+  justify-content: center;
+}
+
 .term-line {
   display: block;
 }
@@ -246,9 +340,4 @@
   background: transparent;
   color: #9df7bf;
   font: inherit;
-}
-
-#dock-label {
-  font-size: 12px;
-  color: rgba(219, 229, 239, 0.8);
 }

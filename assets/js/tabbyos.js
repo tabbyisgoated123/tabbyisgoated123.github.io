@@ -1,19 +1,22 @@
 (function () {
   const osRoot = document.querySelector('.tabbyos');
   const desktop = document.getElementById('os-desktop');
-  const dockLabel = document.getElementById('dock-label');
-  const startBtn = document.getElementById('start-btn');
   const windowLayer = document.getElementById('window-layer');
   const taskbar = document.getElementById('taskbar');
-  if (!osRoot || !desktop || !dockLabel || !windowLayer || !taskbar) return;
+  if (!osRoot || !desktop || !windowLayer || !taskbar) return;
 
   const CFG_KEY = 'tabbyos_cfg_v1';
   const ICON_KEY = 'tabbyos_icons_v1';
+  const PROFILE_COLORS = [
+    '#ff1a1a', '#ff7a1a', '#ffd21a', '#4ade80',
+    '#38bdf8', '#a855f7', '#f472b6', '#e5e7eb',
+  ];
   const appWindows = new Map();
   let zTop = 600;
   let openCount = 0;
   let currentAccent = '#ff1a1a';
   let currentLayout = 'grid';
+  let currentTaskbar = 'bottom';
 
   const appMeta = {
     settings: { title: 'Settings', icon: '⚙️' },
@@ -29,19 +32,25 @@
       const cfg = JSON.parse(localStorage.getItem(CFG_KEY) || '{}');
       if (cfg.accent) currentAccent = cfg.accent;
       if (cfg.layout) currentLayout = cfg.layout;
+      if (cfg.taskbar) currentTaskbar = cfg.taskbar;
     } catch (_) {}
-    osRoot.style.setProperty('--os-accent', currentAccent);
-    osRoot.dataset.layout = currentLayout;
+    applyRootCfg();
   }
 
   function saveCfg() {
     localStorage.setItem(CFG_KEY, JSON.stringify({
       accent: currentAccent,
       layout: currentLayout,
+      taskbar: currentTaskbar,
     }));
+    applyRootCfg();
+    applyDefaultIconLayout(false);
+  }
+
+  function applyRootCfg() {
     osRoot.style.setProperty('--os-accent', currentAccent);
     osRoot.dataset.layout = currentLayout;
-    applyDefaultIconLayout(false);
+    osRoot.dataset.taskbar = currentTaskbar;
   }
 
   function loadIconPositions() {
@@ -82,6 +91,16 @@
 
     icons.forEach((icon, index) => {
       const key = icon.dataset.app || icon.textContent.trim();
+      if (key === 'settings') {
+        const pos = saved[key] || {
+          left: Math.max(0, desktop.clientWidth - icon.offsetWidth - 12),
+          top: 12,
+        };
+        const safe = clampIconPosition(icon, pos.left, pos.top);
+        icon.style.left = `${safe.left}px`;
+        icon.style.top = `${safe.top}px`;
+        return;
+      }
       const col = layout === 'list' ? 0 : Math.floor(index / maxRows);
       const row = layout === 'list' ? index : (index % maxRows);
       const defaultLeft = col * gapX;
@@ -114,6 +133,11 @@
     const btn = taskbar.querySelector(`[data-app="${appName}"]`);
     if (!entry || !btn) return;
     btn.classList.toggle('active', !entry.win.classList.contains('hidden'));
+  }
+
+  function bringToFront(win) {
+    zTop += 1;
+    win.style.zIndex = String(zTop);
   }
 
   function makeDesktopIconsDraggable() {
@@ -154,7 +178,6 @@
         pointerId = null;
         if (moved) {
           saveIconPositions();
-          dockLabel.textContent = `${icon.textContent.trim()} moved`;
         } else {
           openOrFocusApp(icon.dataset.app);
         }
@@ -168,11 +191,6 @@
     });
   }
 
-  function bringToFront(win) {
-    zTop += 1;
-    win.style.zIndex = String(zTop);
-  }
-
   function makeDraggable(win, bar) {
     let dragging = false;
     let sx = 0;
@@ -180,8 +198,10 @@
     let sl = 0;
     let st = 0;
     bar.addEventListener('pointerdown', ev => {
+      if (ev.target && ev.target.closest && ev.target.closest('.window-actions')) return;
       dragging = true;
       bringToFront(win);
+      ev.preventDefault();
       sx = ev.clientX;
       sy = ev.clientY;
       sl = parseFloat(win.style.left || '100');
@@ -227,30 +247,116 @@
     handle.addEventListener('pointercancel', end);
   }
 
-  function renderSettingsContent(win) {
-    const panel = win.querySelector('.settings-window');
-    if (!panel) return;
+  function applyTaskbarPositionControls(win, panel) {
     panel.innerHTML = `
       <div class="settings-card">
-        <div class="settings-title">TabbyOS Settings</div>
-        <div class="settings-note">Customize the desktop look and layout.</div>
+        <div class="settings-title">Appearance</div>
         <label>Accent
           <input type="color" id="os-accent" value="${currentAccent}">
         </label>
-        <label>Layout
+        <label>Desktop layout
           <select id="os-layout">
             <option value="grid">Grid</option>
             <option value="list">List</option>
           </select>
         </label>
+      </div>
+      <div class="settings-card">
+        <div class="settings-title">Taskbar</div>
+        <label>Position
+          <select id="os-taskbar">
+            <option value="bottom">Bottom</option>
+            <option value="top">Top</option>
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+          </select>
+        </label>
         <button type="button" id="reset-icons-btn">Reset desktop icons</button>
+      </div>
+      <div class="settings-card" id="profile-settings-card">
+        <div class="settings-title">Profile</div>
+        <div class="settings-note">Local profile name, color, and accessibility settings.</div>
+        <label>Name
+          <input id="profile-name" type="text" maxlength="32">
+        </label>
+        <label>Color
+          <div id="profile-colors" class="profile-colors"></div>
+        </label>
+        <label>Scanline overlay
+          <input id="pref-scanline" type="checkbox">
+        </label>
+        <label>Vignette
+          <input id="pref-vignette" type="checkbox">
+        </label>
+        <label>Reduce motion
+          <input id="pref-reduce-motion" type="checkbox">
+        </label>
+        <label>Cursor
+          <select id="pref-cursor">
+            <option value="crosshair">Crosshair</option>
+            <option value="default">Default</option>
+            <option value="none">Hidden</option>
+          </select>
+        </label>
+        <label>UI scale
+          <input id="pref-font-scale" type="range" min="85" max="125" step="5" value="100">
+        </label>
+        <label>Panel opacity
+          <input id="pref-panel-opacity" type="range" min="60" max="100" step="2" value="92">
+        </label>
+        <div class="settings-actions">
+          <button type="button" data-action="save">Save</button>
+          <button type="button" data-action="new">New</button>
+          <button type="button" data-action="delete">Delete</button>
+        </div>
       </div>
     `;
 
     const accent = panel.querySelector('#os-accent');
     const layout = panel.querySelector('#os-layout');
-    const reset = panel.querySelector('#reset-icons-btn');
+    const taskbarPos = panel.querySelector('#os-taskbar');
+    const resetIcons = panel.querySelector('#reset-icons-btn');
+    const name = panel.querySelector('#profile-name');
+    const profileColors = panel.querySelector('#profile-colors');
+    const scanline = panel.querySelector('#pref-scanline');
+    const vignette = panel.querySelector('#pref-vignette');
+    const reduceMotion = panel.querySelector('#pref-reduce-motion');
+    const cursor = panel.querySelector('#pref-cursor');
+    const fontScale = panel.querySelector('#pref-font-scale');
+    const panelOpacity = panel.querySelector('#pref-panel-opacity');
+    const saveBtn = panel.querySelector('[data-action="save"]');
+    const newBtn = panel.querySelector('[data-action="new"]');
+    const deleteBtn = panel.querySelector('[data-action="delete"]');
+    const profileApi = window.TabbyProfiles;
+    const profile = profileApi?.getActiveProfile?.();
+
     if (layout) layout.value = currentLayout;
+    if (taskbarPos) taskbarPos.value = currentTaskbar;
+    if (profile && name) name.value = profile.name;
+    if (profile && scanline) scanline.checked = !!profile.prefs?.scanline;
+    if (profile && vignette) vignette.checked = !!profile.prefs?.vignette;
+    if (profile && reduceMotion) reduceMotion.checked = !!profile.prefs?.reduceMotion;
+    if (profile && cursor) cursor.value = profile.prefs?.cursor || 'crosshair';
+    if (profile && fontScale) fontScale.value = Math.round((profile.prefs?.fontScale || 1) * 100);
+    if (profile && panelOpacity) panelOpacity.value = Math.round((profile.prefs?.panelOpacity || 0.92) * 100);
+
+    if (profileColors) {
+      profileColors.innerHTML = '';
+      PROFILE_COLORS.forEach(color => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'profile-color-swatch';
+        btn.style.background = color;
+        btn.dataset.color = color;
+        btn.title = color;
+        btn.addEventListener('click', () => {
+          profileApi?.updateActiveProfile?.({ color });
+          applyTaskbarPositionControls(win, panel);
+        });
+        profileColors.appendChild(btn);
+      });
+    }
+
     accent?.addEventListener('input', ev => {
       currentAccent = ev.target.value;
       saveCfg();
@@ -260,11 +366,27 @@
       saveCfg();
       applyDefaultIconLayout(true);
     });
-    reset?.addEventListener('click', () => {
+    taskbarPos?.addEventListener('change', ev => {
+      currentTaskbar = ev.target.value;
+      saveCfg();
+    });
+    resetIcons?.addEventListener('click', () => {
       localStorage.removeItem(ICON_KEY);
       applyDefaultIconLayout(true);
-      dockLabel.textContent = 'Desktop icons reset';
     });
+    name?.addEventListener('input', ev => {
+      profileApi?.updateActiveProfile?.({ name: ev.target.value });
+    });
+    scanline?.addEventListener('change', ev => profileApi?.updateActiveProfile?.({ prefs: { scanline: ev.target.checked } }));
+    vignette?.addEventListener('change', ev => profileApi?.updateActiveProfile?.({ prefs: { vignette: ev.target.checked } }));
+    reduceMotion?.addEventListener('change', ev => profileApi?.updateActiveProfile?.({ prefs: { reduceMotion: ev.target.checked } }));
+    cursor?.addEventListener('change', ev => profileApi?.updateActiveProfile?.({ prefs: { cursor: ev.target.value } }));
+    fontScale?.addEventListener('input', ev => profileApi?.updateActiveProfile?.({ prefs: { fontScale: +ev.target.value / 100 } }));
+    panelOpacity?.addEventListener('input', ev => profileApi?.updateActiveProfile?.({ prefs: { panelOpacity: +ev.target.value / 100 } }));
+
+    saveBtn?.addEventListener('click', () => profileApi?.saveCurrentProfile?.());
+    newBtn?.addEventListener('click', () => profileApi?.createProfile?.());
+    deleteBtn?.addEventListener('click', () => profileApi?.deleteActiveProfile?.());
   }
 
   function createTerminal(win) {
@@ -325,7 +447,6 @@
     entry.win.remove();
     appWindows.delete(appName);
     entry.taskbarBtn?.remove();
-    dockLabel.textContent = 'Ready';
   }
 
   function minimizeWindow(appName) {
@@ -333,7 +454,6 @@
     if (!entry) return;
     entry.win.classList.add('hidden');
     updateTaskbarState(appName);
-    dockLabel.textContent = `${entry.meta.title} minimized`;
   }
 
   function restoreWindow(appName) {
@@ -342,7 +462,6 @@
     entry.win.classList.remove('hidden');
     bringToFront(entry.win);
     updateTaskbarState(appName);
-    dockLabel.textContent = `Running ${entry.meta.title}`;
   }
 
   function focusWindow(appName) {
@@ -350,7 +469,6 @@
     if (!entry) return;
     bringToFront(entry.win);
     updateTaskbarState(appName);
-    dockLabel.textContent = `Running ${entry.meta.title}`;
   }
 
   function createWindow(appName) {
@@ -403,23 +521,21 @@
     });
 
     if (isTerminal) createTerminal(win);
-    if (isSettings) renderSettingsContent(win);
-
+    if (isSettings) {
+      applyTaskbarPositionControls(win, win.querySelector('.settings-window'));
+    }
     if (!isTerminal && !isSettings) {
       const frame = win.querySelector('iframe');
       frame?.addEventListener('load', () => {
         try {
           const loadedPath = new URL(frame.contentWindow.location.href).pathname.toLowerCase();
           const wantedPath = `/${String(appName).toLowerCase()}`;
-          if (!loadedPath.endsWith(wantedPath)) {
-            frame.src = appUrl;
-          }
+          if (!loadedPath.endsWith(wantedPath)) frame.src = appUrl;
         } catch (_) {}
       });
     }
 
     updateTaskbarState(appName);
-    dockLabel.textContent = `Running ${title}`;
     return win;
   }
 
@@ -437,17 +553,13 @@
     focusWindow(appName);
   }
 
-  startBtn?.addEventListener('click', () => {
-    dockLabel.textContent = 'Open apps from desktop icons';
-  });
-
   loadCfg();
   applyDefaultIconLayout(false);
   makeDesktopIconsDraggable();
+  createWindow('settings');
+  minimizeWindow('settings');
 
-  window.addEventListener('resize', () => {
-    applyDefaultIconLayout(false);
-  });
+  window.addEventListener('resize', () => applyDefaultIconLayout(false));
 
   window.addEventListener('keydown', ev => {
     if (ev.key !== 'Escape') return;
