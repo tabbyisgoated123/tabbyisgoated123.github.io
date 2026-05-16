@@ -11,6 +11,7 @@
   let zTop = 600;
   let openCount = 0;
   const CFG_KEY = 'tabbyos_cfg_v1';
+  const ICON_KEY = 'tabbyos_icons_v1';
 
   function loadCfg() {
     try {
@@ -30,6 +31,107 @@
     localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
     osRoot.style.setProperty('--os-accent', cfg.accent);
     osRoot.dataset.layout = cfg.layout;
+    applyDefaultIconLayout(false);
+  }
+
+  function loadIconPositions() {
+    try {
+      return JSON.parse(localStorage.getItem(ICON_KEY) || '{}');
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function saveIconPositions() {
+    const positions = {};
+    desktop.querySelectorAll('.app-icon').forEach(icon => {
+      positions[icon.dataset.app || icon.textContent.trim()] = {
+        left: parseFloat(icon.style.left || '0'),
+        top: parseFloat(icon.style.top || '0'),
+      };
+    });
+    localStorage.setItem(ICON_KEY, JSON.stringify(positions));
+  }
+
+  function clampIconPosition(icon, left, top) {
+    const maxLeft = Math.max(0, desktop.clientWidth - icon.offsetWidth);
+    const maxTop = Math.max(0, desktop.clientHeight - icon.offsetHeight);
+    return {
+      left: Math.max(0, Math.min(maxLeft, left)),
+      top: Math.max(0, Math.min(maxTop, top)),
+    };
+  }
+
+  function applyDefaultIconLayout(forceReset) {
+    const saved = forceReset ? {} : loadIconPositions();
+    const icons = [...desktop.querySelectorAll('.app-icon')];
+    const layout = layoutEl?.value || 'grid';
+    const baseX = 0;
+    const gapY = layout === 'list' ? 68 : 96;
+    const gapX = layout === 'list' ? 0 : 122;
+    const maxRows = Math.max(1, Math.floor((desktop.clientHeight - 8) / gapY));
+
+    icons.forEach((icon, index) => {
+      const key = icon.dataset.app || icon.textContent.trim();
+      const col = layout === 'list' ? 0 : Math.floor(index / maxRows);
+      const rowFromBottom = layout === 'list' ? index : (index % maxRows);
+      const defaultLeft = baseX + col * gapX;
+      const defaultTop = Math.max(0, desktop.clientHeight - ((rowFromBottom + 1) * gapY));
+      const pos = saved[key] || { left: defaultLeft, top: defaultTop };
+      const safe = clampIconPosition(icon, pos.left, pos.top);
+      icon.style.left = `${safe.left}px`;
+      icon.style.top = `${safe.top}px`;
+    });
+  }
+
+  function makeDesktopIconsDraggable() {
+    desktop.querySelectorAll('.app-icon').forEach(icon => {
+      let pointerId = null;
+      let startX = 0;
+      let startY = 0;
+      let iconLeft = 0;
+      let iconTop = 0;
+      let moved = false;
+
+      icon.addEventListener('pointerdown', ev => {
+        pointerId = ev.pointerId;
+        moved = false;
+        startX = ev.clientX;
+        startY = ev.clientY;
+        iconLeft = parseFloat(icon.style.left || '0');
+        iconTop = parseFloat(icon.style.top || '0');
+        icon.setPointerCapture?.(pointerId);
+      });
+
+      icon.addEventListener('pointermove', ev => {
+        if (pointerId !== ev.pointerId) return;
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+        if (!moved && Math.hypot(dx, dy) > 5) moved = true;
+        if (!moved) return;
+        const next = clampIconPosition(icon, iconLeft + dx, iconTop + dy);
+        icon.style.left = `${next.left}px`;
+        icon.style.top = `${next.top}px`;
+      });
+
+      const finish = ev => {
+        if (pointerId !== ev.pointerId) return;
+        icon.releasePointerCapture?.(pointerId);
+        pointerId = null;
+        if (moved) {
+          saveIconPositions();
+          dockLabel.textContent = `${icon.textContent.trim()} moved`;
+        } else {
+          createWindow(icon.dataset.app);
+        }
+      };
+
+      icon.addEventListener('pointerup', finish);
+      icon.addEventListener('pointercancel', ev => {
+        if (pointerId !== ev.pointerId) return;
+        pointerId = null;
+      });
+    });
   }
 
   function bringToFront(win) {
@@ -147,7 +249,7 @@
 
     const isTerminal = appName === 'terminal';
     const title = isTerminal ? 'Terminal' : appName.replace('.html', '');
-    const appUrl = isTerminal ? '' : new URL(appName, window.location.href).href;
+    const appUrl = isTerminal ? '' : new URL(`./${appName}`, window.location.href).href;
     win.innerHTML = `
       <div class="window-bar">
         <span>${title}</span>
@@ -156,7 +258,7 @@
           <button type="button" data-action="close">x</button>
         </div>
       </div>
-      ${isTerminal ? '<div class="terminal-view"></div>' : `<iframe title="${title}" src="${appUrl}"></iframe>`}
+      ${isTerminal ? '<div class="terminal-view"></div>' : `<iframe title="${title}" src="${appUrl}" data-app="${appName}"></iframe>`}
       <div class="win-resize"></div>
     `;
     windowLayer.appendChild(win);
@@ -175,14 +277,22 @@
       dockLabel.textContent = `${title} minimized`;
     });
     if (isTerminal) createTerminal(win);
+    if (!isTerminal) {
+      const frame = win.querySelector('iframe');
+      frame?.addEventListener('load', () => {
+        try {
+          const loadedPath = new URL(frame.contentWindow.location.href).pathname.toLowerCase();
+          const wantedPath = `/${String(appName).toLowerCase()}`;
+          if (!loadedPath.endsWith(wantedPath)) {
+            frame.src = appUrl;
+          }
+        } catch (_) {
+          // Same-origin expected on GitHub Pages; if access fails, leave current src alone.
+        }
+      });
+    }
     dockLabel.textContent = `Running ${title}`;
   }
-
-  desktop.addEventListener('click', ev => {
-    const btn = ev.target.closest('.app-icon');
-    if (!btn) return;
-    createWindow(btn.dataset.app);
-  });
 
   startBtn?.addEventListener('click', () => {
     dockLabel.textContent = 'Open apps from desktop icons';
@@ -191,6 +301,12 @@
   accentEl?.addEventListener('input', saveCfg);
   layoutEl?.addEventListener('change', saveCfg);
   loadCfg();
+  applyDefaultIconLayout(false);
+  makeDesktopIconsDraggable();
+
+  window.addEventListener('resize', () => {
+    applyDefaultIconLayout(false);
+  });
 
   window.addEventListener('keydown', ev => {
     if (ev.key !== 'Escape') return;

@@ -45,18 +45,17 @@
   left: 16px;
   right: 220px;
   bottom: 62px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 12px;
-  align-content: start;
+  overflow: hidden;
 }
 
 .app-icon {
+  position: absolute;
+  width: 110px;
+  min-height: 82px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.04);
   border-radius: 12px;
   color: #e8eef8;
-  min-height: 82px;
   cursor: pointer;
   transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
   display: grid;
@@ -64,6 +63,9 @@
   justify-items: center;
   align-content: center;
   text-align: center;
+  padding: 10px 8px;
+  user-select: none;
+  touch-action: none;
 }
 
 .app-icon:hover {
@@ -76,11 +78,8 @@
   font-size: 22px;
 }
 
-.tabbyos[data-layout="list"] .tabbyos-desktop {
-  grid-template-columns: minmax(220px, 320px);
-}
-
 .tabbyos[data-layout="list"] .app-icon {
+  width: 220px;
   min-height: 56px;
   grid-template-columns: 28px 1fr;
   justify-items: start;
@@ -151,12 +150,13 @@
   background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.45) 40% 50%, transparent 50% 60%, rgba(255,255,255,0.45) 60% 70%, transparent 70%);
 }
 
-#app-frame,
+.app-window iframe,
 .terminal-view {
   width: 100%;
   height: calc(100% - 38px);
   border: 0;
   background: #090d13;
+  display: block;
 }
 
 .terminal-view {
