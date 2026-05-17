@@ -121,6 +121,29 @@
           ctx.arc(w * b.x, h * b.y, r, 0, Math.PI * 2);
           ctx.fill();
         });
+      } else if (style === 'macos') {
+        const g = ctx.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, 'rgba(56,66,110,0.9)');
+        g.addColorStop(0.42, 'rgba(104,86,146,0.84)');
+        g.addColorStop(1, 'rgba(34,56,96,0.9)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+
+        const glass = ctx.createRadialGradient(w * 0.72, h * 0.24, 6, w * 0.72, h * 0.24, Math.min(w, h) * 0.45);
+        glass.addColorStop(0, 'rgba(194,231,255,0.2)');
+        glass.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = glass;
+        ctx.beginPath();
+        ctx.arc(w * 0.72, h * 0.24, Math.min(w, h) * 0.45, 0, Math.PI * 2);
+        ctx.fill();
+
+        const sweep = ((t * 26) % (w + 300)) - 300;
+        const streak = ctx.createLinearGradient(sweep, 0, sweep + 260, 0);
+        streak.addColorStop(0, 'rgba(255,255,255,0)');
+        streak.addColorStop(0.5, 'rgba(255,255,255,0.09)');
+        streak.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = streak;
+        ctx.fillRect(0, 0, w, h);
       } else if (style === 'win98') {
         ctx.fillStyle = 'rgba(0,128,128,0.95)';
         ctx.fillRect(0, 0, w, h);
@@ -393,8 +416,26 @@
 
   function normalizeOsStyle(style) {
     const v = String(style || '').toLowerCase();
-    if (v === 'kde' || v === 'system7' || v === 'win11' || v === 'win98') return v;
+    if (v === 'kde' || v === 'system7' || v === 'win11' || v === 'win98' || v === 'macos') return v;
     return 'tabby';
+  }
+
+  function forcedTaskbarForStyle(style) {
+    const s = normalizeOsStyle(style);
+    if (s === 'macos' || s === 'system7') return 'top';
+    return '';
+  }
+
+  function effectiveTaskbarPosition() {
+    return forcedTaskbarForStyle(currentOsStyle) || currentTaskbar;
+  }
+
+  function taskbarTopHeight() {
+    if (effectiveTaskbarPosition() !== 'top') return 0;
+    const style = normalizeOsStyle(currentOsStyle);
+    if (style === 'macos') return 34;
+    if (style === 'system7') return 32;
+    return 44;
   }
 
   function loadCfg() {
@@ -495,15 +536,18 @@
   function applyRootCfg() {
     osRoot.style.setProperty('--os-accent', currentAccent);
     osRoot.dataset.layout = currentLayout;
-    osRoot.dataset.taskbar = currentTaskbar;
+    osRoot.dataset.taskbar = effectiveTaskbarPosition();
     osRoot.dataset.wallpaper = currentWallpaper;
-    osRoot.dataset.osStyle = normalizeOsStyle(currentOsStyle);
+    const style = normalizeOsStyle(currentOsStyle);
+    osRoot.dataset.osStyle = style;
+    document.documentElement.dataset.osStyle = style;
+    document.body.dataset.osStyle = style;
     const safe = safeWallpaperUrl(currentWallpaperUrl);
     osRoot.style.setProperty('--os-wallpaper-url', safe ? `url("${safe}")` : 'none');
-    localStorage.setItem(OS_STYLE_KEY, normalizeOsStyle(currentOsStyle));
+    localStorage.setItem(OS_STYLE_KEY, style);
     broadcastOsStyle();
     document.dispatchEvent(new CustomEvent('tabby-os-style-change', {
-      detail: { style: normalizeOsStyle(currentOsStyle) },
+      detail: { style },
     }));
     refreshClippy();
   }
@@ -660,6 +704,8 @@
     let sl = 0;
     let st = 0;
     handle.addEventListener('pointerdown', ev => {
+      if (ev.button !== 0) return;
+      if (typeof ev.target?.closest === 'function' && ev.target.closest('button, input, select, textarea, a')) return;
       dragging = true;
       bringToFront(win);
       ev.preventDefault();
@@ -673,8 +719,9 @@
       if (!dragging) return;
       const nx = sl + (ev.clientX - sx);
       const ny = st + (ev.clientY - sy);
+      const topInset = taskbarTopHeight();
       win.style.left = `${Math.max(0, Math.min(window.innerWidth - 220, nx))}px`;
-      win.style.top = `${Math.max(0, Math.min(window.innerHeight - 140, ny))}px`;
+      win.style.top = `${Math.max(topInset, Math.min(window.innerHeight - 140, ny))}px`;
     });
     const end = () => { dragging = false; };
     handle.addEventListener('pointerup', end);
@@ -841,6 +888,7 @@
         <label>OS style
           <select id="os-style" data-premium-only="1">
             <option value="tabby">TabbyOS Modern</option>
+            <option value="macos">macOS</option>
             <option value="kde">KDE Plasma (Arch)</option>
             <option value="system7">Apple System 7</option>
             <option value="win11">Windows 11</option>
@@ -865,6 +913,7 @@
             <option value="right">Right</option>
           </select>
         </label>
+        <div id="taskbar-style-note" class="settings-note hidden"></div>
         <button type="button" id="reset-icons-btn">Reset desktop icons</button>
       </div>
       <div class="settings-card" id="profile-settings-card">
@@ -913,6 +962,7 @@
     const wallpaperUrlWrap = panel.querySelector('#wallpaper-url-wrap');
     const wallpaperUrl = panel.querySelector('#os-wallpaper-url');
     const taskbarPos = panel.querySelector('#os-taskbar');
+    const taskbarStyleNote = panel.querySelector('#taskbar-style-note');
     const resetIcons = panel.querySelector('#reset-icons-btn');
     const name = panel.querySelector('#profile-name');
     const profileColors = panel.querySelector('#profile-colors');
@@ -931,7 +981,20 @@
     const profile = profileApi?.getActiveProfile?.();
 
     if (layout) layout.value = currentLayout;
-    if (taskbarPos) taskbarPos.value = currentTaskbar;
+    const forcedTaskbar = forcedTaskbarForStyle(currentOsStyle);
+    if (taskbarPos) {
+      taskbarPos.value = effectiveTaskbarPosition();
+      taskbarPos.disabled = !!forcedTaskbar;
+      taskbarPos.classList.toggle('locked-control', !!forcedTaskbar);
+    }
+    if (taskbarStyleNote) {
+      if (forcedTaskbar) {
+        taskbarStyleNote.textContent = `${currentOsStyle === 'macos' ? 'macOS' : 'System 7'} style forces taskbar position to Top for authenticity.`;
+        taskbarStyleNote.classList.remove('hidden');
+      } else {
+        taskbarStyleNote.classList.add('hidden');
+      }
+    }
     if (wallpaper) wallpaper.value = currentWallpaper;
     if (osStyle) osStyle.value = normalizeOsStyle(currentOsStyle);
     if (wallpaperUrl) wallpaperUrl.value = currentWallpaperUrl;
@@ -998,6 +1061,7 @@
       }
       currentOsStyle = normalizeOsStyle(ev.target.value);
       saveCfg();
+      applySettingsUI(win, panel);
     });
     wallpaperUrl?.addEventListener('change', ev => {
       if (!hasPremiumAccess()) {
@@ -1043,12 +1107,53 @@
       if (p.startsWith('/home/tabby/')) return `Macintosh HD:Tabby:${p.slice('/home/tabby/'.length).replace(/\//g, ':')}`;
       return `Macintosh HD:${p.slice(1).replace(/\//g, ':')}`;
     };
+
+    const toMacPath = absPath => {
+      const p = normalizeAbs(absPath || '/');
+      if (p === '/' || p === '/home' || p === '/home/tabby') return '/Users/tabby';
+      if (p.startsWith('/home/tabby/')) return '/Users/tabby/' + p.slice('/home/tabby/'.length);
+      if (p.startsWith('/var/log')) return '/private/var/log' + p.slice('/var/log'.length);
+      if (p.startsWith('/etc')) return '/etc' + p.slice('/etc'.length);
+      return p;
+    };
+    const fromDisplayPath = (rawInput, basePath) => {
+      const style = styleName();
+      const raw = String(rawInput || '').trim();
+      if (!raw) return resolvePath(basePath, raw);
+      if (isWindowsStyle(style) && /^[A-Za-z]:\\/.test(raw)) {
+        const cleaned = raw.replace(/^[A-Za-z]:\\/, '').replace(/\\/g, '/').replace(/^\/+/, '');
+        const lower = cleaned.toLowerCase();
+        if (lower === 'users/tabby') return '/home/tabby';
+        if (lower.startsWith('users/tabby/')) return '/home/tabby/' + cleaned.slice('users/tabby/'.length);
+        if (lower === 'windows/logs') return '/var/log';
+        if (lower.startsWith('windows/logs/')) return '/var/log/' + cleaned.slice('windows/logs/'.length);
+        if (lower === 'windows/system32/etc') return '/etc';
+        if (lower.startsWith('windows/system32/etc/')) return '/etc/' + cleaned.slice('windows/system32/etc/'.length);
+        return normalizeAbs('/' + cleaned);
+      }
+      if (style === 'system7' && /^Macintosh HD:/i.test(raw)) {
+        const cleaned = raw.replace(/^Macintosh HD:/i, '').replace(/:/g, '/').replace(/^\/+/, '');
+        if (cleaned.toLowerCase() === 'tabby') return '/home/tabby';
+        if (cleaned.toLowerCase().startsWith('tabby/')) return '/home/tabby/' + cleaned.slice('tabby/'.length);
+        return normalizeAbs('/' + cleaned);
+      }
+      if (style === 'macos' && raw.startsWith('/Users/tabby')) {
+        const suffix = raw.slice('/Users/tabby'.length).replace(/^\/+/, '');
+        return normalizeAbs(suffix ? `/home/tabby/${suffix}` : '/home/tabby');
+      }
+      if (style === 'macos' && raw.startsWith('/private/var/log')) {
+        const suffix = raw.slice('/private/var/log'.length).replace(/^\/+/, '');
+        return normalizeAbs(suffix ? `/var/log/${suffix}` : '/var/log');
+      }
+      return resolvePath(basePath, raw);
+    };
     const promptForStyle = cwd => {
       const style = styleName();
       if (style === 'kde') return `tabby@arch:${toPromptPath(cwd)}$`;
       if (style === 'system7') return `${toSystem7Path(cwd)} >`;
       if (style === 'win11') return `PS ${toWinPath(cwd)}>`;
       if (style === 'win98') return `${toWinPath(cwd)}>`;
+      if (style === 'macos') return `tabby@MacBook ${toMacPath(cwd).replace('/Users/tabby', '~')} %`;
       return `tabby@tabbyos:${toPromptPath(cwd)}$`;
     };
     const introLines = () => {
@@ -1069,6 +1174,10 @@
         'Microsoft(R) Windows 98',
         'C:\\> Type help for commands.',
       ];
+      if (style === 'macos') return [
+        'zsh 5.9 (macOS style)',
+        'Type help for commands.',
+      ];
       return [
         'TabbyOS Unix Shell (tabsh)',
         'Type help for commands.',
@@ -1078,6 +1187,7 @@
       const style = styleName();
       if (style === 'win98') return 'Commands: dir cd type mkdir md touch del rm echo cls date whoami history tree open neofetch';
       if (style === 'win11') return 'Commands: ls dir cd cat type mkdir rm del echo clear cls date whoami history tree open neofetch';
+      if (style === 'macos') return 'Built-ins: pwd ls cd cat mkdir touch rm echo clear date whoami uname history tree open neofetch';
       return 'Built-ins: pwd ls cd cat mkdir touch rm echo clear date whoami uname history tree open neofetch';
     };
     const normalizeCommandName = raw => {
@@ -1118,6 +1228,10 @@
       }
       if (isWindowsStyle(style)) {
         items.forEach(i => writeLine(`${new Date(i.mtime || Date.now()).toLocaleDateString()}  ${i.type === 'dir' ? '<DIR>' : '     '}  ${i.name}`));
+        return;
+      }
+      if (style === 'macos') {
+        items.forEach(i => writeLine(`${i.type === 'dir' ? 'drwxr-xr-x' : '-rw-r--r--'}  1 tabby  staff  ${i.type === 'dir' ? 0 : 128} ${new Date(i.mtime || Date.now()).toLocaleDateString()} ${i.name}${i.type === 'dir' ? '/' : ''}`));
         return;
       }
       if (style === 'system7') {
@@ -1181,12 +1295,14 @@
         const style = styleName();
         if (isWindowsStyle(style)) return writeLine(toWinPath(state.cwd));
         if (style === 'system7') return writeLine(toSystem7Path(state.cwd));
+        if (style === 'macos') return writeLine(toMacPath(state.cwd));
         return writeLine(state.cwd);
       }
       if (name === 'whoami') return writeLine('tabby');
       if (name === 'uname') {
         const style = styleName();
         if (style === 'system7') return writeLine('Macintosh');
+        if (style === 'macos') return writeLine(args[0] === '-a' ? 'Darwin MacBook 23.6.0 Darwin Kernel Version 23.6.0 x86_64' : 'Darwin');
         if (style === 'win11') return writeLine('Windows_NT');
         if (style === 'win98') return writeLine('Windows 4.10');
         return writeLine(args[0] === '-a' ? 'Linux tabbyos 6.8-tabby #1 SMP PREEMPT x86_64 GNU/Tabby' : 'Linux');
@@ -1202,7 +1318,7 @@
         return;
       }
       if (name === 'cd') {
-        const target = resolvePath(state.cwd, args[0] || '~');
+        const target = fromDisplayPath(args[0] || '~', state.cwd);
         const node = getNode(target);
         if (!node) return writeLine(`cd: no such file or directory: ${args[0] || ''}`, 'term-error');
         if (node.type !== 'dir') return writeLine(`cd: not a directory: ${args[0] || ''}`, 'term-error');
@@ -1212,13 +1328,13 @@
       if (name === 'ls') {
         const longMode = args.includes('-l');
         const targetArg = args.find(a => !a.startsWith('-')) || '.';
-        const target = resolvePath(state.cwd, targetArg);
+        const target = fromDisplayPath(targetArg, state.cwd);
         const items = listDir(target);
         if (!items) return writeLine(`ls: cannot access '${targetArg}': No such directory`, 'term-error');
         return printList(items, longMode);
       }
       if (name === 'tree') {
-        const target = resolvePath(state.cwd, args[0] || '.');
+        const target = fromDisplayPath(args[0] || '.', state.cwd);
         const node = getNode(target);
         if (!node) return writeLine(`tree: ${args[0] || '.'}: No such file or directory`, 'term-error');
         const walk = (n, prefix, label) => {
@@ -1237,20 +1353,20 @@
       }
       if (name === 'cat') {
         if (!args[0]) return writeLine('cat: missing operand', 'term-error');
-        const node = getNode(resolvePath(state.cwd, args[0]));
+        const node = getNode(fromDisplayPath(args[0], state.cwd));
         if (!node) return writeLine(`cat: ${args[0]}: No such file`, 'term-error');
         if (node.type !== 'file') return writeLine(`cat: ${args[0]}: Is a directory`, 'term-error');
         return writeLine(String(node.content || ''));
       }
       if (name === 'mkdir') {
         if (!args[0]) return writeLine('mkdir: missing operand', 'term-error');
-        const res = mkdirp(resolvePath(state.cwd, args[0]));
+        const res = mkdirp(fromDisplayPath(args[0], state.cwd));
         if (!res.ok) writeLine(`mkdir: ${res.error}`, 'term-error');
         return;
       }
       if (name === 'touch') {
         if (!args[0]) return writeLine('touch: missing operand', 'term-error');
-        const res = touch(resolvePath(state.cwd, args[0]));
+        const res = touch(fromDisplayPath(args[0], state.cwd));
         if (!res.ok) writeLine(`touch: ${res.error}`, 'term-error');
         return;
       }
@@ -1258,14 +1374,14 @@
         const recursive = args.includes('-r') || args.includes('-rf') || args.includes('-fr');
         const targetArg = args.find(a => !a.startsWith('-'));
         if (!targetArg) return writeLine('rm: missing operand', 'term-error');
-        const res = removePath(resolvePath(state.cwd, targetArg), recursive);
+        const res = removePath(fromDisplayPath(targetArg, state.cwd), recursive);
         if (!res.ok) writeLine(`rm: ${res.error}`, 'term-error');
         return;
       }
       if (name === 'echo') {
         const redirect = cmd.match(/^echo\s+([\s\S]*?)\s*(>>|>)\s*(\S+)\s*$/);
         if (redirect) {
-          const res = writeFile(resolvePath(state.cwd, redirect[3]), redirect[1] + '\n', redirect[2] === '>>');
+          const res = writeFile(fromDisplayPath(redirect[3], state.cwd), redirect[1] + '\n', redirect[2] === '>>');
           if (!res.ok) writeLine(`echo: ${res.error}`, 'term-error');
           return;
         }
@@ -1278,12 +1394,16 @@
           openOrFocusApp(target);
           return writeLine(`launched ${target}`);
         }
-        const abs = resolvePath(state.cwd, target);
+        const abs = fromDisplayPath(target, state.cwd);
         const node = getNode(abs);
         if (!node) return writeLine(`open: ${target}: not found`, 'term-error');
         if (node.type === 'dir') {
           openOrFocusApp('explorer', { path: abs });
-          return writeLine(`opened explorer at ${isWindowsStyle(styleName()) ? toWinPath(abs) : abs}`);
+          const style = styleName();
+          if (isWindowsStyle(style)) return writeLine(`opened explorer at ${toWinPath(abs)}`);
+          if (style === 'system7') return writeLine(`opened explorer at ${toSystem7Path(abs)}`);
+          if (style === 'macos') return writeLine(`opened explorer at ${toMacPath(abs)}`);
+          return writeLine(`opened explorer at ${abs}`);
         }
         return writeLine(String(node.content || ''));
       }
@@ -1398,10 +1518,19 @@
       return `Macintosh HD:${p.slice(1).replace(/\//g, ':')}`;
     };
 
+    const toMacPath = absPath => {
+      const p = normalizeAbs(absPath || '/');
+      if (p === '/' || p === '/home' || p === '/home/tabby') return '/Users/tabby';
+      if (p.startsWith('/home/tabby/')) return '/Users/tabby/' + p.slice('/home/tabby/'.length);
+      if (p.startsWith('/var/log')) return '/private/var/log' + p.slice('/var/log'.length);
+      return p;
+    };
+
     const displayPathForStyle = absPath => {
       const style = explorerStyle();
       if (style === 'win98' || style === 'win11') return toWinPath(absPath);
       if (style === 'system7') return toSystem7Path(absPath);
+      if (style === 'macos') return toMacPath(absPath);
       return absPath;
     };
 
@@ -1424,6 +1553,14 @@
         if (cleaned.toLowerCase() === 'tabby') return '/home/tabby';
         if (cleaned.toLowerCase().startsWith('tabby/')) return '/home/tabby/' + cleaned.slice('tabby/'.length);
         return '/' + cleaned;
+      }
+      if (style === 'macos' && raw.startsWith('/Users/tabby')) {
+        const suffix = raw.slice('/Users/tabby'.length).replace(/^\/+/, '');
+        return suffix ? `/home/tabby/${suffix}` : '/home/tabby';
+      }
+      if (style === 'macos' && raw.startsWith('/private/var/log')) {
+        const suffix = raw.slice('/private/var/log'.length).replace(/^\/+/, '');
+        return suffix ? `/var/log/${suffix}` : '/var/log';
       }
       return raw;
     };
@@ -1453,6 +1590,11 @@
         if (newFileBtn) newFileBtn.textContent = 'New File';
         if (newFolderBtn) newFolderBtn.textContent = 'New Folder';
         if (refreshBtn) refreshBtn.textContent = 'Refresh';
+      } else if (style === 'macos') {
+        if (upBtn) upBtn.textContent = 'Back';
+        if (newFileBtn) newFileBtn.textContent = 'New Document';
+        if (newFolderBtn) newFolderBtn.textContent = 'New Folder';
+        if (refreshBtn) refreshBtn.textContent = 'Reload';
       } else {
         if (upBtn) upBtn.textContent = 'Up';
         if (newFileBtn) newFileBtn.textContent = 'New File';
@@ -1479,6 +1621,16 @@
         listHead.classList.remove('hidden');
         return;
       }
+      if (style === 'macos') {
+        listHead.innerHTML = `
+          <span>Name</span>
+          <span>Kind</span>
+          <span>Date Modified</span>
+          <span>Size</span>
+        `;
+        listHead.classList.remove('hidden');
+        return;
+      }
       listHead.classList.add('hidden');
       listHead.innerHTML = '';
     };
@@ -1500,7 +1652,11 @@
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'explorer-nav';
-        btn.textContent = path.replace('/home/tabby', '~');
+        const style = explorerStyle();
+        if (style === 'win98' || style === 'win11') btn.textContent = toWinPath(path).replace('C:\\Users\\Tabby', '~');
+        else if (style === 'system7') btn.textContent = toSystem7Path(path).replace('Macintosh HD:Tabby', '~');
+        else if (style === 'macos') btn.textContent = toMacPath(path).replace('/Users/tabby', '~');
+        else btn.textContent = path.replace('/home/tabby', '~');
         btn.classList.toggle('active', currentPath === path);
         btn.addEventListener('click', () => navigate(path));
         sidebar.appendChild(btn);
@@ -1527,10 +1683,12 @@
         const abs = normalizeAbs(`${currentPath}/${item.name}`);
         const node = getNode(abs);
         const icon = item.type === 'dir' ? '📁' : '📄';
-        const typeLabel = item.type === 'dir' ? (style === 'system7' ? 'Folder' : 'Directory') : (style === 'system7' ? 'Document' : 'File');
+        const typeLabel = item.type === 'dir'
+          ? (style === 'system7' || style === 'macos' ? 'Folder' : 'Directory')
+          : (style === 'system7' || style === 'macos' ? 'Document' : 'File');
         const modified = new Date(item.mtime || Date.now()).toLocaleString();
         const size = node?.type === 'file' ? humanSize(String(node.content || '').length) : '--';
-        if (style === 'win98' || style === 'win11' || style === 'system7') {
+        if (style === 'win98' || style === 'win11' || style === 'system7' || style === 'macos') {
           row.innerHTML = `
             <span class="explorer-col-name"><span>${icon}</span><span>${item.name}</span></span>
             <span>${typeLabel}</span>
@@ -1601,7 +1759,10 @@
       navigate(resolvePath(currentPath, parseDisplayPath(pathInput.value)));
     });
 
-    const onStyleChange = () => renderList();
+    const onStyleChange = () => {
+      renderSidebar();
+      renderList();
+    };
     document.addEventListener('tabby-os-style-change', onStyleChange);
 
     navigate(currentPath);
@@ -1675,8 +1836,9 @@
 
     const win = document.createElement('section');
     win.className = 'app-window';
+    win.dataset.app = appName;
     win.style.left = `${80 + (openCount % 6) * 24}px`;
-    win.style.top = `${60 + (openCount % 6) * 18}px`;
+    win.style.top = `${Math.max(taskbarTopHeight() + 12, 60 + (openCount % 6) * 18)}px`;
     win.style.width = '900px';
     win.style.height = '600px';
     bringToFront(win);
@@ -1696,20 +1858,25 @@
     else bodyContent = `<iframe class="window-frame" title="${meta.title}" src="${appUrl}" data-app="${appName}"></iframe>`;
 
     win.innerHTML = `
+      <div class="window-titlebar" title="Drag window">
+        <div class="window-title">
+          <span class="window-app-icon">${meta.icon}</span>
+          <span>${meta.title}</span>
+        </div>
+        <div class="window-floating-controls">
+          <button type="button" data-action="close" aria-label="Close"><span aria-hidden="true">×</span></button>
+          <button type="button" data-action="min" aria-label="Minimize"><span aria-hidden="true">−</span></button>
+          <button type="button" data-action="full" aria-label="Fullscreen"><span aria-hidden="true">▢</span></button>
+        </div>
+      </div>
       <div class="window-body">
         ${bodyContent}
-        <div class="window-drag-handle" title="Drag window"></div>
-        <div class="window-floating-controls">
-          <button type="button" data-action="full">[]</button>
-          <button type="button" data-action="min">-</button>
-          <button type="button" data-action="close">x</button>
-        </div>
       </div>
       <div class="win-resize"></div>
     `;
     windowLayer.appendChild(win);
 
-    makeDraggable(win, win.querySelector('.window-drag-handle'));
+    makeDraggable(win, win.querySelector('.window-titlebar'));
     makeResizable(win, win.querySelector('.win-resize'));
     win.addEventListener('pointerdown', () => bringToFront(win));
 

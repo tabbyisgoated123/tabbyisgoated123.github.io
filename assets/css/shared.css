@@ -139,6 +139,29 @@ body[data-os-style="win11"]::before {
   opacity: 0.7;
 }
 
+body[data-os-style="macos"] {
+  --accent: #8fc8ff;
+  --accent-glow: #bedfff;
+  --accent-rgb: 143 200 255;
+  --text: #edf4ff;
+  background:
+    radial-gradient(circle at 24% 10%, rgba(169, 215, 255, 0.22), transparent 40%),
+    radial-gradient(circle at 76% 16%, rgba(233, 170, 255, 0.18), transparent 44%),
+    linear-gradient(180deg, #1d2644 0%, #2b325a 48%, #1a243f 100%);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+}
+
+body[data-os-style="macos"]::before {
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(255, 255, 255, 0.01) 4px, rgba(255, 255, 255, 0.01) 8px),
+    repeating-linear-gradient(90deg, transparent, transparent 56px, rgb(var(--accent-rgb) / 0.02) 56px, rgb(var(--accent-rgb) / 0.02) 57px);
+  opacity: 0.45;
+}
+
+body[data-os-style="macos"]::after {
+  opacity: 0.6;
+}
+
 body[data-os-style="win98"] {
   --accent: #1c1c1c;
   --accent-glow: #4a4a4a;
@@ -183,6 +206,12 @@ body[data-os-style="win11"] .screen {
   background:
     linear-gradient(180deg, rgba(9, 16, 28, 0.9), rgba(9, 16, 28, 0.95)),
     repeating-linear-gradient(90deg, transparent 0 54px, rgb(var(--accent-rgb) / 0.025) 54px 55px);
+}
+
+body[data-os-style="macos"] .screen {
+  background:
+    linear-gradient(180deg, rgba(19, 24, 38, 0.86), rgba(17, 21, 32, 0.9)),
+    repeating-linear-gradient(90deg, transparent 0 64px, rgb(var(--accent-rgb) / 0.02) 64px 65px);
 }
 
 body[data-os-style="win98"] .screen {
@@ -266,6 +295,28 @@ body[data-os-style="system7"] .action-btn:hover {
 body[data-os-style="win11"] .action-btn {
   border-radius: 12px;
   letter-spacing: 2px;
+}
+
+body[data-os-style="macos"] .action-btn {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  border-radius: 12px;
+  letter-spacing: 1px;
+  text-transform: none;
+  color: #eaf4ff;
+  border-color: rgba(214, 233, 255, 0.34);
+  background: rgba(255, 255, 255, 0.08);
+  text-shadow: none;
+}
+
+body[data-os-style="macos"] .action-btn::before {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+}
+
+body[data-os-style="macos"] .action-btn:hover {
+  letter-spacing: 1px;
+  background: rgba(162, 202, 255, 0.18);
+  border-color: rgba(220, 237, 255, 0.5);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.25);
 }
 
 body[data-os-style="win98"] .action-btn {

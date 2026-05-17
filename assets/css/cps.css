@@ -263,6 +263,18 @@ body[data-os-style="win11"] .settings-panel {
   backdrop-filter: blur(12px);
 }
 
+body[data-os-style="macos"] .settings-panel {
+  border-radius: 14px;
+  border-color: rgba(207, 225, 255, 0.34);
+  background: rgba(16, 23, 35, 0.68);
+  backdrop-filter: blur(12px) saturate(120%);
+}
+
+body[data-os-style="macos"] #cps-display {
+  color: #dbeeff;
+  text-shadow: 0 0 14px rgba(170, 214, 255, 0.36);
+}
+
 body[data-os-style="win98"] .settings-panel {
   border-radius: 0;
   border: 1px solid #202020;

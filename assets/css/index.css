@@ -206,26 +206,48 @@
   display: none;
 }
 
-.window-floating-controls {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+.window-titlebar {
+  height: 38px;
   display: flex;
-  gap: 6px;
-  z-index: 8;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 10px 0 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  cursor: move;
+  user-select: none;
 }
 
-.window-drag-handle {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  width: 62px;
+.window-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: rgba(234, 242, 251, 0.95);
+}
+
+.window-title span:last-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.window-app-icon {
+  width: 18px;
   height: 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.07);
-  cursor: move;
-  z-index: 8;
+  display: inline-grid;
+  place-items: center;
+  font-size: 14px;
+}
+
+.window-floating-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex: 0 0 auto;
 }
 
 .window-floating-controls button,
@@ -234,8 +256,11 @@
   background: rgba(255, 255, 255, 0.06);
   color: #fff;
   border-radius: 8px;
-  padding: 4px 10px;
+  padding: 4px 8px;
   cursor: pointer;
+  min-width: 28px;
+  min-height: 24px;
+  line-height: 1;
 }
 
 .window-floating-controls [data-action="full"] {
@@ -253,13 +278,29 @@
   left: 0 !important;
   top: 0 !important;
   width: 100vw !important;
-  height: calc(100vh - 44px) !important;
+  height: 100vh !important;
   border-radius: 0;
 }
 
 .tabbyos[data-taskbar="top"] .app-window.window-maximized {
   top: 44px !important;
   height: calc(100vh - 44px) !important;
+}
+
+.tabbyos[data-taskbar="bottom"] .app-window.window-maximized {
+  height: calc(100vh - 44px) !important;
+}
+
+.tabbyos[data-taskbar="left"] .app-window.window-maximized {
+  left: 72px !important;
+  width: calc(100vw - 72px) !important;
+  height: 100vh !important;
+}
+
+.tabbyos[data-taskbar="right"] .app-window.window-maximized {
+  left: 0 !important;
+  width: calc(100vw - 72px) !important;
+  height: 100vh !important;
 }
 
 .window-body {
@@ -282,7 +323,7 @@
 .explorer-view {
   width: 100%;
   min-height: 100%;
-  padding-top: 40px;
+  padding-top: 0;
 }
 
 .window-scrollable {
@@ -492,7 +533,8 @@
 
 .explorer-item-win98,
 .explorer-item-win11,
-.explorer-item-system7 {
+.explorer-item-system7,
+.explorer-item-macos {
   grid-template-columns: minmax(0, 2fr) 120px minmax(140px, 1fr) 88px;
 }
 
@@ -790,7 +832,12 @@
   background: rgba(10, 20, 34, 0.96);
 }
 
-.tabbyos[data-os-style="kde"] .window-drag-handle {
+.tabbyos[data-os-style="kde"] .window-titlebar {
+  background: linear-gradient(180deg, rgba(84, 141, 224, 0.28), rgba(19, 46, 88, 0.55));
+  border-bottom-color: rgba(110, 178, 255, 0.28);
+}
+
+.tabbyos[data-os-style="kde"] .window-floating-controls button {
   border-color: rgba(115, 180, 255, 0.42);
   background: rgba(63, 143, 255, 0.2);
 }
@@ -841,11 +888,17 @@
   box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
 }
 
-.tabbyos[data-os-style="system7"] .window-drag-handle {
+.tabbyos[data-os-style="system7"] .window-titlebar {
+  height: 28px;
   border-radius: 0;
-  height: 14px;
-  border: 1px solid #202020;
+  border-bottom: 1px solid #202020;
   background: repeating-linear-gradient(90deg, #dcdcdc 0 2px, #9f9f9f 2px 4px);
+}
+
+.tabbyos[data-os-style="system7"] .window-title {
+  color: #111;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .tabbyos[data-os-style="system7"] .window-floating-controls button,
@@ -860,6 +913,16 @@
 .tabbyos[data-os-style="system7"] .tabbyos-dock {
   background: #dcdcdc;
   border-top-color: #666;
+  height: 32px;
+}
+
+.tabbyos[data-os-style="system7"][data-taskbar="top"] .tabbyos-desktop {
+  top: 52px;
+}
+
+.tabbyos[data-os-style="system7"][data-taskbar="top"] .app-window.window-maximized {
+  top: 32px !important;
+  height: calc(100vh - 32px) !important;
 }
 
 .tabbyos[data-os-style="system7"] .settings-window,
@@ -887,6 +950,18 @@
   border-radius: 0;
   background: #ececec;
   border-color: #707070;
+}
+
+.tabbyos[data-os-style="system7"] .explorer-toolbar button,
+.tabbyos[data-os-style="system7"] .explorer-actions button,
+.tabbyos[data-os-style="system7"] .explorer-nav,
+.tabbyos[data-os-style="system7"] .explorer-path,
+.tabbyos[data-os-style="system7"] .explorer-editor {
+  border-radius: 0;
+  border-color: #4a4a4a;
+  background: #efefef;
+  color: #111;
+  box-shadow: inset -1px -1px 0 #8b8b8b, inset 1px 1px 0 #fff;
 }
 
 .tabbyos[data-os-style="system7"] .explorer-list-head {
@@ -923,10 +998,9 @@
   box-shadow: 0 22px 55px rgba(0, 0, 0, 0.48);
 }
 
-.tabbyos[data-os-style="win11"] .window-drag-handle {
-  border-radius: 999px;
-  border-color: rgba(220, 236, 255, 0.45);
-  background: rgba(255, 255, 255, 0.15);
+.tabbyos[data-os-style="win11"] .window-titlebar {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(180, 214, 255, 0.04));
+  border-bottom-color: rgba(220, 236, 255, 0.25);
 }
 
 .tabbyos[data-os-style="win11"] .tabbyos-dock {
@@ -946,6 +1020,172 @@
 .tabbyos[data-os-style="win11"] .explorer-list-head {
   border-color: rgba(185, 219, 255, 0.36);
   background: rgba(115, 173, 255, 0.18);
+}
+
+.tabbyos[data-os-style="macos"] {
+  color: #eaf2ff;
+  --os-accent: #6fa9ff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+}
+
+.tabbyos[data-os-style="macos"] .tabbyos-wallpaper {
+  background:
+    radial-gradient(circle at 26% 12%, rgba(156, 209, 255, 0.26), transparent 40%),
+    radial-gradient(circle at 76% 28%, rgba(229, 159, 255, 0.2), transparent 46%),
+    linear-gradient(170deg, #1a2b4d 0%, #2e2f63 44%, #18253f 100%);
+}
+
+.tabbyos[data-os-style="macos"] .tabbyos-dock {
+  height: 34px;
+  border-top-color: rgba(255, 255, 255, 0.14);
+  background: rgba(19, 27, 44, 0.6);
+  backdrop-filter: blur(12px) saturate(150%);
+}
+
+.tabbyos[data-os-style="macos"][data-taskbar="top"] .tabbyos-desktop {
+  top: 54px;
+}
+
+.tabbyos[data-os-style="macos"][data-taskbar="top"] .app-window.window-maximized {
+  top: 34px !important;
+  height: calc(100vh - 34px) !important;
+}
+
+.tabbyos[data-os-style="macos"] .plus-launcher {
+  border-color: rgba(255, 215, 140, 0.8);
+  border-radius: 9px;
+  background: rgba(90, 64, 16, 0.32);
+  color: #ffe6b4;
+  font-size: 11px;
+  padding: 5px 10px;
+}
+
+.tabbyos[data-os-style="macos"] .taskbar-btn {
+  border-radius: 10px;
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.09);
+  color: #eaf2ff;
+}
+
+.tabbyos[data-os-style="macos"] .app-icon {
+  border-color: rgba(211, 229, 255, 0.26);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.09);
+  color: #eef5ff;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
+}
+
+.tabbyos[data-os-style="macos"] .app-window {
+  border-radius: 12px;
+  border-color: rgba(223, 238, 255, 0.26);
+  background: rgba(17, 23, 34, 0.88);
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.44);
+}
+
+.tabbyos[data-os-style="macos"] .window-titlebar {
+  height: 32px;
+  border-bottom-color: rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(214, 229, 255, 0.08));
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.tabbyos[data-os-style="macos"] .window-title {
+  order: 2;
+  margin: 0 auto;
+  color: rgba(242, 248, 255, 0.95);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tabbyos[data-os-style="macos"] .window-app-icon {
+  display: none;
+}
+
+.tabbyos[data-os-style="macos"] .window-floating-controls {
+  order: 1;
+  margin-right: auto;
+  gap: 8px;
+}
+
+.tabbyos[data-os-style="macos"] .window-floating-controls button {
+  width: 12px;
+  height: 12px;
+  min-width: 12px;
+  min-height: 12px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  color: transparent;
+}
+
+.tabbyos[data-os-style="macos"] .window-floating-controls button span {
+  display: none;
+}
+
+.tabbyos[data-os-style="macos"] .window-floating-controls [data-action="close"] {
+  background: #ff5f57;
+  border-color: #de4b43;
+}
+
+.tabbyos[data-os-style="macos"] .window-floating-controls [data-action="min"] {
+  background: #febc2e;
+  border-color: #df9f24;
+}
+
+.tabbyos[data-os-style="macos"] .window-floating-controls [data-action="full"] {
+  background: #28c840;
+  border-color: #20a535;
+}
+
+.tabbyos[data-os-style="macos"] .settings-window,
+.tabbyos[data-os-style="macos"] .explorer-view {
+  background: rgba(14, 20, 31, 0.92);
+}
+
+.tabbyos[data-os-style="macos"] .settings-card,
+.tabbyos[data-os-style="macos"] .explorer-list,
+.tabbyos[data-os-style="macos"] .explorer-preview,
+.tabbyos[data-os-style="macos"] .explorer-sidebar,
+.tabbyos[data-os-style="macos"] .explorer-item {
+  border-radius: 12px;
+  border-color: rgba(206, 226, 255, 0.24);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tabbyos[data-os-style="macos"] .terminal-view {
+  background: linear-gradient(180deg, #0b101a 0%, #080d14 100%);
+  font-family: Menlo, "SF Mono", "Consolas", monospace;
+  color: #dff1ff;
+}
+
+.tabbyos[data-os-style="macos"] .term-prompt {
+  color: #97c5ff;
+}
+
+.tabbyos[data-os-style="macos"] .term-input {
+  color: #dff1ff;
+}
+
+.tabbyos[data-os-style="macos"] .explorer-toolbar button,
+.tabbyos[data-os-style="macos"] .explorer-actions button,
+.tabbyos[data-os-style="macos"] .explorer-nav,
+.tabbyos[data-os-style="macos"] .explorer-path {
+  border-radius: 10px;
+  border-color: rgba(209, 228, 255, 0.28);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tabbyos[data-os-style="macos"] .explorer-list-head {
+  border-color: rgba(197, 220, 255, 0.35);
+  background: rgba(96, 128, 177, 0.2);
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-size: 11px;
+}
+
+.tabbyos[data-os-style="macos"] .explorer-item {
+  font-size: 12px;
 }
 
 .tabbyos[data-os-style="win98"] {
@@ -987,19 +1227,25 @@
   background: #c0c0c0;
 }
 
-.tabbyos[data-os-style="win98"] .window-drag-handle {
-  border: none;
-  border-radius: 0;
-  left: 6px;
-  top: 6px;
-  width: calc(100% - 120px);
-  height: 20px;
+.tabbyos[data-os-style="win98"] .window-titlebar {
+  height: 28px;
+  border-bottom: 1px solid #202020;
   background: linear-gradient(90deg, #000080 0%, #1971bf 100%);
+  padding: 4px 6px;
+}
+
+.tabbyos[data-os-style="win98"] .window-title {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tabbyos[data-os-style="win98"] .window-app-icon {
+  display: none;
 }
 
 .tabbyos[data-os-style="win98"] .window-floating-controls {
-  top: 6px;
-  right: 6px;
+  gap: 2px;
 }
 
 .tabbyos[data-os-style="win98"] .window-floating-controls button,
@@ -1011,6 +1257,13 @@
   background: #d4d0c8;
   color: #111;
   box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #fff;
+}
+
+.tabbyos[data-os-style="win98"] .window-floating-controls button {
+  min-width: 20px;
+  min-height: 18px;
+  padding: 0;
+  font-size: 12px;
 }
 
 .tabbyos[data-os-style="win98"] .tabbyos-dock {
@@ -1048,6 +1301,18 @@
   background: #d4d0c8;
   border-color: #747474;
   color: #101010;
+}
+
+.tabbyos[data-os-style="win98"] .explorer-toolbar button,
+.tabbyos[data-os-style="win98"] .explorer-actions button,
+.tabbyos[data-os-style="win98"] .explorer-nav,
+.tabbyos[data-os-style="win98"] .explorer-path,
+.tabbyos[data-os-style="win98"] .explorer-editor {
+  border-radius: 0;
+  border: 1px solid #202020;
+  background: #dfdbd3;
+  color: #111;
+  box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #fff;
 }
 
 .tabbyos[data-os-style="win98"] .explorer-list-head {
@@ -1088,7 +1353,8 @@
 
   .explorer-item-win98,
   .explorer-item-win11,
-  .explorer-item-system7 {
+  .explorer-item-system7,
+  .explorer-item-macos {
     grid-template-columns: minmax(0, 1.4fr) 78px 104px 62px;
     gap: 6px;
     font-size: 11px;

@@ -11,7 +11,7 @@
 
   function normalizeOsStyle(style) {
     const v = String(style || '').toLowerCase();
-    if (v === 'kde' || v === 'system7' || v === 'win11' || v === 'win98') return v;
+    if (v === 'kde' || v === 'system7' || v === 'win11' || v === 'win98' || v === 'macos') return v;
     return 'tabby';
   }
 
@@ -169,6 +169,29 @@
       });
     };
 
+    const drawMacos = (t, w, h) => {
+      const grad = x.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, 'rgba(44,53,96,0.56)');
+      grad.addColorStop(0.45, 'rgba(86,72,122,0.52)');
+      grad.addColorStop(1, 'rgba(20,42,74,0.58)');
+      x.fillStyle = grad;
+      x.fillRect(0, 0, w, h);
+      const glass = x.createRadialGradient(w * 0.7, h * 0.22, 8, w * 0.7, h * 0.22, Math.min(w, h) * 0.42);
+      glass.addColorStop(0, 'rgba(176,226,255,0.18)');
+      glass.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = glass;
+      x.beginPath();
+      x.arc(w * 0.7, h * 0.22, Math.min(w, h) * 0.42, 0, Math.PI * 2);
+      x.fill();
+      const sweep = ((t * 24) % (w + 320)) - 320;
+      const streak = x.createLinearGradient(sweep, 0, sweep + 240, 0);
+      streak.addColorStop(0, 'rgba(255,255,255,0)');
+      streak.addColorStop(0.45, 'rgba(255,255,255,0.08)');
+      streak.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = streak;
+      x.fillRect(0, 0, w, h);
+    };
+
     const drawWin98 = (t, w, h) => {
       x.fillStyle = 'rgba(0,128,128,0.55)';
       x.fillRect(0, 0, w, h);
@@ -214,6 +237,7 @@
       if (style === 'kde') drawKde(t, w, h);
       else if (style === 'system7') drawSystem7(t, w, h);
       else if (style === 'win11') drawWin11(t, w, h);
+      else if (style === 'macos') drawMacos(t, w, h);
       else if (style === 'win98') drawWin98(t, w, h);
       else drawTabby(t, w, h);
       requestAnimationFrame(draw);
@@ -239,6 +263,7 @@
       if (style === 'kde') return 'rgba(124,200,255,0.52)';
       if (style === 'system7') return 'rgba(80,80,80,0.28)';
       if (style === 'win11') return 'rgba(146,202,255,0.44)';
+      if (style === 'macos') return 'rgba(208,229,255,0.46)';
       if (style === 'win98') return 'rgba(255,255,255,0.25)';
       return 'rgba(255,255,255,0.6)';
     };
@@ -347,6 +372,11 @@
     const data = ev.data && typeof ev.data === 'object' ? ev.data : null;
     if (!data || data.type !== 'tabby-os-style-change') return;
     applyOsStyle(data.style);
+  });
+  document.addEventListener('tabby-os-style-change', ev => {
+    const style = ev?.detail?.style;
+    if (!style) return;
+    applyOsStyle(style);
   });
 
   initLoader();

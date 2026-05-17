@@ -771,6 +771,32 @@ body[data-os-style="win11"] #tracking-target {
   border-radius: 14px;
 }
 
+body[data-os-style="macos"] .settings-panel {
+  border-radius: 14px;
+  border-color: rgba(206, 225, 255, 0.35);
+  background: rgba(17, 23, 35, 0.66);
+  backdrop-filter: blur(12px) saturate(120%);
+}
+
+body[data-os-style="macos"] .mode-btn,
+body[data-os-style="macos"] .speed-opt,
+body[data-os-style="macos"] .shape-opt,
+body[data-os-style="macos"] .pattern-opt,
+body[data-os-style="macos"] .cross-opt {
+  border-radius: 11px;
+  border-color: rgba(198, 221, 255, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+  color: #edf4ff;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+body[data-os-style="macos"] .target,
+body[data-os-style="macos"] #tracking-target {
+  border-radius: 14px;
+  box-shadow: 0 0 0 3px rgba(157, 203, 255, 0.18), 0 0 28px rgba(122, 188, 255, 0.48), inset 0 0 18px rgba(215, 238, 255, 0.24);
+}
+
 body[data-os-style="win98"] .settings-panel {
   border-radius: 0;
   border: 1px solid #202020;

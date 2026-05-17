@@ -523,6 +523,27 @@ body[data-os-style="win11"] .craft-mobile-btn {
   border-radius: 12px;
 }
 
+body[data-os-style="macos"] .craft-panel,
+body[data-os-style="macos"] .craft-section,
+body[data-os-style="macos"] .craft-slot {
+  border-radius: 14px;
+  border-color: rgba(202, 224, 255, 0.34);
+  background: rgba(16, 24, 36, 0.68);
+  backdrop-filter: blur(10px) saturate(120%);
+}
+
+body[data-os-style="macos"] .craft-mobile-btn {
+  border-radius: 12px;
+  border-color: rgba(204, 225, 255, 0.32);
+  background: rgba(255, 255, 255, 0.1);
+  color: #eef5ff;
+}
+
+body[data-os-style="macos"] #craft-crosshair {
+  border-color: rgba(220, 237, 255, 0.86);
+  border-radius: 6px;
+}
+
 body[data-os-style="win98"] .craft-panel,
 body[data-os-style="win98"] .craft-section,
 body[data-os-style="win98"] .craft-slot,

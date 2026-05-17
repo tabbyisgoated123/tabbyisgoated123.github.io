@@ -679,6 +679,47 @@ body[data-os-style="win11"] .offer-card {
   backdrop-filter: blur(10px);
 }
 
+body[data-os-style="macos"] .carnival-app {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(166, 215, 255, 0.2), transparent 34%),
+    radial-gradient(circle at 80% 20%, rgba(233, 175, 255, 0.14), transparent 30%),
+    linear-gradient(180deg, #1b2642 0%, #202a4b 46%, #17223c 100%);
+}
+
+body[data-os-style="macos"] .game-card,
+body[data-os-style="macos"] .pricing-panel,
+body[data-os-style="macos"] .carnival-wallet,
+body[data-os-style="macos"] .roulette-table-wrap,
+body[data-os-style="macos"] .roulette-wheel,
+body[data-os-style="macos"] .roulette-betslip,
+body[data-os-style="macos"] .offer-card {
+  border-radius: 14px;
+  border-color: rgba(204, 225, 255, 0.32);
+  background: rgba(15, 24, 38, 0.76);
+  backdrop-filter: blur(12px) saturate(120%);
+}
+
+body[data-os-style="macos"] .wallet-plus,
+body[data-os-style="macos"] .icon-btn,
+body[data-os-style="macos"] .primary-btn,
+body[data-os-style="macos"] .ghost-btn,
+body[data-os-style="macos"] .roulette-outside button,
+body[data-os-style="macos"] .inline-buttons button,
+body[data-os-style="macos"] .shop-btn,
+body[data-os-style="macos"] .chip-btn {
+  border-radius: 10px;
+  border-color: rgba(206, 226, 255, 0.32);
+  background: rgba(255, 255, 255, 0.1);
+  color: #eef5ff;
+}
+
+body[data-os-style="macos"] .game-controls input,
+body[data-os-style="macos"] .game-controls select {
+  border-color: rgba(206, 226, 255, 0.3);
+  background: rgba(8, 13, 22, 0.74);
+  color: #eef5ff;
+}
+
 body[data-os-style="win98"] .carnival-app {
   background: linear-gradient(180deg, #007f7f 0%, #016a6a 100%);
   color: #111;
