@@ -1062,7 +1062,9 @@
     const isTerminal = appName === 'terminal';
     const isSettings = appName === 'settings';
     const isExplorer = appName === 'explorer';
-    const appUrl = (!isTerminal && !isSettings && !isExplorer) ? new URL(`./${appName}`, window.location.href).href : '';
+    const appUrl = (!isTerminal && !isSettings && !isExplorer)
+      ? new URL(`./${appName}?v=${Date.now()}`, window.location.href).href
+      : '';
 
     let bodyContent = '';
     if (isTerminal) bodyContent = '<div class="terminal-view"></div>';
