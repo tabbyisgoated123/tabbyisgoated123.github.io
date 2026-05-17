@@ -2,11 +2,24 @@
   const ACH_KEY = 'tabby_achievements_v1';
   const SCORE_KEY = 'tabby_local_scores_v1';
   const SOUND_KEY = 'tabby_sound_v1';
+  const OS_STYLE_KEY = 'tabby_os_style_v1';
   const root = document.documentElement;
   const body = document.body;
 
   const achievements = JSON.parse(localStorage.getItem(ACH_KEY) || '{}');
   const scores = JSON.parse(localStorage.getItem(SCORE_KEY) || '{}');
+
+  function normalizeOsStyle(style) {
+    const v = String(style || '').toLowerCase();
+    if (v === 'kde' || v === 'system7' || v === 'win11' || v === 'win98') return v;
+    return 'tabby';
+  }
+
+  function applyOsStyle(style) {
+    const normalized = normalizeOsStyle(style || localStorage.getItem(OS_STYLE_KEY));
+    root.dataset.osStyle = normalized;
+    body.dataset.osStyle = normalized;
+  }
 
   function saveAchievements() {
     localStorage.setItem(ACH_KEY, JSON.stringify(achievements));
@@ -178,6 +191,17 @@
   }
 
   window.TabbyFX = { unlock, setHighScore, getHighScore, toast, shake, beep, setGameplay };
+
+  applyOsStyle();
+  window.addEventListener('storage', ev => {
+    if (ev.key !== OS_STYLE_KEY) return;
+    applyOsStyle(ev.newValue);
+  });
+  window.addEventListener('message', ev => {
+    const data = ev.data && typeof ev.data === 'object' ? ev.data : null;
+    if (!data || data.type !== 'tabby-os-style-change') return;
+    applyOsStyle(data.style);
+  });
 
   initLoader();
   initParticles();

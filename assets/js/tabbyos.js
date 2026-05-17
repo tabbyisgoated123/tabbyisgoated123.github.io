@@ -9,6 +9,7 @@
   const CFG_KEY = 'tabbyos_cfg_v2';
   const ICON_KEY = 'tabbyos_icons_v1';
   const FS_KEY = 'tabbyos_vfs_v1';
+  const OS_STYLE_KEY = 'tabby_os_style_v1';
   const PLUS_KEY = 'tabby_plus_tier_v1';
   const PLUS_GAME_KEY = 'tabbyplus';
   const TIER_LEVEL = { free: 0, plus: 1, premium: 2 };
@@ -25,6 +26,7 @@
   let currentTaskbar = 'bottom';
   let currentWallpaper = 'tabby';
   let currentWallpaperUrl = '';
+  let currentOsStyle = 'tabby';
   let currentTier = 'free';
 
   const appMeta = {
@@ -274,6 +276,12 @@
     return { ok: true };
   }
 
+  function normalizeOsStyle(style) {
+    const v = String(style || '').toLowerCase();
+    if (v === 'kde' || v === 'system7' || v === 'win11' || v === 'win98') return v;
+    return 'tabby';
+  }
+
   function loadCfg() {
     try {
       const cfg = JSON.parse(localStorage.getItem(CFG_KEY) || '{}');
@@ -282,7 +290,9 @@
       if (cfg.taskbar) currentTaskbar = cfg.taskbar;
       if (cfg.wallpaper) currentWallpaper = cfg.wallpaper;
       if (cfg.wallpaperUrl) currentWallpaperUrl = cfg.wallpaperUrl;
+      currentOsStyle = normalizeOsStyle(cfg.osStyle || localStorage.getItem(OS_STYLE_KEY));
     } catch (_) {}
+    if (!currentOsStyle) currentOsStyle = normalizeOsStyle(localStorage.getItem(OS_STYLE_KEY));
     applyRootCfg();
   }
 
@@ -293,6 +303,7 @@
       taskbar: currentTaskbar,
       wallpaper: currentWallpaper,
       wallpaperUrl: currentWallpaperUrl,
+      osStyle: currentOsStyle,
     }));
     applyRootCfg();
     applyDefaultIconLayout(false);
@@ -371,8 +382,22 @@
     osRoot.dataset.layout = currentLayout;
     osRoot.dataset.taskbar = currentTaskbar;
     osRoot.dataset.wallpaper = currentWallpaper;
+    osRoot.dataset.osStyle = normalizeOsStyle(currentOsStyle);
     const safe = safeWallpaperUrl(currentWallpaperUrl);
     osRoot.style.setProperty('--os-wallpaper-url', safe ? `url("${safe}")` : 'none');
+    localStorage.setItem(OS_STYLE_KEY, normalizeOsStyle(currentOsStyle));
+    broadcastOsStyle();
+    refreshClippy();
+  }
+
+  function broadcastOsStyle() {
+    const style = normalizeOsStyle(currentOsStyle);
+    appWindows.forEach(entry => {
+      const frame = entry.win?.querySelector?.('.window-frame');
+      try {
+        frame?.contentWindow?.postMessage({ type: 'tabby-os-style-change', style }, '*');
+      } catch (_) {}
+    });
   }
 
   function loadIconPositions() {
@@ -565,6 +590,37 @@
     handle.addEventListener('pointercancel', end);
   }
 
+  function ensureClippy() {
+    let wrap = osRoot.querySelector('.clippy-assistant');
+    if (wrap) return wrap;
+    wrap = document.createElement('button');
+    wrap.type = 'button';
+    wrap.className = 'clippy-assistant hidden';
+    wrap.setAttribute('aria-label', 'Clippy assistant');
+    wrap.innerHTML = `
+      <span class="clippy-bubble">It looks like you're trying to train your aim. Need help?</span>
+      <span class="clippy-face" aria-hidden="true">📎</span>
+    `;
+    wrap.addEventListener('click', () => {
+      const bubble = wrap.querySelector('.clippy-bubble');
+      if (!bubble) return;
+      const tips = [
+        'Tip: Drag app icons to organize your desktop.',
+        'Tip: Right now this style is inspired by Windows 98.',
+        'Tip: Open Settings to try another Premium OS style.',
+        'Tip: Use the taskbar icon to restore minimized apps.',
+      ];
+      bubble.textContent = tips[Math.floor(Math.random() * tips.length)];
+    });
+    osRoot.appendChild(wrap);
+    return wrap;
+  }
+
+  function refreshClippy() {
+    const clippy = ensureClippy();
+    clippy.classList.toggle('hidden', normalizeOsStyle(currentOsStyle) !== 'win98');
+  }
+
   function ensurePlusModal() {
     let modal = document.getElementById('plus-modal');
     if (modal) return modal;
@@ -594,7 +650,7 @@
           </article>
           <article class="plus-tier" data-tier-card="premium">
             <div class="plus-tier-name">Premium</div>
-            <p>All Plus perks plus full personalization controls.</p>
+            <p>All Plus perks plus OS styles, color themes, and wallpaper controls.</p>
             <button type="button" data-tier="premium">Activate Premium</button>
           </article>
         </div>
@@ -664,6 +720,15 @@
             <option value="custom">Custom URL</option>
           </select>
         </label>
+        <label>OS style
+          <select id="os-style" data-premium-only="1">
+            <option value="tabby">TabbyOS Modern</option>
+            <option value="kde">KDE Plasma (Arch)</option>
+            <option value="system7">Apple System 7</option>
+            <option value="win11">Windows 11</option>
+            <option value="win98">Windows 98 + Clippy</option>
+          </select>
+        </label>
         <label id="wallpaper-url-wrap">Custom wallpaper URL
           <input type="text" id="os-wallpaper-url" data-premium-only="1" placeholder="https://... or /assets/...">
         </label>
@@ -726,6 +791,7 @@
     const accent = panel.querySelector('#os-accent');
     const layout = panel.querySelector('#os-layout');
     const wallpaper = panel.querySelector('#os-wallpaper');
+    const osStyle = panel.querySelector('#os-style');
     const wallpaperUrlWrap = panel.querySelector('#wallpaper-url-wrap');
     const wallpaperUrl = panel.querySelector('#os-wallpaper-url');
     const taskbarPos = panel.querySelector('#os-taskbar');
@@ -749,6 +815,7 @@
     if (layout) layout.value = currentLayout;
     if (taskbarPos) taskbarPos.value = currentTaskbar;
     if (wallpaper) wallpaper.value = currentWallpaper;
+    if (osStyle) osStyle.value = normalizeOsStyle(currentOsStyle);
     if (wallpaperUrl) wallpaperUrl.value = currentWallpaperUrl;
     if (wallpaperUrlWrap) wallpaperUrlWrap.classList.toggle('hidden', currentWallpaper !== 'custom');
 
@@ -803,6 +870,15 @@
       }
       currentWallpaper = ev.target.value;
       if (wallpaperUrlWrap) wallpaperUrlWrap.classList.toggle('hidden', currentWallpaper !== 'custom');
+      saveCfg();
+    });
+    osStyle?.addEventListener('change', ev => {
+      if (!hasPremiumAccess()) {
+        ev.target.value = normalizeOsStyle(currentOsStyle);
+        openPlusModal();
+        return;
+      }
+      currentOsStyle = normalizeOsStyle(ev.target.value);
       saveCfg();
     });
     wallpaperUrl?.addEventListener('change', ev => {
@@ -1287,6 +1363,9 @@
       const frame = win.querySelector('iframe');
       frame?.addEventListener('load', () => {
         try {
+          frame.contentWindow?.postMessage({ type: 'tabby-os-style-change', style: normalizeOsStyle(currentOsStyle) }, '*');
+        } catch (_) {}
+        try {
           const loadedPath = new URL(frame.contentWindow.location.href).pathname.toLowerCase();
           const wantedPath = `/${String(appName).toLowerCase()}`;
           if (!loadedPath.endsWith(wantedPath)) frame.src = appUrl;
@@ -1320,9 +1399,17 @@
 
   window.addEventListener('resize', () => applyDefaultIconLayout(false));
   window.addEventListener('storage', ev => {
-    if (ev.key !== PLUS_KEY) return;
-    loadTier();
-    updatePlusLauncher();
+    if (ev.key === PLUS_KEY) {
+      loadTier();
+      updatePlusLauncher();
+      return;
+    }
+    if (ev.key === OS_STYLE_KEY) {
+      currentOsStyle = normalizeOsStyle(ev.newValue || localStorage.getItem(OS_STYLE_KEY));
+      osRoot.dataset.osStyle = currentOsStyle;
+      broadcastOsStyle();
+      refreshClippy();
+    }
   });
   document.addEventListener('tabby-profile-change', () => {
     loadTier();

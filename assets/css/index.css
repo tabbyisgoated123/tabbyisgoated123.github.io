@@ -690,6 +690,277 @@
   cursor: pointer;
 }
 
+.clippy-assistant {
+  position: absolute;
+  right: 18px;
+  bottom: 56px;
+  z-index: 1250;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  background: #f8f0d8;
+  color: #13233c;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+  padding: 8px;
+  display: grid;
+  grid-template-columns: minmax(140px, 240px) auto;
+  align-items: end;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.clippy-bubble {
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.clippy-face {
+  font-size: 34px;
+  filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.25));
+}
+
+.tabbyos[data-os-style="kde"] {
+  color: #d9e8f7;
+  --os-accent: #3ba7ff;
+  font-family: "Noto Sans", "Segoe UI", sans-serif;
+}
+
+.tabbyos[data-os-style="kde"] .tabbyos-wallpaper {
+  background:
+    radial-gradient(circle at 20% 18%, rgba(73, 175, 255, 0.3), transparent 36%),
+    radial-gradient(circle at 80% 26%, rgba(36, 222, 190, 0.22), transparent 34%),
+    linear-gradient(170deg, #0c1928 0%, #0b1a2f 50%, #0b1120 100%);
+}
+
+.tabbyos[data-os-style="kde"] .tabbyos-dock {
+  background: rgba(9, 16, 26, 0.82);
+  border-top-color: rgba(120, 175, 255, 0.25);
+}
+
+.tabbyos[data-os-style="kde"] .app-window {
+  border-color: rgba(111, 173, 245, 0.3);
+  border-radius: 12px;
+  background: rgba(10, 20, 34, 0.96);
+}
+
+.tabbyos[data-os-style="kde"] .window-drag-handle {
+  border-color: rgba(115, 180, 255, 0.42);
+  background: rgba(63, 143, 255, 0.2);
+}
+
+.tabbyos[data-os-style="kde"] .settings-window,
+.tabbyos[data-os-style="kde"] .explorer-view {
+  background: rgba(10, 20, 34, 0.95);
+}
+
+.tabbyos[data-os-style="kde"] .terminal-view {
+  background: linear-gradient(180deg, #081426 0%, #061120 100%);
+}
+
+.tabbyos[data-os-style="system7"] {
+  color: #161616;
+  --os-accent: #5a5a5a;
+  font-family: "Geneva", "Chicago", "Tahoma", sans-serif;
+}
+
+.tabbyos[data-os-style="system7"] .tabbyos-wallpaper {
+  background:
+    repeating-linear-gradient(180deg, #f4f4f4 0 2px, #ececec 2px 4px),
+    linear-gradient(180deg, #efefef 0%, #dadada 100%);
+}
+
+.tabbyos[data-os-style="system7"] .tabbyos-wallpaper::after {
+  color: rgba(25, 25, 25, 0.2);
+  text-shadow: none;
+}
+
+.tabbyos[data-os-style="system7"] .app-icon {
+  border-color: #6f6f6f;
+  background: #ececec;
+  color: #101010;
+  border-radius: 0;
+  box-shadow: inset -1px -1px 0 #8b8b8b, inset 1px 1px 0 #fff;
+}
+
+.tabbyos[data-os-style="system7"] .app-window {
+  border: 2px solid #2f2f2f;
+  border-radius: 0;
+  background: #d7d7d7;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
+}
+
+.tabbyos[data-os-style="system7"] .window-drag-handle {
+  border-radius: 0;
+  height: 14px;
+  border: 1px solid #202020;
+  background: repeating-linear-gradient(90deg, #dcdcdc 0 2px, #9f9f9f 2px 4px);
+}
+
+.tabbyos[data-os-style="system7"] .window-floating-controls button,
+.tabbyos[data-os-style="system7"] .tabbyos-dock button {
+  border-radius: 0;
+  border-color: #2f2f2f;
+  background: #ececec;
+  color: #111;
+  box-shadow: inset -1px -1px 0 #8b8b8b, inset 1px 1px 0 #fff;
+}
+
+.tabbyos[data-os-style="system7"] .tabbyos-dock {
+  background: #dcdcdc;
+  border-top-color: #666;
+}
+
+.tabbyos[data-os-style="system7"] .settings-window,
+.tabbyos[data-os-style="system7"] .explorer-view,
+.tabbyos[data-os-style="system7"] .terminal-view {
+  background: #d7d7d7;
+  color: #111;
+  font-family: "Geneva", "Chicago", "Tahoma", sans-serif;
+}
+
+.tabbyos[data-os-style="system7"] .settings-card,
+.tabbyos[data-os-style="system7"] .explorer-list,
+.tabbyos[data-os-style="system7"] .explorer-preview,
+.tabbyos[data-os-style="system7"] .explorer-sidebar {
+  border-radius: 0;
+  background: #ececec;
+  border-color: #707070;
+}
+
+.tabbyos[data-os-style="win11"] {
+  color: #e7edf6;
+  --os-accent: #4cc2ff;
+  font-family: "Segoe UI", "Inter", sans-serif;
+}
+
+.tabbyos[data-os-style="win11"] .tabbyos-wallpaper {
+  background:
+    radial-gradient(circle at 30% 22%, rgba(86, 190, 255, 0.28), transparent 40%),
+    radial-gradient(circle at 74% 40%, rgba(121, 112, 255, 0.2), transparent 44%),
+    linear-gradient(160deg, #071425 0%, #12233d 45%, #0a1320 100%);
+}
+
+.tabbyos[data-os-style="win11"] .app-window {
+  border-radius: 16px;
+  border-color: rgba(190, 220, 255, 0.3);
+  background: rgba(15, 24, 38, 0.92);
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.48);
+}
+
+.tabbyos[data-os-style="win11"] .window-drag-handle {
+  border-radius: 999px;
+  border-color: rgba(220, 236, 255, 0.45);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.tabbyos[data-os-style="win11"] .tabbyos-dock {
+  background: rgba(11, 18, 31, 0.8);
+  border-top-color: rgba(188, 218, 255, 0.25);
+}
+
+.tabbyos[data-os-style="win11"] .taskbar-btn {
+  border-radius: 12px;
+}
+
+.tabbyos[data-os-style="win11"] .settings-window,
+.tabbyos[data-os-style="win11"] .explorer-view {
+  background: rgba(14, 24, 38, 0.94);
+}
+
+.tabbyos[data-os-style="win98"] {
+  color: #101010;
+  --os-accent: #1a46a6;
+  font-family: "Tahoma", "MS Sans Serif", sans-serif;
+}
+
+.tabbyos[data-os-style="win98"] .tabbyos-wallpaper {
+  background:
+    linear-gradient(180deg, #008080 0%, #016f6f 100%);
+}
+
+.tabbyos[data-os-style="win98"] .tabbyos-wallpaper::after {
+  color: rgba(255, 255, 255, 0.2);
+  text-shadow: none;
+}
+
+.tabbyos[data-os-style="win98"] .app-icon {
+  border-color: transparent;
+  background: transparent;
+  color: #fff;
+  border-radius: 0;
+}
+
+.tabbyos[data-os-style="win98"] .app-icon:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 128, 0.35);
+}
+
+.tabbyos[data-os-style="win98"] .app-window {
+  border: 2px solid #1f1f1f;
+  border-radius: 0;
+  background: #c0c0c0;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
+}
+
+.tabbyos[data-os-style="win98"] .window-body {
+  background: #c0c0c0;
+}
+
+.tabbyos[data-os-style="win98"] .window-drag-handle {
+  border: none;
+  border-radius: 0;
+  left: 6px;
+  top: 6px;
+  width: calc(100% - 120px);
+  height: 20px;
+  background: linear-gradient(90deg, #000080 0%, #1971bf 100%);
+}
+
+.tabbyos[data-os-style="win98"] .window-floating-controls {
+  top: 6px;
+  right: 6px;
+}
+
+.tabbyos[data-os-style="win98"] .window-floating-controls button,
+.tabbyos[data-os-style="win98"] .tabbyos-dock button,
+.tabbyos[data-os-style="win98"] .taskbar-btn,
+.tabbyos[data-os-style="win98"] .plus-launcher {
+  border-radius: 0;
+  border: 1px solid #202020;
+  background: #d4d0c8;
+  color: #111;
+  box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #fff;
+}
+
+.tabbyos[data-os-style="win98"] .tabbyos-dock {
+  background: #c0c0c0;
+  border-top: 2px solid #fff;
+}
+
+.tabbyos[data-os-style="win98"] .settings-window,
+.tabbyos[data-os-style="win98"] .explorer-view {
+  background: #c0c0c0;
+  color: #101010;
+  font-family: "Tahoma", "MS Sans Serif", sans-serif;
+}
+
+.tabbyos[data-os-style="win98"] .terminal-view {
+  background: #000;
+  color: #d5d5d5;
+  font-family: "Lucida Console", "Consolas", monospace;
+}
+
+.tabbyos[data-os-style="win98"] .settings-card,
+.tabbyos[data-os-style="win98"] .explorer-list,
+.tabbyos[data-os-style="win98"] .explorer-preview,
+.tabbyos[data-os-style="win98"] .explorer-sidebar,
+.tabbyos[data-os-style="win98"] .explorer-item {
+  border-radius: 0;
+  background: #d4d0c8;
+  border-color: #747474;
+  color: #101010;
+}
+
 @media (max-width: 920px) {
   .plus-tiers {
     grid-template-columns: 1fr;
