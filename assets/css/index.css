@@ -4,6 +4,11 @@
   overflow: hidden;
   color: #dbe5ef;
   --os-accent: #ff1a1a;
+  --os-wallpaper-url: none;
+}
+
+.hidden {
+  display: none !important;
 }
 
 .tabbyos-wallpaper {
@@ -13,6 +18,48 @@
     radial-gradient(circle at 18% 18%, rgba(120, 180, 255, 0.22), transparent 42%),
     radial-gradient(circle at 80% 30%, rgba(255, 90, 120, 0.16), transparent 38%),
     linear-gradient(165deg, #0b121c 0%, #111827 40%, #0a0f18 100%);
+}
+
+.tabbyos-wallpaper::after {
+  content: "TabbyOS";
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  font-family: "Bebas Neue", sans-serif;
+  font-size: clamp(6rem, 20vw, 16rem);
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.06);
+  text-shadow: 0 0 40px rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+}
+
+.tabbyos[data-wallpaper="aurora"] .tabbyos-wallpaper {
+  background:
+    radial-gradient(circle at 10% 20%, rgba(86, 207, 255, 0.32), transparent 38%),
+    radial-gradient(circle at 72% 16%, rgba(98, 255, 177, 0.28), transparent 36%),
+    linear-gradient(165deg, #070d14 0%, #0c1827 46%, #071019 100%);
+}
+
+.tabbyos[data-wallpaper="mesh"] .tabbyos-wallpaper {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 44px),
+    linear-gradient(160deg, #0b0f16 0%, #121a25 55%, #0b121c 100%);
+}
+
+.tabbyos[data-wallpaper="night"] .tabbyos-wallpaper {
+  background:
+    radial-gradient(circle at 50% 28%, rgba(220, 238, 255, 0.15), transparent 26%),
+    radial-gradient(circle at 18% 15%, rgba(255, 255, 255, 0.18) 0 1px, transparent 2px),
+    radial-gradient(circle at 66% 10%, rgba(255, 255, 255, 0.14) 0 1px, transparent 2px),
+    linear-gradient(180deg, #04070d 0%, #070d14 48%, #03060b 100%);
+}
+
+.tabbyos[data-wallpaper="custom"] .tabbyos-wallpaper {
+  background-image: var(--os-wallpaper-url);
+  background-size: cover;
+  background-position: center;
 }
 
 .tabbyos-desktop {
@@ -119,9 +166,88 @@
   padding: 10px 12px;
 }
 
-.settings-window {
+#window-layer {
   position: absolute;
   inset: 0;
+  pointer-events: none;
+  z-index: 500;
+}
+
+.app-window {
+  position: absolute;
+  top: 70px;
+  left: 100px;
+  width: min(960px, calc(100vw - 40px));
+  height: min(70vh, 700px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(8, 12, 18, 0.96);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-window.hidden {
+  display: none;
+}
+
+.window-bar {
+  height: 38px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  font-size: 12px;
+  cursor: move;
+  user-select: none;
+  flex: 0 0 auto;
+}
+
+.window-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.window-actions button,
+.tabbyos-dock button {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.window-body {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.window-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: #090d13;
+}
+
+.settings-window,
+.terminal-view,
+.explorer-view {
+  width: 100%;
+  min-height: 100%;
+}
+
+.window-scrollable {
+  overflow: auto;
+}
+
+.settings-window {
   padding: 14px;
   display: grid;
   gap: 12px;
@@ -150,8 +276,9 @@
 
 .settings-card input[type="color"],
 .settings-card select,
-.settings-card button {
-  max-width: 240px;
+.settings-card button,
+.settings-card input[type="text"] {
+  max-width: 260px;
 }
 
 .settings-note {
@@ -180,56 +307,168 @@
   flex-wrap: wrap;
 }
 
-#window-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 500;
+.terminal-view {
+  padding: 14px;
+  color: #9df7bf;
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  font-family: Consolas, "Courier New", monospace;
+  background: linear-gradient(180deg, #071018 0%, #04070d 100%);
 }
 
-.app-window {
-  position: absolute;
-  top: 70px;
-  left: 100px;
-  width: min(960px, calc(100vw - 40px));
-  height: min(70vh, 700px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 14px;
-  overflow: hidden;
-  background: rgba(8, 12, 18, 0.96);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
-  pointer-events: auto;
+.term-line {
+  display: block;
 }
 
-.app-window.hidden {
-  display: none;
+.term-error {
+  color: #ff8f9d;
 }
 
-.window-bar {
-  height: 38px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+.term-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 10px;
-  font-size: 12px;
-  cursor: move;
-  user-select: none;
+  gap: 8px;
 }
 
-.window-actions {
-  display: flex;
-  gap: 6px;
+.term-prompt {
+  color: #8be2ff;
+  white-space: nowrap;
 }
 
-.window-actions button,
-.tabbyos-dock button {
-  border: 1px solid rgba(255, 255, 255, 0.15);
+.term-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #9df7bf;
+  font: inherit;
+}
+
+.term-locked .term-input {
+  opacity: 0.8;
+}
+
+.explorer-view {
+  padding: 10px;
+  background: linear-gradient(180deg, #0a111a 0%, #070b12 100%);
+  display: grid;
+  gap: 10px;
+}
+
+.explorer-toolbar {
+  display: grid;
+  grid-template-columns: auto auto auto auto minmax(220px, 1fr);
+  gap: 8px;
+}
+
+.explorer-toolbar button,
+.explorer-actions button,
+.explorer-nav {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-  border-radius: 8px;
-  padding: 4px 10px;
+  color: #e8eef8;
+  padding: 8px 10px;
   cursor: pointer;
+}
+
+.explorer-path {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e8eef8;
+  padding: 8px 10px;
+}
+
+.explorer-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 10px;
+  min-height: 420px;
+}
+
+.explorer-sidebar {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 8px;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.explorer-nav.active {
+  border-color: color-mix(in srgb, var(--os-accent) 66%, white 16%);
+  background: color-mix(in srgb, var(--os-accent) 16%, transparent);
+}
+
+.explorer-main {
+  display: grid;
+  grid-template-rows: minmax(180px, 1fr) minmax(180px, 1fr);
+  gap: 10px;
+}
+
+.explorer-list,
+.explorer-preview {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 8px;
+  overflow: auto;
+}
+
+.explorer-item {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #e8eef8;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  text-align: left;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.explorer-item:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.explorer-meta {
+  color: rgba(220, 230, 240, 0.65);
+  font-size: 11px;
+}
+
+.explorer-preview {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 8px;
+}
+
+.explorer-preview-title {
+  color: rgba(220, 230, 240, 0.82);
+  font-size: 12px;
+}
+
+.explorer-editor {
+  width: 100%;
+  min-height: 140px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.26);
+  color: #eef4ff;
+  padding: 10px;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+  resize: vertical;
+}
+
+.explorer-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .win-resize {
@@ -239,32 +478,7 @@
   width: 14px;
   height: 14px;
   cursor: nwse-resize;
-  background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.45) 40% 50%, transparent 50% 60%, rgba(255,255,255,0.45) 60% 70%, transparent 70%);
-}
-
-.app-window iframe,
-.terminal-view {
-  position: absolute;
-  top: 38px;
-  left: 0;
-  width: 100%;
-  height: calc(100% - 38px);
-  border: 0;
-  background: #090d13;
-  display: block;
-}
-
-.terminal-view {
-  padding: 14px;
-  color: #9df7bf;
-  font-size: 13px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  font-family: Consolas, 'Courier New', monospace;
-}
-
-.terminal-view.hidden {
-  display: none;
+  background: linear-gradient(135deg, transparent 40%, rgba(255, 255, 255, 0.45) 40% 50%, transparent 50% 60%, rgba(255, 255, 255, 0.45) 60% 70%, transparent 70%);
 }
 
 .tabbyos-dock {
@@ -329,15 +543,21 @@
   justify-content: center;
 }
 
-.term-line {
-  display: block;
-}
+@media (max-width: 920px) {
+  .explorer-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
 
-.term-input {
-  width: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: #9df7bf;
-  font: inherit;
+  .explorer-main {
+    grid-template-rows: 1fr 1fr;
+  }
+
+  .explorer-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .explorer-toolbar .explorer-path {
+    grid-column: 1 / -1;
+  }
 }

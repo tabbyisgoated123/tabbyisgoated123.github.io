@@ -5,28 +5,269 @@
   const taskbar = document.getElementById('taskbar');
   if (!osRoot || !desktop || !windowLayer || !taskbar) return;
 
-  const CFG_KEY = 'tabbyos_cfg_v1';
+  const CFG_KEY = 'tabbyos_cfg_v2';
   const ICON_KEY = 'tabbyos_icons_v1';
+  const FS_KEY = 'tabbyos_vfs_v1';
   const PROFILE_COLORS = [
     '#ff1a1a', '#ff7a1a', '#ffd21a', '#4ade80',
     '#38bdf8', '#a855f7', '#f472b6', '#e5e7eb',
   ];
+
   const appWindows = new Map();
   let zTop = 600;
   let openCount = 0;
   let currentAccent = '#ff1a1a';
   let currentLayout = 'grid';
   let currentTaskbar = 'bottom';
+  let currentWallpaper = 'tabby';
+  let currentWallpaperUrl = '';
 
   const appMeta = {
     settings: { title: 'Settings', icon: '⚙️' },
+    explorer: { title: 'File Explorer', icon: '🗂️' },
+    terminal: { title: 'Terminal', icon: '🖥️' },
     'aim.html': { title: 'Aim Trainer', icon: '🎯' },
     'cps.html': { title: 'CPS Trainer', icon: '🖱️' },
     'typing.html': { title: 'TabbyTyping', icon: '⌨️' },
     'tabbycraft.html': { title: 'TabbyCraft', icon: '🧱' },
     'carnival.html': { title: 'Carnival', icon: '🎪' },
-    terminal: { title: 'Terminal', icon: '🖥️' },
   };
+
+  function defaultFs() {
+    const now = Date.now();
+    return {
+      type: 'dir',
+      mtime: now,
+      children: {
+        home: {
+          type: 'dir',
+          mtime: now,
+          children: {
+            tabby: {
+              type: 'dir',
+              mtime: now,
+              children: {
+                Desktop: { type: 'dir', mtime: now, children: {} },
+                Documents: {
+                  type: 'dir',
+                  mtime: now,
+                  children: {
+                    'welcome.txt': {
+                      type: 'file',
+                      mtime: now,
+                      content: 'Welcome to TabbyOS.\nUse Terminal and Explorer to manage files.\n',
+                    },
+                  },
+                },
+                Downloads: { type: 'dir', mtime: now, children: {} },
+                Projects: {
+                  type: 'dir',
+                  mtime: now,
+                  children: {
+                    'todo.md': {
+                      type: 'file',
+                      mtime: now,
+                      content: '# TabbyOS\n- Tune the shell\n- Add more apps\n',
+                    },
+                  },
+                },
+                Games: { type: 'dir', mtime: now, children: {} },
+              },
+            },
+          },
+        },
+        etc: {
+          type: 'dir',
+          mtime: now,
+          children: {
+            hostname: { type: 'file', mtime: now, content: 'tabbyos\n' },
+            issue: { type: 'file', mtime: now, content: 'TabbyOS 1.0\n' },
+          },
+        },
+        var: {
+          type: 'dir',
+          mtime: now,
+          children: {
+            log: {
+              type: 'dir',
+              mtime: now,
+              children: {
+                'system.log': {
+                  type: 'file',
+                  mtime: now,
+                  content: '[boot] TabbyOS initialized.\n',
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+  }
+
+  let fsRoot = loadFs();
+
+  function loadFs() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(FS_KEY) || '');
+      if (parsed && parsed.type === 'dir') return parsed;
+    } catch (_) {}
+    return defaultFs();
+  }
+
+  function saveFs() {
+    localStorage.setItem(FS_KEY, JSON.stringify(fsRoot));
+  }
+
+  function pathSegments(path) {
+    return String(path || '/').split('/').filter(Boolean);
+  }
+
+  function normalizeAbs(path) {
+    const src = String(path || '/');
+    const parts = [];
+    src.split('/').forEach(part => {
+      if (!part || part === '.') return;
+      if (part === '..') {
+        parts.pop();
+        return;
+      }
+      parts.push(part);
+    });
+    return '/' + parts.join('/');
+  }
+
+  function resolvePath(cwd, input) {
+    const raw = String(input || '').trim();
+    if (!raw || raw === '~') return '/home/tabby';
+    if (raw.startsWith('~/')) return normalizeAbs('/home/tabby/' + raw.slice(2));
+    if (raw.startsWith('/')) return normalizeAbs(raw);
+    return normalizeAbs((cwd || '/home/tabby') + '/' + raw);
+  }
+
+  function toPromptPath(path) {
+    if (path === '/home/tabby') return '~';
+    if (path.startsWith('/home/tabby/')) return '~/' + path.slice('/home/tabby/'.length);
+    return path;
+  }
+
+  function basename(path) {
+    const segs = pathSegments(path);
+    return segs.length ? segs[segs.length - 1] : '/';
+  }
+
+  function dirname(path) {
+    const segs = pathSegments(path);
+    if (!segs.length) return '/';
+    segs.pop();
+    return '/' + segs.join('/');
+  }
+
+  function getNode(absPath) {
+    const norm = normalizeAbs(absPath);
+    if (norm === '/') return fsRoot;
+    const segs = pathSegments(norm);
+    let node = fsRoot;
+    for (const seg of segs) {
+      if (!node || node.type !== 'dir' || !node.children[seg]) return null;
+      node = node.children[seg];
+    }
+    return node;
+  }
+
+  function ensureDir(absPath) {
+    const norm = normalizeAbs(absPath);
+    if (norm === '/') return fsRoot;
+    const segs = pathSegments(norm);
+    let node = fsRoot;
+    for (const seg of segs) {
+      if (node.type !== 'dir') return null;
+      if (!node.children[seg]) {
+        node.children[seg] = { type: 'dir', mtime: Date.now(), children: {} };
+      }
+      node = node.children[seg];
+      if (node.type !== 'dir') return null;
+    }
+    return node;
+  }
+
+  function listDir(absPath) {
+    const node = getNode(absPath);
+    if (!node || node.type !== 'dir') return null;
+    return Object.entries(node.children)
+      .map(([name, child]) => ({ name, type: child.type, mtime: child.mtime || 0 }))
+      .sort((a, b) => {
+        if (a.type !== b.type) return a.type === 'dir' ? -1 : 1;
+        return a.name.localeCompare(b.name);
+      });
+  }
+
+  function mkdirp(absPath) {
+    const target = normalizeAbs(absPath);
+    if (target === '/') return { ok: true };
+    const parent = getNode(dirname(target));
+    if (!parent || parent.type !== 'dir') return { ok: false, error: 'No such parent directory' };
+    const name = basename(target);
+    if (parent.children[name]) {
+      if (parent.children[name].type === 'dir') return { ok: true };
+      return { ok: false, error: 'A file with that name already exists' };
+    }
+    parent.children[name] = { type: 'dir', mtime: Date.now(), children: {} };
+    parent.mtime = Date.now();
+    saveFs();
+    return { ok: true };
+  }
+
+  function touch(absPath) {
+    const target = normalizeAbs(absPath);
+    const parent = getNode(dirname(target));
+    if (!parent || parent.type !== 'dir') return { ok: false, error: 'No such parent directory' };
+    const name = basename(target);
+    const now = Date.now();
+    if (!parent.children[name]) {
+      parent.children[name] = { type: 'file', mtime: now, content: '' };
+    } else if (parent.children[name].type === 'dir') {
+      return { ok: false, error: 'Is a directory' };
+    } else {
+      parent.children[name].mtime = now;
+    }
+    parent.mtime = now;
+    saveFs();
+    return { ok: true };
+  }
+
+  function writeFile(absPath, content, append) {
+    const target = normalizeAbs(absPath);
+    const parent = getNode(dirname(target));
+    if (!parent || parent.type !== 'dir') return { ok: false, error: 'No such parent directory' };
+    const name = basename(target);
+    const now = Date.now();
+    if (!parent.children[name]) parent.children[name] = { type: 'file', mtime: now, content: '' };
+    const node = parent.children[name];
+    if (node.type !== 'file') return { ok: false, error: 'Is a directory' };
+    node.content = append ? String(node.content || '') + String(content) : String(content);
+    node.mtime = now;
+    parent.mtime = now;
+    saveFs();
+    return { ok: true };
+  }
+
+  function removePath(absPath, recursive) {
+    const target = normalizeAbs(absPath);
+    if (target === '/') return { ok: false, error: 'Refusing to remove root' };
+    const parent = getNode(dirname(target));
+    if (!parent || parent.type !== 'dir') return { ok: false, error: 'No such file or directory' };
+    const name = basename(target);
+    const node = parent.children[name];
+    if (!node) return { ok: false, error: 'No such file or directory' };
+    if (node.type === 'dir' && Object.keys(node.children).length && !recursive) {
+      return { ok: false, error: 'Directory not empty (use rm -r)' };
+    }
+    delete parent.children[name];
+    parent.mtime = Date.now();
+    saveFs();
+    return { ok: true };
+  }
 
   function loadCfg() {
     try {
@@ -34,6 +275,8 @@
       if (cfg.accent) currentAccent = cfg.accent;
       if (cfg.layout) currentLayout = cfg.layout;
       if (cfg.taskbar) currentTaskbar = cfg.taskbar;
+      if (cfg.wallpaper) currentWallpaper = cfg.wallpaper;
+      if (cfg.wallpaperUrl) currentWallpaperUrl = cfg.wallpaperUrl;
     } catch (_) {}
     applyRootCfg();
   }
@@ -43,15 +286,28 @@
       accent: currentAccent,
       layout: currentLayout,
       taskbar: currentTaskbar,
+      wallpaper: currentWallpaper,
+      wallpaperUrl: currentWallpaperUrl,
     }));
     applyRootCfg();
     applyDefaultIconLayout(false);
+  }
+
+  function safeWallpaperUrl(url) {
+    const v = String(url || '').trim().replace(/["'<>]/g, '');
+    if (!v) return '';
+    if (v.startsWith('https://') || v.startsWith('http://') || v.startsWith('data:image/')) return v;
+    if (v.startsWith('./') || v.startsWith('/')) return v;
+    return '';
   }
 
   function applyRootCfg() {
     osRoot.style.setProperty('--os-accent', currentAccent);
     osRoot.dataset.layout = currentLayout;
     osRoot.dataset.taskbar = currentTaskbar;
+    osRoot.dataset.wallpaper = currentWallpaper;
+    const safe = safeWallpaperUrl(currentWallpaperUrl);
+    osRoot.style.setProperty('--os-wallpaper-url', safe ? `url("${safe}")` : 'none');
   }
 
   function loadIconPositions() {
@@ -177,11 +433,8 @@
         if (pointerId !== ev.pointerId) return;
         icon.releasePointerCapture?.(pointerId);
         pointerId = null;
-        if (moved) {
-          saveIconPositions();
-        } else {
-          openOrFocusApp(icon.dataset.app);
-        }
+        if (moved) saveIconPositions();
+        else openOrFocusApp(icon.dataset.app);
       };
 
       icon.addEventListener('pointerup', finish);
@@ -248,7 +501,8 @@
     handle.addEventListener('pointercancel', end);
   }
 
-  function applyTaskbarPositionControls(win, panel) {
+  function applySettingsUI(win, panel) {
+    panel.classList.add('window-scrollable');
     panel.innerHTML = `
       <div class="settings-card">
         <div class="settings-title">Appearance</div>
@@ -260,6 +514,18 @@
             <option value="grid">Grid</option>
             <option value="list">List</option>
           </select>
+        </label>
+        <label>Wallpaper preset
+          <select id="os-wallpaper">
+            <option value="tabby">TabbyOS Default</option>
+            <option value="aurora">Aurora</option>
+            <option value="mesh">Mesh</option>
+            <option value="night">Night Sky</option>
+            <option value="custom">Custom URL</option>
+          </select>
+        </label>
+        <label id="wallpaper-url-wrap">Custom wallpaper URL
+          <input type="text" id="os-wallpaper-url" placeholder="https://... or /assets/...">
         </label>
       </div>
       <div class="settings-card">
@@ -315,6 +581,9 @@
 
     const accent = panel.querySelector('#os-accent');
     const layout = panel.querySelector('#os-layout');
+    const wallpaper = panel.querySelector('#os-wallpaper');
+    const wallpaperUrlWrap = panel.querySelector('#wallpaper-url-wrap');
+    const wallpaperUrl = panel.querySelector('#os-wallpaper-url');
     const taskbarPos = panel.querySelector('#os-taskbar');
     const resetIcons = panel.querySelector('#reset-icons-btn');
     const name = panel.querySelector('#profile-name');
@@ -328,11 +597,16 @@
     const saveBtn = panel.querySelector('[data-action="save"]');
     const newBtn = panel.querySelector('[data-action="new"]');
     const deleteBtn = panel.querySelector('[data-action="delete"]');
+
     const profileApi = window.TabbyProfiles;
     const profile = profileApi?.getActiveProfile?.();
 
     if (layout) layout.value = currentLayout;
     if (taskbarPos) taskbarPos.value = currentTaskbar;
+    if (wallpaper) wallpaper.value = currentWallpaper;
+    if (wallpaperUrl) wallpaperUrl.value = currentWallpaperUrl;
+    if (wallpaperUrlWrap) wallpaperUrlWrap.classList.toggle('hidden', currentWallpaper !== 'custom');
+
     if (profile && name) name.value = profile.name;
     if (profile && scanline) scanline.checked = !!profile.prefs?.scanline;
     if (profile && vignette) vignette.checked = !!profile.prefs?.vignette;
@@ -352,39 +626,32 @@
         btn.title = color;
         btn.addEventListener('click', () => {
           profileApi?.updateActiveProfile?.({ color });
-          applyTaskbarPositionControls(win, panel);
+          applySettingsUI(win, panel);
         });
         profileColors.appendChild(btn);
       });
     }
 
-    accent?.addEventListener('input', ev => {
-      currentAccent = ev.target.value;
+    accent?.addEventListener('input', ev => { currentAccent = ev.target.value; saveCfg(); });
+    layout?.addEventListener('change', ev => { currentLayout = ev.target.value; saveCfg(); applyDefaultIconLayout(true); });
+    wallpaper?.addEventListener('change', ev => {
+      currentWallpaper = ev.target.value;
+      if (wallpaperUrlWrap) wallpaperUrlWrap.classList.toggle('hidden', currentWallpaper !== 'custom');
       saveCfg();
     });
-    layout?.addEventListener('change', ev => {
-      currentLayout = ev.target.value;
-      saveCfg();
-      applyDefaultIconLayout(true);
+    wallpaperUrl?.addEventListener('change', ev => {
+      currentWallpaperUrl = safeWallpaperUrl(ev.target.value);
+      if (currentWallpaper === 'custom') saveCfg();
     });
-    taskbarPos?.addEventListener('change', ev => {
-      currentTaskbar = ev.target.value;
-      saveCfg();
-    });
-    resetIcons?.addEventListener('click', () => {
-      localStorage.removeItem(ICON_KEY);
-      applyDefaultIconLayout(true);
-    });
-    name?.addEventListener('input', ev => {
-      profileApi?.updateActiveProfile?.({ name: ev.target.value });
-    });
+    taskbarPos?.addEventListener('change', ev => { currentTaskbar = ev.target.value; saveCfg(); });
+    resetIcons?.addEventListener('click', () => { localStorage.removeItem(ICON_KEY); applyDefaultIconLayout(true); });
+    name?.addEventListener('input', ev => profileApi?.updateActiveProfile?.({ name: ev.target.value }));
     scanline?.addEventListener('change', ev => profileApi?.updateActiveProfile?.({ prefs: { scanline: ev.target.checked } }));
     vignette?.addEventListener('change', ev => profileApi?.updateActiveProfile?.({ prefs: { vignette: ev.target.checked } }));
     reduceMotion?.addEventListener('change', ev => profileApi?.updateActiveProfile?.({ prefs: { reduceMotion: ev.target.checked } }));
     cursor?.addEventListener('change', ev => profileApi?.updateActiveProfile?.({ prefs: { cursor: ev.target.value } }));
     fontScale?.addEventListener('input', ev => profileApi?.updateActiveProfile?.({ prefs: { fontScale: +ev.target.value / 100 } }));
     panelOpacity?.addEventListener('input', ev => profileApi?.updateActiveProfile?.({ prefs: { panelOpacity: +ev.target.value / 100 } }));
-
     saveBtn?.addEventListener('click', () => profileApi?.saveCurrentProfile?.());
     newBtn?.addEventListener('click', () => profileApi?.createProfile?.());
     deleteBtn?.addEventListener('click', () => profileApi?.deleteActiveProfile?.());
@@ -392,54 +659,335 @@
 
   function createTerminal(win) {
     const out = win.querySelector('.terminal-view');
-    const write = txt => {
-      const line = document.createElement('span');
-      line.className = 'term-line';
-      line.textContent = txt;
+    out.classList.add('window-scrollable');
+    const state = { cwd: '/home/tabby', history: [], historyIndex: 0 };
+
+    const writeLine = (text, cls) => {
+      const line = document.createElement('div');
+      line.className = `term-line${cls ? ` ${cls}` : ''}`;
+      line.textContent = text;
       out.appendChild(line);
       out.scrollTop = out.scrollHeight;
     };
-    const prompt = () => {
-      const wrap = document.createElement('div');
-      wrap.className = 'term-line';
+
+    const tokenize = command => {
+      const tokens = [];
+      const re = /"([^"]*)"|'([^']*)'|(\S+)/g;
+      let m;
+      while ((m = re.exec(command))) tokens.push(m[1] ?? m[2] ?? m[3]);
+      return tokens;
+    };
+
+    const printList = (items, longMode) => {
+      if (!items || !items.length) return writeLine('');
+      if (!longMode) return writeLine(items.map(i => (i.type === 'dir' ? `${i.name}/` : i.name)).join('  '));
+      items.forEach(i => writeLine(`${i.type === 'dir' ? 'd' : '-'}rw-r--r-- tabby tabby ${new Date(i.mtime || Date.now()).toLocaleString()} ${i.type === 'dir' ? `${i.name}/` : i.name}`));
+    };
+
+    const runCommand = command => {
+      const cmd = String(command || '');
+      if (cmd) {
+        state.history.push(cmd);
+        if (state.history.length > 200) state.history.shift();
+      }
+      state.historyIndex = state.history.length;
+      const parts = tokenize(cmd);
+      const name = parts[0] || '';
+      const args = parts.slice(1);
+      if (!name) return;
+
+      if (name === 'help') return writeLine('Built-ins: pwd ls cd cat mkdir touch rm echo clear date whoami uname history tree open neofetch');
+      if (name === 'neofetch') {
+        writeLine('  /\\_/\\    tabby@tabbyos');
+        writeLine(' ( o.o )   OS: TabbyOS 1.0');
+        writeLine('  > ^ <    Shell: tabsh');
+        writeLine('           FS: virtualfs');
+        return;
+      }
+      if (name === 'pwd') return writeLine(state.cwd);
+      if (name === 'whoami') return writeLine('tabby');
+      if (name === 'uname') return writeLine(args[0] === '-a' ? 'Linux tabbyos 6.8-tabby #1 SMP PREEMPT x86_64 GNU/Tabby' : 'Linux');
+      if (name === 'date') return writeLine(new Date().toString());
+      if (name === 'history') return state.history.forEach((h, i) => writeLine(`${i + 1}  ${h}`));
+      if (name === 'clear') {
+        out.innerHTML = '';
+        return;
+      }
+      if (name === 'cd') {
+        const target = resolvePath(state.cwd, args[0] || '~');
+        const node = getNode(target);
+        if (!node) return writeLine(`cd: no such file or directory: ${args[0] || ''}`, 'term-error');
+        if (node.type !== 'dir') return writeLine(`cd: not a directory: ${args[0] || ''}`, 'term-error');
+        state.cwd = target;
+        return;
+      }
+      if (name === 'ls') {
+        const longMode = args.includes('-l');
+        const targetArg = args.find(a => !a.startsWith('-')) || '.';
+        const target = resolvePath(state.cwd, targetArg);
+        const items = listDir(target);
+        if (!items) return writeLine(`ls: cannot access '${targetArg}': No such directory`, 'term-error');
+        return printList(items, longMode);
+      }
+      if (name === 'tree') {
+        const target = resolvePath(state.cwd, args[0] || '.');
+        const node = getNode(target);
+        if (!node) return writeLine(`tree: ${args[0] || '.'}: No such file or directory`, 'term-error');
+        const walk = (n, prefix, label) => {
+          writeLine(prefix + label + (n.type === 'dir' ? '/' : ''));
+          if (n.type !== 'dir') return;
+          const keys = Object.keys(n.children).sort((a, b) => a.localeCompare(b));
+          keys.forEach((key, idx) => {
+            const child = n.children[key];
+            const branch = idx === keys.length - 1 ? '`-- ' : '|-- ';
+            const nextPrefix = prefix + (idx === keys.length - 1 ? '    ' : '|   ');
+            walk(child, nextPrefix, branch + key);
+          });
+        };
+        walk(node, '', basename(target));
+        return;
+      }
+      if (name === 'cat') {
+        if (!args[0]) return writeLine('cat: missing operand', 'term-error');
+        const node = getNode(resolvePath(state.cwd, args[0]));
+        if (!node) return writeLine(`cat: ${args[0]}: No such file`, 'term-error');
+        if (node.type !== 'file') return writeLine(`cat: ${args[0]}: Is a directory`, 'term-error');
+        return writeLine(String(node.content || ''));
+      }
+      if (name === 'mkdir') {
+        if (!args[0]) return writeLine('mkdir: missing operand', 'term-error');
+        const res = mkdirp(resolvePath(state.cwd, args[0]));
+        if (!res.ok) writeLine(`mkdir: ${res.error}`, 'term-error');
+        return;
+      }
+      if (name === 'touch') {
+        if (!args[0]) return writeLine('touch: missing operand', 'term-error');
+        const res = touch(resolvePath(state.cwd, args[0]));
+        if (!res.ok) writeLine(`touch: ${res.error}`, 'term-error');
+        return;
+      }
+      if (name === 'rm') {
+        const recursive = args.includes('-r') || args.includes('-rf') || args.includes('-fr');
+        const targetArg = args.find(a => !a.startsWith('-'));
+        if (!targetArg) return writeLine('rm: missing operand', 'term-error');
+        const res = removePath(resolvePath(state.cwd, targetArg), recursive);
+        if (!res.ok) writeLine(`rm: ${res.error}`, 'term-error');
+        return;
+      }
+      if (name === 'echo') {
+        const redirect = cmd.match(/^echo\s+([\s\S]*?)\s*(>>|>)\s*(\S+)\s*$/);
+        if (redirect) {
+          const res = writeFile(resolvePath(state.cwd, redirect[3]), redirect[1] + '\n', redirect[2] === '>>');
+          if (!res.ok) writeLine(`echo: ${res.error}`, 'term-error');
+          return;
+        }
+        return writeLine(args.join(' '));
+      }
+      if (name === 'open') {
+        const target = args[0] || '';
+        if (!target) return writeLine('open: specify app name or path', 'term-error');
+        if (appMeta[target]) {
+          openOrFocusApp(target);
+          return writeLine(`launched ${target}`);
+        }
+        const abs = resolvePath(state.cwd, target);
+        const node = getNode(abs);
+        if (!node) return writeLine(`open: ${target}: not found`, 'term-error');
+        if (node.type === 'dir') {
+          openOrFocusApp('explorer', { path: abs });
+          return writeLine(`opened explorer at ${abs}`);
+        }
+        return writeLine(String(node.content || ''));
+      }
+      writeLine(`${name}: command not found`, 'term-error');
+    };
+
+    const renderPrompt = () => {
+      const row = document.createElement('div');
+      row.className = 'term-row';
       const label = document.createElement('span');
-      label.textContent = 'tabby@tabbyos:~$ ';
+      label.className = 'term-prompt';
+      label.textContent = `tabby@tabbyos:${toPromptPath(state.cwd)}$`;
       const input = document.createElement('input');
       input.className = 'term-input';
       input.type = 'text';
-      wrap.appendChild(label);
-      wrap.appendChild(input);
-      out.appendChild(wrap);
+      input.autocomplete = 'off';
+      row.appendChild(label);
+      row.appendChild(input);
+      out.appendChild(row);
       input.focus();
+
       input.addEventListener('keydown', ev => {
-        if (ev.key !== 'Enter') return;
-        const cmd = input.value.trim();
-        input.disabled = true;
-        run(cmd);
-        prompt();
+        if (ev.key === 'Enter') {
+          const cmd = input.value.trim();
+          row.classList.add('term-locked');
+          input.disabled = true;
+          runCommand(cmd);
+          renderPrompt();
+          return;
+        }
+        if (ev.key === 'ArrowUp') {
+          ev.preventDefault();
+          if (!state.history.length) return;
+          state.historyIndex = Math.max(0, state.historyIndex - 1);
+          input.value = state.history[state.historyIndex] || '';
+          return;
+        }
+        if (ev.key === 'ArrowDown') {
+          ev.preventDefault();
+          if (!state.history.length) return;
+          state.historyIndex = Math.min(state.history.length, state.historyIndex + 1);
+          input.value = state.history[state.historyIndex] || '';
+        }
       });
       out.scrollTop = out.scrollHeight;
     };
-    const run = cmd => {
-      if (!cmd) return;
-      if (cmd === 'help') write('commands: help, ls, date, clear, echo <text>, open <app>');
-      else if (cmd === 'ls') write('aim.html  cps.html  typing.html  tabbycraft.html  carnival.html  settings');
-      else if (cmd === 'date') write(new Date().toString());
-      else if (cmd.startsWith('echo ')) write(cmd.slice(5));
-      else if (cmd === 'clear') out.innerHTML = '';
-      else if (cmd.startsWith('open ')) {
-        const app = cmd.slice(5).trim();
-        if (appMeta[app]) {
-          openOrFocusApp(app);
-          write(`launched ${app}`);
-        } else {
-          write(`not found: ${app}`);
-        }
-      } else write(`command not found: ${cmd}`);
+
+    writeLine('TabbyOS Unix Shell (tabsh)');
+    writeLine('Type help for commands.');
+    renderPrompt();
+  }
+
+  function createExplorer(win, payload) {
+    const view = win.querySelector('.explorer-view');
+    view.classList.add('window-scrollable');
+    let currentPath = normalizeAbs(payload?.path || '/home/tabby');
+    let selectedFile = '';
+
+    view.innerHTML = `
+      <div class="explorer-toolbar">
+        <button type="button" data-act="up">Up</button>
+        <button type="button" data-act="new-file">New File</button>
+        <button type="button" data-act="new-folder">New Folder</button>
+        <button type="button" data-act="refresh">Refresh</button>
+        <input type="text" class="explorer-path" aria-label="Current path">
+      </div>
+      <div class="explorer-layout">
+        <aside class="explorer-sidebar"></aside>
+        <section class="explorer-main">
+          <div class="explorer-list"></div>
+          <div class="explorer-preview">
+            <div class="explorer-preview-title">Preview</div>
+            <textarea class="explorer-editor" spellcheck="false"></textarea>
+            <div class="explorer-actions">
+              <button type="button" data-act="save-file">Save File</button>
+              <button type="button" data-act="delete-item">Delete Item</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    `;
+
+    const pathInput = view.querySelector('.explorer-path');
+    const sidebar = view.querySelector('.explorer-sidebar');
+    const list = view.querySelector('.explorer-list');
+    const editor = view.querySelector('.explorer-editor');
+    const quickPaths = ['/home/tabby', '/home/tabby/Desktop', '/home/tabby/Documents', '/home/tabby/Downloads', '/home/tabby/Projects', '/var/log'];
+
+    const setPreview = (path, node) => {
+      selectedFile = path;
+      if (!node || node.type !== 'file') {
+        editor.value = '';
+        editor.disabled = true;
+        return;
+      }
+      editor.disabled = false;
+      editor.value = String(node.content || '');
     };
-    write('TabbyOS Terminal');
-    write('Type "help" for commands.');
-    prompt();
+
+    const renderSidebar = () => {
+      sidebar.innerHTML = '';
+      quickPaths.forEach(path => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'explorer-nav';
+        btn.textContent = path.replace('/home/tabby', '~');
+        btn.classList.toggle('active', currentPath === path);
+        btn.addEventListener('click', () => navigate(path));
+        sidebar.appendChild(btn);
+      });
+    };
+
+    const renderList = () => {
+      pathInput.value = currentPath;
+      const items = listDir(currentPath);
+      list.innerHTML = '';
+      if (!items) {
+        const row = document.createElement('div');
+        row.className = 'explorer-item';
+        row.textContent = 'Directory unavailable';
+        list.appendChild(row);
+        return;
+      }
+      items.forEach(item => {
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'explorer-item';
+        const icon = item.type === 'dir' ? '📁' : '📄';
+        row.innerHTML = `<span>${icon}</span><span>${item.name}</span><span class="explorer-meta">${new Date(item.mtime || Date.now()).toLocaleString()}</span>`;
+        row.addEventListener('click', () => {
+          const abs = normalizeAbs(`${currentPath}/${item.name}`);
+          const node = getNode(abs);
+          if (!node) return;
+          if (node.type === 'dir') return navigate(abs);
+          setPreview(abs, node);
+        });
+        row.addEventListener('dblclick', () => {
+          const abs = normalizeAbs(`${currentPath}/${item.name}`);
+          const node = getNode(abs);
+          if (node?.type === 'dir') navigate(abs);
+        });
+        list.appendChild(row);
+      });
+    };
+
+    const navigate = path => {
+      const abs = normalizeAbs(path);
+      const node = getNode(abs);
+      if (!node || node.type !== 'dir') return;
+      currentPath = abs;
+      setPreview('', null);
+      renderSidebar();
+      renderList();
+    };
+
+    view.querySelector('[data-act="up"]').addEventListener('click', () => navigate(dirname(currentPath)));
+    view.querySelector('[data-act="refresh"]').addEventListener('click', () => renderList());
+    view.querySelector('[data-act="new-file"]').addEventListener('click', () => {
+      const name = window.prompt('New file name:');
+      if (!name) return;
+      const res = touch(normalizeAbs(`${currentPath}/${name}`));
+      if (!res.ok) return window.alert(res.error);
+      renderList();
+    });
+    view.querySelector('[data-act="new-folder"]').addEventListener('click', () => {
+      const name = window.prompt('New folder name:');
+      if (!name) return;
+      const res = mkdirp(normalizeAbs(`${currentPath}/${name}`));
+      if (!res.ok) return window.alert(res.error);
+      renderList();
+    });
+    view.querySelector('[data-act="save-file"]').addEventListener('click', () => {
+      if (!selectedFile) return;
+      const res = writeFile(selectedFile, editor.value, false);
+      if (!res.ok) return window.alert(res.error);
+      renderList();
+    });
+    view.querySelector('[data-act="delete-item"]').addEventListener('click', () => {
+      if (!selectedFile) return;
+      if (!window.confirm(`Delete ${basename(selectedFile)}?`)) return;
+      const res = removePath(selectedFile, true);
+      if (!res.ok) return window.alert(res.error);
+      setPreview('', null);
+      renderList();
+    });
+    pathInput.addEventListener('keydown', ev => {
+      if (ev.key !== 'Enter') return;
+      navigate(resolvePath(currentPath, pathInput.value));
+    });
+
+    navigate(currentPath);
+    return { open(path) { if (path) navigate(path); } };
   }
 
   function closeWindow(appName) {
@@ -472,7 +1020,7 @@
     updateTaskbarState(appName);
   }
 
-  function createWindow(appName) {
+  function createWindow(appName, payload) {
     if (!appName || appWindows.has(appName)) return appWindows.get(appName)?.win;
     const meta = appMeta[appName];
     if (!meta) return null;
@@ -488,29 +1036,35 @@
 
     const isTerminal = appName === 'terminal';
     const isSettings = appName === 'settings';
-    const title = meta.title;
-    const appUrl = isTerminal ? '' : new URL(`./${appName}`, window.location.href).href;
+    const isExplorer = appName === 'explorer';
+    const appUrl = (!isTerminal && !isSettings && !isExplorer) ? new URL(`./${appName}`, window.location.href).href : '';
+
+    let bodyContent = '';
+    if (isTerminal) bodyContent = '<div class="terminal-view"></div>';
+    else if (isSettings) bodyContent = '<div class="settings-window"></div>';
+    else if (isExplorer) bodyContent = '<div class="explorer-view"></div>';
+    else bodyContent = `<iframe class="window-frame" title="${meta.title}" src="${appUrl}" data-app="${appName}"></iframe>`;
+
     win.innerHTML = `
       <div class="window-bar">
-        <span>${title}</span>
+        <span>${meta.title}</span>
         <div class="window-actions">
           <button type="button" data-action="min">-</button>
           <button type="button" data-action="close">x</button>
         </div>
       </div>
-      ${isTerminal ? '<div class="terminal-view"></div>' : isSettings ? '<div class="settings-window"></div>' : `<iframe title="${title}" src="${appUrl}" data-app="${appName}"></iframe>`}
+      <div class="window-body">${bodyContent}</div>
       <div class="win-resize"></div>
     `;
     windowLayer.appendChild(win);
 
-    const bar = win.querySelector('.window-bar');
-    const resize = win.querySelector('.win-resize');
-    makeDraggable(win, bar);
-    makeResizable(win, resize);
+    makeDraggable(win, win.querySelector('.window-bar'));
+    makeResizable(win, win.querySelector('.win-resize'));
     win.addEventListener('pointerdown', () => bringToFront(win));
 
     const taskbarBtn = ensureTaskbarButton(appName);
-    appWindows.set(appName, { win, meta, taskbarBtn });
+    const entry = { win, meta, taskbarBtn, api: null };
+    appWindows.set(appName, entry);
 
     win.querySelector('[data-action="close"]').addEventListener('click', ev => {
       ev.stopPropagation();
@@ -522,10 +1076,10 @@
     });
 
     if (isTerminal) createTerminal(win);
-    if (isSettings) {
-      applyTaskbarPositionControls(win, win.querySelector('.settings-window'));
-    }
-    if (!isTerminal && !isSettings) {
+    if (isSettings) applySettingsUI(win, win.querySelector('.settings-window'));
+    if (isExplorer) entry.api = createExplorer(win, payload);
+
+    if (!isTerminal && !isSettings && !isExplorer) {
       const frame = win.querySelector('iframe');
       frame?.addEventListener('load', () => {
         try {
@@ -540,34 +1094,30 @@
     return win;
   }
 
-  function openOrFocusApp(appName) {
+  function openOrFocusApp(appName, payload) {
     if (!appMeta[appName]) return;
     const entry = appWindows.get(appName);
-    if (!entry) {
-      createWindow(appName);
-      return;
-    }
-    if (entry.win.classList.contains('hidden')) {
-      restoreWindow(appName);
-      return;
-    }
-    focusWindow(appName);
+    if (!entry) return createWindow(appName, payload);
+    if (entry.win.classList.contains('hidden')) restoreWindow(appName);
+    else focusWindow(appName);
+    if (payload?.path && entry.api?.open) entry.api.open(payload.path);
   }
 
   loadCfg();
+  ensureDir('/home/tabby');
+  saveFs();
   applyDefaultIconLayout(false);
   makeDesktopIconsDraggable();
   createWindow('settings');
   minimizeWindow('settings');
 
   window.addEventListener('resize', () => applyDefaultIconLayout(false));
-
   window.addEventListener('keydown', ev => {
     if (ev.key !== 'Escape') return;
     const wins = [...windowLayer.querySelectorAll('.app-window')];
     if (!wins.length) return;
     const top = wins.sort((a, b) => (+b.style.zIndex || 0) - (+a.style.zIndex || 0))[0];
-    const appName = [...appWindows.entries()].find(([, entry]) => entry.win === top)?.[0];
+    const appName = [...appWindows.entries()].find(([, item]) => item.win === top)?.[0];
     if (appName) closeWindow(appName);
   });
 })();
