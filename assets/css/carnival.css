@@ -34,7 +34,6 @@ body {
 }
 
 .carnival-header,
-.carnival-nav,
 .carnival-grid,
 .pricing-panel,
 .toast {
@@ -119,7 +118,6 @@ body {
 .primary-btn,
 .ghost-btn,
 .roulette-outside button,
-.carnival-nav a,
 .inline-buttons button {
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.08);
@@ -142,7 +140,6 @@ body {
 .primary-btn:hover,
 .ghost-btn:hover,
 .roulette-outside button:hover,
-.carnival-nav a:hover,
 .inline-buttons button:hover {
   transform: translateY(-1px);
   border-color: rgba(255, 213, 138, 0.55);
@@ -152,19 +149,6 @@ body {
 .wallet-sub {
   margin-top: 6px;
   color: rgba(244, 239, 229, 0.68);
-  font-size: 12px;
-}
-
-.carnival-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 0 24px 16px;
-}
-
-.carnival-nav a {
-  padding: 8px 10px;
-  text-decoration: none;
   font-size: 12px;
 }
 
