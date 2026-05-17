@@ -193,25 +193,29 @@
   display: none;
 }
 
-.window-bar {
-  height: 38px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 10px;
-  font-size: 12px;
-  cursor: move;
-  user-select: none;
-  flex: 0 0 auto;
-}
-
-.window-actions {
+.window-floating-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   display: flex;
   gap: 6px;
+  z-index: 8;
 }
 
-.window-actions button,
+.window-drag-handle {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 62px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.07);
+  cursor: move;
+  z-index: 8;
+}
+
+.window-floating-controls button,
 .tabbyos-dock button {
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.06);
@@ -221,7 +225,7 @@
   cursor: pointer;
 }
 
-.window-actions [data-action="full"] {
+.window-floating-controls [data-action="full"] {
   letter-spacing: -0.08em;
 }
 
@@ -265,6 +269,7 @@
 .explorer-view {
   width: 100%;
   min-height: 100%;
+  padding-top: 40px;
 }
 
 .window-scrollable {

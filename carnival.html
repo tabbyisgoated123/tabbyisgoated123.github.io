@@ -79,10 +79,17 @@
         </div>
       </div>
       <div class="game-controls">
-        <label>Bet
-          <input type="number" id="roulette-bet" min="1" step="1" value="10">
-        </label>
-        <div class="bet-selected" id="roulette-selected">Selected bet: none</div>
+        <div class="chip-row">
+          <span>Chip</span>
+          <button type="button" class="chip-btn active" data-chip="5">5</button>
+          <button type="button" class="chip-btn" data-chip="10">10</button>
+          <button type="button" class="chip-btn" data-chip="25">25</button>
+          <button type="button" class="chip-btn" data-chip="50">50</button>
+          <button type="button" class="chip-btn" data-chip="100">100</button>
+        </div>
+        <div class="bet-selected" id="roulette-selected">Selected target: none</div>
+        <div class="roulette-betslip" id="roulette-betslip">No active bets.</div>
+        <button type="button" id="roulette-clear" class="ghost-btn">Clear Bets</button>
         <button type="button" id="roulette-btn" class="primary-btn">Spin Wheel</button>
       </div>
       <div class="game-result" id="roulette-result">Choose a number or outside bet first.</div>
@@ -118,6 +125,9 @@
           <button type="button" id="bj-deal" class="primary-btn">Deal</button>
           <button type="button" id="bj-hit" class="ghost-btn">Hit</button>
           <button type="button" id="bj-stand" class="ghost-btn">Stand</button>
+          <button type="button" id="bj-double" class="ghost-btn">Double</button>
+          <button type="button" id="bj-split" class="ghost-btn">Split</button>
+          <button type="button" id="bj-insurance" class="ghost-btn">Insurance</button>
         </div>
       </div>
       <div class="game-result" id="bj-result">Start a hand and race to 21.</div>
@@ -187,7 +197,19 @@
         <label>Bet
           <input type="number" id="th-bet" min="1" step="1" value="30">
         </label>
-        <button type="button" id="th-play" class="primary-btn">Deal Hold'em</button>
+        <div class="table-info">
+          <div>Stage: <strong id="th-stage">idle</strong></div>
+          <div>Pot: <strong id="th-pot">0</strong></div>
+        </div>
+        <label>Raise
+          <input type="number" id="th-raise" min="1" step="1" value="15">
+        </label>
+        <div class="inline-buttons">
+          <button type="button" id="th-play" class="primary-btn">New Hand</button>
+          <button type="button" id="th-call" class="ghost-btn">Call / Check</button>
+          <button type="button" id="th-raise-btn" class="ghost-btn">Raise</button>
+          <button type="button" id="th-fold" class="ghost-btn">Fold</button>
+        </div>
       </div>
       <div class="game-result" id="th-result">Player and dealer each get 2 cards plus a shared board.</div>
     </article>

@@ -445,14 +445,13 @@
     });
   }
 
-  function makeDraggable(win, bar) {
+  function makeDraggable(win, handle) {
     let dragging = false;
     let sx = 0;
     let sy = 0;
     let sl = 0;
     let st = 0;
-    bar.addEventListener('pointerdown', ev => {
-      if (ev.target && ev.target.closest && ev.target.closest('.window-actions')) return;
+    handle.addEventListener('pointerdown', ev => {
       dragging = true;
       bringToFront(win);
       ev.preventDefault();
@@ -460,9 +459,9 @@
       sy = ev.clientY;
       sl = parseFloat(win.style.left || '100');
       st = parseFloat(win.style.top || '70');
-      bar.setPointerCapture?.(ev.pointerId);
+      handle.setPointerCapture?.(ev.pointerId);
     });
-    bar.addEventListener('pointermove', ev => {
+    handle.addEventListener('pointermove', ev => {
       if (!dragging) return;
       const nx = sl + (ev.clientX - sx);
       const ny = st + (ev.clientY - sy);
@@ -470,8 +469,8 @@
       win.style.top = `${Math.max(0, Math.min(window.innerHeight - 140, ny))}px`;
     });
     const end = () => { dragging = false; };
-    bar.addEventListener('pointerup', end);
-    bar.addEventListener('pointercancel', end);
+    handle.addEventListener('pointerup', end);
+    handle.addEventListener('pointercancel', end);
   }
 
   function makeResizable(win, handle) {
@@ -1072,20 +1071,20 @@
     else bodyContent = `<iframe class="window-frame" title="${meta.title}" src="${appUrl}" data-app="${appName}"></iframe>`;
 
     win.innerHTML = `
-      <div class="window-bar">
-        <span>${meta.title}</span>
-        <div class="window-actions">
+      <div class="window-body">
+        ${bodyContent}
+        <div class="window-drag-handle" title="Drag window"></div>
+        <div class="window-floating-controls">
           <button type="button" data-action="full">[]</button>
           <button type="button" data-action="min">-</button>
           <button type="button" data-action="close">x</button>
         </div>
       </div>
-      <div class="window-body">${bodyContent}</div>
       <div class="win-resize"></div>
     `;
     windowLayer.appendChild(win);
 
-    makeDraggable(win, win.querySelector('.window-bar'));
+    makeDraggable(win, win.querySelector('.window-drag-handle'));
     makeResizable(win, win.querySelector('.win-resize'));
     win.addEventListener('pointerdown', () => bringToFront(win));
 
