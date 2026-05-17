@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tabby Carnival</title>
+<link rel="stylesheet" href="assets/css/shared.css">
+<link rel="stylesheet" href="assets/css/profile.css">
+<link rel="stylesheet" href="assets/css/carnival.css">
+<link rel="stylesheet" href="assets/css/sitefx.css">
+</head>
+<body>
+
+<main class="carnival-app">
+  <div class="carnival-backdrop" aria-hidden="true"></div>
+
+  <header class="carnival-header">
+    <div>
+      <div class="carnival-kicker">// neon midway arcade</div>
+      <h1>Tabby Carnival</h1>
+      <p>Slots, roulette, and quick bets powered by profile-backed tokens.</p>
+    </div>
+
+    <div class="carnival-wallet">
+      <div class="wallet-label">
+        <span class="wallet-icon" aria-hidden="true">🪙</span>
+        <span>Tokens</span>
+      </div>
+      <div class="wallet-row">
+        <strong id="token-count">0</strong>
+        <button type="button" id="buy-tokens-btn" class="wallet-plus" aria-label="Buy tokens">+</button>
+      </div>
+      <div class="wallet-sub">Saved to your active profile</div>
+    </div>
+  </header>
+
+  <section class="carnival-strip">
+    <article class="info-card">
+      <span class="info-pill">Free-hosted</span>
+      <h2>Real profile sync</h2>
+      <p>Token balance, wins, and purchases stay attached to the selected profile.</p>
+    </article>
+    <article class="info-card">
+      <span class="info-pill">Multiple games</span>
+      <h2>Quick arcade loop</h2>
+      <p>Jump between games without leaving the carnival floor.</p>
+    </article>
+    <article class="info-card">
+      <span class="info-pill">Fake checkout</span>
+      <h2>Pricing screen</h2>
+      <p>Token bundles show random prices between $5 and $100 and add tokens for free.</p>
+    </article>
+  </section>
+
+  <section class="carnival-grid">
+    <article class="game-card" data-game="slots">
+      <div class="game-head">
+        <div>
+          <div class="game-tag">Slots</div>
+          <h3>Midnight Reels</h3>
+        </div>
+        <span class="game-badge">Bet 10+</span>
+      </div>
+      <div class="slot-machine">
+        <div class="reel" data-reel="0">7</div>
+        <div class="reel" data-reel="1">7</div>
+        <div class="reel" data-reel="2">7</div>
+      </div>
+      <div class="game-controls">
+        <label>Bet
+          <input type="number" id="slot-bet" min="1" step="1" value="10">
+        </label>
+        <button type="button" id="spin-btn" class="primary-btn">Spin</button>
+      </div>
+      <div class="game-result" id="slot-result">Match three symbols to win a payout.</div>
+    </article>
+
+    <article class="game-card" data-game="roulette">
+      <div class="game-head">
+        <div>
+          <div class="game-tag">Roulette</div>
+          <h3>Velvet Wheel</h3>
+        </div>
+        <span class="game-badge">Red / Black</span>
+      </div>
+      <div class="roulette-wheel">
+        <div class="wheel-center" id="roulette-display">0</div>
+      </div>
+      <div class="game-controls roulette-controls">
+        <label>Bet
+          <input type="number" id="roulette-bet" min="1" step="1" value="10">
+        </label>
+        <label>Guess
+          <select id="roulette-guess">
+            <option value="red">Red</option>
+            <option value="black">Black</option>
+            <option value="number">Number</option>
+          </select>
+        </label>
+        <label id="number-wrap">Number
+          <input type="number" id="roulette-number" min="0" max="36" step="1" value="7">
+        </label>
+        <button type="button" id="roulette-btn" class="primary-btn">Place Bet</button>
+      </div>
+      <div class="game-result" id="roulette-result">Pick a color or number before the wheel spins.</div>
+    </article>
+
+    <article class="game-card" data-game="highlow">
+      <div class="game-head">
+        <div>
+          <div class="game-tag">High-Low</div>
+          <h3>Card Count</h3>
+        </div>
+        <span class="game-badge">Fast rounds</span>
+      </div>
+      <div class="card-stage">
+        <div class="playing-card" id="card-current">8</div>
+        <div class="card-vs">vs</div>
+        <div class="playing-card dim" id="card-next">?</div>
+      </div>
+      <div class="game-controls card-controls">
+        <label>Bet
+          <input type="number" id="card-bet" min="1" step="1" value="10">
+        </label>
+        <div class="card-actions">
+          <button type="button" id="higher-btn" class="primary-btn">Higher</button>
+          <button type="button" id="lower-btn" class="ghost-btn">Lower</button>
+        </div>
+      </div>
+      <div class="game-result" id="card-result">Guess whether the next card will be higher or lower.</div>
+    </article>
+  </section>
+
+  <div class="pricing-modal hidden" id="pricing-modal" aria-hidden="true">
+    <div class="pricing-panel">
+      <div class="pricing-head">
+        <div>
+          <div class="game-tag">Token Shop</div>
+          <h3>Buy more tokens</h3>
+        </div>
+        <button type="button" id="close-pricing" class="icon-btn" aria-label="Close pricing screen">x</button>
+      </div>
+      <p class="pricing-note">This is a fake checkout. Choose a bundle and it will be added to your active profile for free.</p>
+      <div id="pricing-offers" class="pricing-offers"></div>
+    </div>
+  </div>
+
+  <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+</main>
+
+<script src="assets/js/profile.js" defer></script>
+<script src="assets/js/sitefx.js" defer></script>
+<script src="assets/js/carnival.js" defer></script>
+</body>
+</html>

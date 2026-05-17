@@ -24,6 +24,7 @@
     'cps.html': { title: 'CPS Trainer', icon: '🖱️' },
     'typing.html': { title: 'TabbyTyping', icon: '⌨️' },
     'tabbycraft.html': { title: 'TabbyCraft', icon: '🧱' },
+    'carnival.html': { title: 'Carnival', icon: '🎪' },
     terminal: { title: 'Terminal', icon: '🖥️' },
   };
 
@@ -422,7 +423,7 @@
     const run = cmd => {
       if (!cmd) return;
       if (cmd === 'help') write('commands: help, ls, date, clear, echo <text>, open <app>');
-      else if (cmd === 'ls') write('aim.html  cps.html  typing.html  tabbycraft.html  settings');
+      else if (cmd === 'ls') write('aim.html  cps.html  typing.html  tabbycraft.html  carnival.html  settings');
       else if (cmd === 'date') write(new Date().toString());
       else if (cmd.startsWith('echo ')) write(cmd.slice(5));
       else if (cmd === 'clear') out.innerHTML = '';

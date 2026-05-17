@@ -1,0 +1,428 @@
+.carnival-app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  color: #f4efe5;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 191, 86, 0.18), transparent 32%),
+    radial-gradient(circle at 80% 20%, rgba(255, 70, 112, 0.16), transparent 28%),
+    linear-gradient(180deg, #081018 0%, #05070b 100%);
+}
+
+.carnival-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0 25%, transparent 25% 50%, rgba(255, 255, 255, 0.03) 50% 75%, transparent 75% 100%),
+    radial-gradient(circle at top, rgba(255, 193, 92, 0.24), transparent 40%);
+  background-size: 64px 64px, 100% 100%;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.carnival-header,
+.carnival-strip,
+.carnival-grid,
+.pricing-panel,
+.toast {
+  position: relative;
+  z-index: 1;
+}
+
+.carnival-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px 24px 14px;
+}
+
+.carnival-kicker,
+.game-tag,
+.info-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: #ffd58a;
+}
+
+.carnival-header h1 {
+  margin: 8px 0 6px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem, 7vw, 5.6rem);
+  line-height: 0.9;
+  letter-spacing: 0.08em;
+}
+
+.carnival-header p {
+  max-width: 56ch;
+  color: rgba(244, 239, 229, 0.8);
+}
+
+.carnival-wallet {
+  min-width: 220px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.28);
+}
+
+.wallet-label,
+.wallet-row {
+  display: flex;
+  align-items: center;
+}
+
+.wallet-label {
+  justify-content: flex-start;
+  gap: 8px;
+  color: #ffd58a;
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.wallet-icon {
+  font-size: 18px;
+}
+
+.wallet-row {
+  justify-content: space-between;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.wallet-row strong {
+  font-size: 28px;
+  letter-spacing: 0.06em;
+}
+
+.wallet-plus,
+.icon-btn,
+.primary-btn,
+.ghost-btn,
+.shop-btn {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+}
+
+.wallet-plus {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.wallet-plus:hover,
+.icon-btn:hover,
+.primary-btn:hover,
+.ghost-btn:hover,
+.shop-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 213, 138, 0.55);
+  background: rgba(255, 213, 138, 0.12);
+}
+
+.wallet-sub {
+  margin-top: 6px;
+  color: rgba(244, 239, 229, 0.68);
+  font-size: 12px;
+}
+
+.carnival-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  padding: 0 24px 18px;
+}
+
+.info-card,
+.game-card,
+.pricing-panel {
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(7, 12, 18, 0.78);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+}
+
+.info-card {
+  padding: 16px;
+}
+
+.info-card h2,
+.game-head h3,
+.pricing-panel h3 {
+  margin: 8px 0 0;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.06em;
+  font-size: 2rem;
+}
+
+.info-card p {
+  color: rgba(244, 239, 229, 0.76);
+  margin-top: 8px;
+}
+
+.carnival-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  padding: 0 24px 24px;
+}
+
+.game-card {
+  padding: 16px;
+  min-height: 320px;
+  display: grid;
+  gap: 14px;
+}
+
+.game-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.game-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 213, 138, 0.12);
+  color: #ffd58a;
+  font-size: 12px;
+}
+
+.slot-machine,
+.roulette-wheel,
+.card-stage {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+}
+
+.slot-machine {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.reel,
+.playing-card,
+.wheel-center {
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.reel {
+  min-height: 108px;
+  font-size: 3rem;
+}
+
+.roulette-wheel {
+  position: relative;
+  min-height: 140px;
+}
+
+.wheel-center {
+  width: 120px;
+  height: 120px;
+  border-radius: 999px;
+  font-size: 3rem;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.18), transparent 40%),
+    linear-gradient(180deg, rgba(255, 74, 112, 0.16), rgba(10, 14, 20, 0.92));
+}
+
+.card-stage {
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+}
+
+.playing-card {
+  width: 100px;
+  height: 128px;
+  font-size: 3rem;
+  font-weight: 700;
+}
+
+.playing-card.dim {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.card-vs {
+  color: #ffd58a;
+  font-size: 24px;
+}
+
+.game-controls {
+  display: grid;
+  gap: 10px;
+}
+
+.roulette-controls,
+.card-controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.game-controls label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(244, 239, 229, 0.76);
+}
+
+.game-controls input,
+.game-controls select {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  padding: 10px 12px;
+  outline: none;
+}
+
+.primary-btn,
+.ghost-btn {
+  padding: 11px 14px;
+  font-weight: 700;
+}
+
+.primary-btn {
+  background: linear-gradient(180deg, rgba(255, 213, 138, 0.2), rgba(255, 213, 138, 0.08));
+}
+
+.ghost-btn {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.game-result {
+  min-height: 44px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(244, 239, 229, 0.82);
+}
+
+.pricing-modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(3, 6, 10, 0.7);
+  z-index: 40;
+}
+
+.pricing-modal.hidden {
+  display: none;
+}
+
+.pricing-panel {
+  width: min(740px, 100%);
+  padding: 18px;
+}
+
+.pricing-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.pricing-note {
+  margin: 10px 0 16px;
+  color: rgba(244, 239, 229, 0.76);
+}
+
+.pricing-offers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.offer-card {
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  display: grid;
+  gap: 10px;
+}
+
+.offer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.offer-top strong {
+  font-size: 1.4rem;
+}
+
+.offer-meta {
+  color: rgba(244, 239, 229, 0.74);
+  font-size: 12px;
+}
+
+.shop-btn {
+  width: 100%;
+  padding: 12px 14px;
+  font-weight: 700;
+}
+
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  padding: 12px 16px;
+  border-radius: 999px;
+  background: rgba(7, 12, 18, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
+.toast.hidden {
+  display: none;
+}
+
+#number-wrap.hidden {
+  display: none;
+}
+
+@media (max-width: 1020px) {
+  .carnival-strip,
+  .carnival-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .carnival-header {
+    flex-direction: column;
+  }
+}
+
