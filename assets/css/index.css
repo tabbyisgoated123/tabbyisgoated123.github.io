@@ -11,9 +11,20 @@
   display: none !important;
 }
 
+.os-style-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
 .tabbyos-wallpaper {
   position: absolute;
   inset: 0;
+  z-index: 1;
+  opacity: 0.84;
   background:
     radial-gradient(circle at 18% 18%, rgba(120, 180, 255, 0.22), transparent 42%),
     radial-gradient(circle at 80% 30%, rgba(255, 90, 120, 0.16), transparent 38%),
@@ -60,10 +71,12 @@
   background-image: var(--os-wallpaper-url);
   background-size: cover;
   background-position: center;
+  opacity: 1;
 }
 
 .tabbyos-desktop {
   position: absolute;
+  z-index: 2;
   top: 16px;
   left: 16px;
   right: 16px;
@@ -434,8 +447,23 @@
 
 .explorer-main {
   display: grid;
-  grid-template-rows: minmax(180px, 1fr) minmax(180px, 1fr);
+  grid-template-rows: auto minmax(180px, 1fr) minmax(180px, 1fr);
   gap: 10px;
+}
+
+.explorer-list-head {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) 120px minmax(140px, 1fr) 88px;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(233, 241, 251, 0.82);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 10px;
 }
 
 .explorer-list,
@@ -462,6 +490,18 @@
   gap: 8px;
 }
 
+.explorer-item-win98,
+.explorer-item-win11,
+.explorer-item-system7 {
+  grid-template-columns: minmax(0, 2fr) 120px minmax(140px, 1fr) 88px;
+}
+
+.explorer-item .explorer-col-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .explorer-item:hover {
   border-color: rgba(255, 255, 255, 0.18);
 }
@@ -469,6 +509,12 @@
 .explorer-meta {
   color: rgba(220, 230, 240, 0.65);
   font-size: 11px;
+}
+
+.explorer-size {
+  color: rgba(220, 230, 240, 0.7);
+  font-size: 11px;
+  text-align: right;
 }
 
 .explorer-preview {
@@ -512,6 +558,7 @@
 
 .tabbyos-dock {
   position: absolute;
+  z-index: 520;
   left: 0;
   right: 0;
   bottom: 0;
@@ -757,6 +804,11 @@
   background: linear-gradient(180deg, #081426 0%, #061120 100%);
 }
 
+.tabbyos[data-os-style="kde"] .explorer-list-head {
+  border-color: rgba(110, 175, 244, 0.35);
+  background: rgba(78, 130, 205, 0.18);
+}
+
 .tabbyos[data-os-style="system7"] {
   color: #161616;
   --os-accent: #5a5a5a;
@@ -818,6 +870,16 @@
   font-family: "Geneva", "Chicago", "Tahoma", sans-serif;
 }
 
+.tabbyos[data-os-style="system7"] .term-row {
+  gap: 6px;
+}
+
+.tabbyos[data-os-style="system7"] .term-prompt,
+.tabbyos[data-os-style="system7"] .term-input,
+.tabbyos[data-os-style="system7"] .term-line {
+  color: #111;
+}
+
 .tabbyos[data-os-style="system7"] .settings-card,
 .tabbyos[data-os-style="system7"] .explorer-list,
 .tabbyos[data-os-style="system7"] .explorer-preview,
@@ -825,6 +887,20 @@
   border-radius: 0;
   background: #ececec;
   border-color: #707070;
+}
+
+.tabbyos[data-os-style="system7"] .explorer-list-head {
+  border-radius: 0;
+  border-color: #707070;
+  background: #efefef;
+  color: #111;
+}
+
+.tabbyos[data-os-style="system7"] .explorer-item {
+  border-radius: 0;
+  border-color: #777;
+  background: #f1f1f1;
+  color: #101010;
 }
 
 .tabbyos[data-os-style="win11"] {
@@ -865,6 +941,11 @@
 .tabbyos[data-os-style="win11"] .settings-window,
 .tabbyos[data-os-style="win11"] .explorer-view {
   background: rgba(14, 24, 38, 0.94);
+}
+
+.tabbyos[data-os-style="win11"] .explorer-list-head {
+  border-color: rgba(185, 219, 255, 0.36);
+  background: rgba(115, 173, 255, 0.18);
 }
 
 .tabbyos[data-os-style="win98"] {
@@ -950,6 +1031,14 @@
   font-family: "Lucida Console", "Consolas", monospace;
 }
 
+.tabbyos[data-os-style="win98"] .term-prompt {
+  color: #e6e6e6;
+}
+
+.tabbyos[data-os-style="win98"] .term-input {
+  color: #e6e6e6;
+}
+
 .tabbyos[data-os-style="win98"] .settings-card,
 .tabbyos[data-os-style="win98"] .explorer-list,
 .tabbyos[data-os-style="win98"] .explorer-preview,
@@ -959,6 +1048,14 @@
   background: #d4d0c8;
   border-color: #747474;
   color: #101010;
+}
+
+.tabbyos[data-os-style="win98"] .explorer-list-head {
+  border-radius: 0;
+  border-color: #7f7f7f;
+  background: #dcd8ce;
+  color: #101010;
+  box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #fff;
 }
 
 @media (max-width: 920px) {
@@ -972,7 +1069,7 @@
   }
 
   .explorer-main {
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: auto 1fr 1fr;
   }
 
   .explorer-toolbar {
@@ -981,5 +1078,19 @@
 
   .explorer-toolbar .explorer-path {
     grid-column: 1 / -1;
+  }
+
+  .explorer-list-head {
+    grid-template-columns: minmax(0, 1.4fr) 78px 104px 62px;
+    font-size: 9px;
+    padding: 7px 8px;
+  }
+
+  .explorer-item-win98,
+  .explorer-item-win11,
+  .explorer-item-system7 {
+    grid-template-columns: minmax(0, 1.4fr) 78px 104px 62px;
+    gap: 6px;
+    font-size: 11px;
   }
 }

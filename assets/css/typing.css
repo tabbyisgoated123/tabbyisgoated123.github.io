@@ -378,3 +378,97 @@
   0% { opacity: 0.8; transform: scale(0.4); }
   100% { opacity: 0; transform: scale(1.8); }
 }
+
+body[data-os-style="kde"] .settings-panel,
+body[data-os-style="kde"] .typing-word,
+body[data-os-style="kde"] #typing-input {
+  border-radius: 12px;
+  border-color: rgba(113, 179, 245, 0.35);
+  background: rgba(16, 29, 49, 0.62);
+  backdrop-filter: blur(8px);
+}
+
+body[data-os-style="kde"] .pill {
+  border-radius: 10px;
+}
+
+body[data-os-style="system7"] .settings-panel {
+  border-radius: 0;
+  border-color: #6f6f6f;
+  background: #ececec;
+}
+
+body[data-os-style="system7"] .screen-title,
+body[data-os-style="system7"] .screen-title .sub-title,
+body[data-os-style="system7"] .screen p,
+body[data-os-style="system7"] .setting-label,
+body[data-os-style="system7"] .setting-label span,
+body[data-os-style="system7"] .typing-help,
+body[data-os-style="system7"] .typing-stat,
+body[data-os-style="system7"] .typing-stat strong,
+body[data-os-style="system7"] #timer-display,
+body[data-os-style="system7"] #hud .label,
+body[data-os-style="system7"] #score-display {
+  color: #111;
+  text-shadow: none;
+}
+
+body[data-os-style="system7"] .typing-custom textarea,
+body[data-os-style="system7"] #typing-input,
+body[data-os-style="system7"] .typing-word,
+body[data-os-style="system7"] .typing-heatmap-key,
+body[data-os-style="system7"] .pill {
+  border-radius: 0;
+  border: 1px solid #4a4a4a;
+  background: #f0f0f0;
+  color: #111;
+  box-shadow: inset -1px -1px 0 #8b8b8b, inset 1px 1px 0 #fff;
+}
+
+body[data-os-style="win11"] .settings-panel,
+body[data-os-style="win11"] #typing-input,
+body[data-os-style="win11"] .typing-word {
+  border-radius: 16px;
+  border-color: rgba(177, 218, 255, 0.34);
+  background: rgba(14, 24, 38, 0.66);
+  backdrop-filter: blur(10px);
+}
+
+body[data-os-style="win11"] .pill,
+body[data-os-style="win11"] .typing-heatmap-key {
+  border-radius: 10px;
+}
+
+body[data-os-style="win98"] .settings-panel {
+  border-radius: 0;
+  border: 1px solid #202020;
+  background: #d4d0c8;
+  box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #fff;
+}
+
+body[data-os-style="win98"] .screen-title,
+body[data-os-style="win98"] .screen-title .sub-title,
+body[data-os-style="win98"] .screen p,
+body[data-os-style="win98"] .setting-label,
+body[data-os-style="win98"] .setting-label span,
+body[data-os-style="win98"] .typing-help,
+body[data-os-style="win98"] .typing-stat,
+body[data-os-style="win98"] .typing-stat strong,
+body[data-os-style="win98"] #timer-display,
+body[data-os-style="win98"] #hud .label,
+body[data-os-style="win98"] #score-display {
+  color: #111;
+  text-shadow: none;
+}
+
+body[data-os-style="win98"] .typing-custom textarea,
+body[data-os-style="win98"] #typing-input,
+body[data-os-style="win98"] .typing-word,
+body[data-os-style="win98"] .typing-heatmap-key,
+body[data-os-style="win98"] .pill {
+  border-radius: 0;
+  border: 1px solid #202020;
+  background: #d4d0c8;
+  color: #111;
+  box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #fff;
+}

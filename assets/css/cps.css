@@ -224,3 +224,63 @@
     opacity: 0;
   }
 }
+
+body[data-os-style="kde"] .settings-panel {
+  border-radius: 14px;
+  border-color: rgba(110, 178, 245, 0.35);
+  background: rgba(15, 30, 51, 0.56);
+  backdrop-filter: blur(10px);
+}
+
+body[data-os-style="kde"] #cps-display {
+  color: #8ad3ff;
+}
+
+body[data-os-style="system7"] .settings-panel {
+  border-radius: 0;
+  border-color: #6f6f6f;
+  background: #ececec;
+}
+
+body[data-os-style="system7"] .screen-title,
+body[data-os-style="system7"] .screen-title .sub-title,
+body[data-os-style="system7"] .screen p,
+body[data-os-style="system7"] .setting-label,
+body[data-os-style="system7"] .setting-label span,
+body[data-os-style="system7"] .mode-note,
+body[data-os-style="system7"] .big-score,
+body[data-os-style="system7"] .stat-row,
+body[data-os-style="system7"] .stat-row span,
+body[data-os-style="system7"] #timer-display {
+  color: #111;
+  text-shadow: none;
+}
+
+body[data-os-style="win11"] .settings-panel {
+  border-radius: 18px;
+  border-color: rgba(176, 217, 255, 0.36);
+  background: rgba(15, 24, 38, 0.62);
+  backdrop-filter: blur(12px);
+}
+
+body[data-os-style="win98"] .settings-panel {
+  border-radius: 0;
+  border: 1px solid #202020;
+  background: #d4d0c8;
+  box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #fff;
+}
+
+body[data-os-style="win98"] .screen-title,
+body[data-os-style="win98"] .screen-title .sub-title,
+body[data-os-style="win98"] .screen p,
+body[data-os-style="win98"] .setting-label,
+body[data-os-style="win98"] .setting-label span,
+body[data-os-style="win98"] .mode-note,
+body[data-os-style="win98"] .big-score,
+body[data-os-style="win98"] .stat-row,
+body[data-os-style="win98"] .stat-row span,
+body[data-os-style="win98"] #timer-display,
+body[data-os-style="win98"] #cps-display {
+  color: #111;
+  text-shadow: none;
+}

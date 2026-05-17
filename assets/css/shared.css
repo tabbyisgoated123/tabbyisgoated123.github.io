@@ -89,6 +89,10 @@ body[data-cursor="none"] {
 }
 
 body[data-os-style="kde"] {
+  --accent: #44b5ff;
+  --accent-glow: #7ccfff;
+  --accent-rgb: 68 181 255;
+  --text: #e5f2ff;
   background:
     radial-gradient(circle at 20% 12%, rgba(67, 180, 255, 0.2), transparent 36%),
     linear-gradient(180deg, #091523 0%, #0a1422 55%, #08111c 100%);
@@ -102,6 +106,10 @@ body[data-os-style="kde"]::before {
 }
 
 body[data-os-style="system7"] {
+  --accent: #3e3e3e;
+  --accent-glow: #6b6b6b;
+  --accent-rgb: 62 62 62;
+  --text: #101010;
   background: linear-gradient(180deg, #ececec 0%, #d8d8d8 100%);
   color: #141414;
   font-family: "Geneva", "Chicago", "Tahoma", sans-serif;
@@ -117,6 +125,10 @@ body[data-os-style="system7"]::after {
 }
 
 body[data-os-style="win11"] {
+  --accent: #73c9ff;
+  --accent-glow: #9dd9ff;
+  --accent-rgb: 115 201 255;
+  --text: #e7effa;
   background:
     radial-gradient(circle at 30% 14%, rgba(87, 189, 255, 0.24), transparent 40%),
     linear-gradient(180deg, #0c1a2d 0%, #0b1628 100%);
@@ -128,6 +140,10 @@ body[data-os-style="win11"]::before {
 }
 
 body[data-os-style="win98"] {
+  --accent: #1c1c1c;
+  --accent-glow: #4a4a4a;
+  --accent-rgb: 28 28 28;
+  --text: #101010;
   background: #008080;
   color: #111;
   font-family: "Tahoma", "MS Sans Serif", sans-serif;

@@ -470,3 +470,88 @@
     bottom: 160px;
   }
 }
+
+body[data-os-style="kde"] .craft-panel,
+body[data-os-style="kde"] .craft-section,
+body[data-os-style="kde"] .craft-slot {
+  border-radius: 12px;
+  border-color: rgba(111, 176, 244, 0.34);
+  background: rgba(14, 28, 49, 0.62);
+  backdrop-filter: blur(8px);
+}
+
+body[data-os-style="kde"] #craft-crosshair {
+  border-radius: 6px;
+  border-color: rgba(143, 206, 255, 0.8);
+}
+
+body[data-os-style="system7"] .craft-panel,
+body[data-os-style="system7"] .craft-section,
+body[data-os-style="system7"] .craft-slot,
+body[data-os-style="system7"] .craft-recipe,
+body[data-os-style="system7"] .craft-item,
+body[data-os-style="system7"] .craft-mobile-btn {
+  border-radius: 0;
+  border: 1px solid #4a4a4a;
+  background: #ececec;
+  color: #111;
+  box-shadow: inset -1px -1px 0 #8b8b8b, inset 1px 1px 0 #fff;
+}
+
+body[data-os-style="system7"] .craft-stat,
+body[data-os-style="system7"] #craft-message,
+body[data-os-style="system7"] .craft-section-title,
+body[data-os-style="system7"] .setting-label,
+body[data-os-style="system7"] .setting-label span,
+body[data-os-style="system7"] .craft-help,
+body[data-os-style="system7"] .craft-pause-copy,
+body[data-os-style="system7"] .craft-pause-copy strong {
+  color: #111;
+  text-shadow: none;
+}
+
+body[data-os-style="win11"] .craft-panel,
+body[data-os-style="win11"] .craft-section,
+body[data-os-style="win11"] .craft-slot {
+  border-radius: 16px;
+  border-color: rgba(178, 218, 255, 0.34);
+  background: rgba(15, 25, 40, 0.66);
+  backdrop-filter: blur(10px);
+}
+
+body[data-os-style="win11"] .craft-mobile-btn {
+  border-radius: 12px;
+}
+
+body[data-os-style="win98"] .craft-panel,
+body[data-os-style="win98"] .craft-section,
+body[data-os-style="win98"] .craft-slot,
+body[data-os-style="win98"] .craft-recipe,
+body[data-os-style="win98"] .craft-item,
+body[data-os-style="win98"] .craft-mobile-btn {
+  border-radius: 0;
+  border: 1px solid #202020;
+  background: #d4d0c8;
+  color: #111;
+  box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #fff;
+}
+
+body[data-os-style="win98"] #craft-crosshair {
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+body[data-os-style="win98"] .craft-stat,
+body[data-os-style="win98"] #craft-message,
+body[data-os-style="win98"] .craft-section-title,
+body[data-os-style="win98"] .setting-label,
+body[data-os-style="win98"] .setting-label span,
+body[data-os-style="win98"] .craft-help,
+body[data-os-style="win98"] .craft-pause-copy,
+body[data-os-style="win98"] .craft-pause-copy strong,
+body[data-os-style="win98"] .craft-slot .num,
+body[data-os-style="win98"] .craft-slot .name,
+body[data-os-style="win98"] .craft-slot .count {
+  color: #111;
+  text-shadow: none;
+}

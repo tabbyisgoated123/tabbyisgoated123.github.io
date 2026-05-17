@@ -40,6 +40,121 @@
     'carnival.html': { title: 'Carnival', icon: '🎪' },
   };
 
+  function initOsStyleBackdrop() {
+    let canvas = osRoot.querySelector('.os-style-canvas');
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.className = 'os-style-canvas';
+      osRoot.insertBefore(canvas, osRoot.firstChild);
+    }
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const fit = () => {
+      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      const w = Math.max(1, Math.floor(osRoot.clientWidth));
+      const h = Math.max(1, Math.floor(osRoot.clientHeight));
+      const targetW = Math.floor(w * dpr);
+      const targetH = Math.floor(h * dpr);
+      if (canvas.width === targetW && canvas.height === targetH) return;
+      canvas.width = targetW;
+      canvas.height = targetH;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    const draw = ts => {
+      fit();
+      const w = Math.max(1, osRoot.clientWidth);
+      const h = Math.max(1, osRoot.clientHeight);
+      const t = (ts || 0) * 0.001;
+      const style = normalizeOsStyle(currentOsStyle);
+      ctx.clearRect(0, 0, w, h);
+
+      if (style === 'kde') {
+        const g = ctx.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, 'rgba(12,32,56,0.92)');
+        g.addColorStop(1, 'rgba(7,18,34,0.92)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        for (let i = 0; i < 5; i += 1) {
+          const y = h * (0.15 + i * 0.16);
+          ctx.beginPath();
+          ctx.moveTo(-30, y);
+          for (let x = 0; x < w + 40; x += 16) {
+            ctx.lineTo(x, y + Math.sin((x * 0.006) + (t * 0.9) + i) * (14 + i * 5));
+          }
+          ctx.strokeStyle = `rgba(${62 + i * 12}, ${160 + i * 10}, ${255 - i * 14}, ${0.16 - i * 0.02})`;
+          ctx.lineWidth = Math.max(3, 11 - i * 2);
+          ctx.stroke();
+        }
+      } else if (style === 'system7') {
+        ctx.fillStyle = 'rgba(230,230,230,0.95)';
+        ctx.fillRect(0, 0, w, h);
+        const shift = Math.floor((t * 10) % 10);
+        ctx.fillStyle = 'rgba(30,30,30,0.08)';
+        for (let y = -10; y < h + 10; y += 10) {
+          ctx.fillRect(0, y + shift, w, 1);
+        }
+        ctx.fillStyle = 'rgba(20,20,20,0.06)';
+        for (let x = 0; x < w; x += 64) {
+          ctx.fillRect(x, 0, 1, h);
+        }
+      } else if (style === 'win11') {
+        const g = ctx.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, 'rgba(13,28,49,0.9)');
+        g.addColorStop(1, 'rgba(7,14,27,0.92)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        const blobs = [
+          { x: 0.3, y: 0.25, r: 0.25, c: 'rgba(90,187,255,0.24)' },
+          { x: 0.68, y: 0.4, r: 0.28, c: 'rgba(120,142,255,0.2)' },
+          { x: 0.55, y: 0.72, r: 0.22, c: 'rgba(78,154,255,0.14)' },
+        ];
+        blobs.forEach((b, i) => {
+          const pulse = 1 + Math.sin(t * 0.8 + i) * 0.04;
+          const r = Math.min(w, h) * b.r * pulse;
+          const rg = ctx.createRadialGradient(w * b.x, h * b.y, 6, w * b.x, h * b.y, r);
+          rg.addColorStop(0, b.c);
+          rg.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = rg;
+          ctx.beginPath();
+          ctx.arc(w * b.x, h * b.y, r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      } else if (style === 'win98') {
+        ctx.fillStyle = 'rgba(0,128,128,0.95)';
+        ctx.fillRect(0, 0, w, h);
+        const tile = 28;
+        for (let y = 0; y < h; y += tile) {
+          for (let x = 0; x < w; x += tile) {
+            const alt = ((x / tile) + (y / tile)) % 2 === 0;
+            ctx.fillStyle = alt ? 'rgba(0,95,95,0.2)' : 'rgba(255,255,255,0.06)';
+            ctx.fillRect(x, y, tile, tile);
+          }
+        }
+      } else {
+        const g = ctx.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, 'rgba(10,16,24,0.92)');
+        g.addColorStop(1, 'rgba(8,12,20,0.94)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = 'rgba(255,90,90,0.11)';
+        ctx.lineWidth = 1;
+        const shift = Math.floor((t * 18) % 36);
+        for (let i = -36; i < w + h; i += 36) {
+          ctx.beginPath();
+          ctx.moveTo(i + shift, 0);
+          ctx.lineTo(i - h + shift, h);
+          ctx.stroke();
+        }
+      }
+      requestAnimationFrame(draw);
+    };
+
+    window.addEventListener('resize', fit);
+    requestAnimationFrame(draw);
+  }
+
   function defaultFs() {
     const now = Date.now();
     return {
@@ -387,6 +502,9 @@
     osRoot.style.setProperty('--os-wallpaper-url', safe ? `url("${safe}")` : 'none');
     localStorage.setItem(OS_STYLE_KEY, normalizeOsStyle(currentOsStyle));
     broadcastOsStyle();
+    document.dispatchEvent(new CustomEvent('tabby-os-style-change', {
+      detail: { style: normalizeOsStyle(currentOsStyle) },
+    }));
     refreshClippy();
   }
 
@@ -909,6 +1027,72 @@
     out.classList.add('window-scrollable');
     const state = { cwd: '/home/tabby', history: [], historyIndex: 0 };
 
+    const styleName = () => normalizeOsStyle(currentOsStyle);
+    const isWindowsStyle = style => style === 'win98' || style === 'win11';
+    const toWinPath = absPath => {
+      const p = normalizeAbs(absPath || '/');
+      if (p === '/' || p === '/home' || p === '/home/tabby') return 'C:\\Users\\Tabby';
+      if (p.startsWith('/home/tabby/')) return 'C:\\Users\\Tabby\\' + p.slice('/home/tabby/'.length).replace(/\//g, '\\');
+      if (p.startsWith('/var/log')) return 'C:\\Windows\\Logs' + p.slice('/var/log'.length).replace(/\//g, '\\');
+      if (p.startsWith('/etc')) return 'C:\\Windows\\System32\\etc' + p.slice('/etc'.length).replace(/\//g, '\\');
+      return 'C:\\TabbyOS' + p.replace(/\//g, '\\');
+    };
+    const toSystem7Path = absPath => {
+      const p = normalizeAbs(absPath || '/');
+      if (p === '/' || p === '/home' || p === '/home/tabby') return 'Macintosh HD:Tabby';
+      if (p.startsWith('/home/tabby/')) return `Macintosh HD:Tabby:${p.slice('/home/tabby/'.length).replace(/\//g, ':')}`;
+      return `Macintosh HD:${p.slice(1).replace(/\//g, ':')}`;
+    };
+    const promptForStyle = cwd => {
+      const style = styleName();
+      if (style === 'kde') return `tabby@arch:${toPromptPath(cwd)}$`;
+      if (style === 'system7') return `${toSystem7Path(cwd)} >`;
+      if (style === 'win11') return `PS ${toWinPath(cwd)}>`;
+      if (style === 'win98') return `${toWinPath(cwd)}>`;
+      return `tabby@tabbyos:${toPromptPath(cwd)}$`;
+    };
+    const introLines = () => {
+      const style = styleName();
+      if (style === 'kde') return [
+        'Konsole (Arch KDE style)',
+        'Type help for commands.',
+      ];
+      if (style === 'system7') return [
+        'Macintosh Programmer Workshop (System 7 style)',
+        'Type help for commands.',
+      ];
+      if (style === 'win11') return [
+        'PowerShell 7 (Windows 11 style)',
+        'Type help for commands.',
+      ];
+      if (style === 'win98') return [
+        'Microsoft(R) Windows 98',
+        'C:\\> Type help for commands.',
+      ];
+      return [
+        'TabbyOS Unix Shell (tabsh)',
+        'Type help for commands.',
+      ];
+    };
+    const helpLine = () => {
+      const style = styleName();
+      if (style === 'win98') return 'Commands: dir cd type mkdir md touch del rm echo cls date whoami history tree open neofetch';
+      if (style === 'win11') return 'Commands: ls dir cd cat type mkdir rm del echo clear cls date whoami history tree open neofetch';
+      return 'Built-ins: pwd ls cd cat mkdir touch rm echo clear date whoami uname history tree open neofetch';
+    };
+    const normalizeCommandName = raw => {
+      const name = String(raw || '').toLowerCase();
+      if (!name) return '';
+      const aliases = {
+        dir: 'ls',
+        cls: 'clear',
+        del: 'rm',
+        type: 'cat',
+        md: 'mkdir',
+      };
+      return aliases[name] || name;
+    };
+
     const writeLine = (text, cls) => {
       const line = document.createElement('div');
       line.className = `term-line${cls ? ` ${cls}` : ''}`;
@@ -927,7 +1111,19 @@
 
     const printList = (items, longMode) => {
       if (!items || !items.length) return writeLine('');
-      if (!longMode) return writeLine(items.map(i => (i.type === 'dir' ? `${i.name}/` : i.name)).join('  '));
+      const style = styleName();
+      if (!longMode) {
+        if (style === 'system7') return writeLine(items.map(i => (i.type === 'dir' ? `${i.name}:` : i.name)).join('  ·  '));
+        return writeLine(items.map(i => (i.type === 'dir' ? `${i.name}/` : i.name)).join('  '));
+      }
+      if (isWindowsStyle(style)) {
+        items.forEach(i => writeLine(`${new Date(i.mtime || Date.now()).toLocaleDateString()}  ${i.type === 'dir' ? '<DIR>' : '     '}  ${i.name}`));
+        return;
+      }
+      if (style === 'system7') {
+        items.forEach(i => writeLine(`${i.type === 'dir' ? 'Folder ' : 'File   '} ${i.name}   ${new Date(i.mtime || Date.now()).toLocaleString()}`));
+        return;
+      }
       items.forEach(i => writeLine(`${i.type === 'dir' ? 'd' : '-'}rw-r--r-- tabby tabby ${new Date(i.mtime || Date.now()).toLocaleString()} ${i.type === 'dir' ? `${i.name}/` : i.name}`));
     };
 
@@ -939,22 +1135,67 @@
       }
       state.historyIndex = state.history.length;
       const parts = tokenize(cmd);
-      const name = parts[0] || '';
+      const rawName = parts[0] || '';
+      const name = normalizeCommandName(rawName);
       const args = parts.slice(1);
       if (!name) return;
 
-      if (name === 'help') return writeLine('Built-ins: pwd ls cd cat mkdir touch rm echo clear date whoami uname history tree open neofetch');
+      if (name === 'help') return writeLine(helpLine());
       if (name === 'neofetch') {
+        const style = styleName();
+        if (style === 'kde') {
+          writeLine('  /\\_/\\    tabby@arch');
+          writeLine(' ( o.o )   OS: Arch Linux (simulated KDE)');
+          writeLine('  > ^ <    Shell: zsh-like');
+          writeLine('           DE: Plasma-style');
+          return;
+        }
+        if (style === 'system7') {
+          writeLine('  /\\_/\\    tabby@system7');
+          writeLine(' ( o.o )   OS: Apple System 7 style');
+          writeLine('  > ^ <    Shell: MPW-inspired');
+          writeLine('           FS: virtualfs');
+          return;
+        }
+        if (style === 'win11') {
+          writeLine('  /\\_/\\    tabby@windows11');
+          writeLine(' ( o.o )   OS: Windows 11 style');
+          writeLine('  > ^ <    Shell: PowerShell-inspired');
+          writeLine('           FS: virtualfs');
+          return;
+        }
+        if (style === 'win98') {
+          writeLine('  /\\_/\\    tabby@win98');
+          writeLine(' ( o.o )   OS: Windows 98 style');
+          writeLine('  > ^ <    Shell: DOS-inspired');
+          writeLine('           FS: virtualfs');
+          return;
+        }
         writeLine('  /\\_/\\    tabby@tabbyos');
         writeLine(' ( o.o )   OS: TabbyOS 1.0');
         writeLine('  > ^ <    Shell: tabsh');
         writeLine('           FS: virtualfs');
         return;
       }
-      if (name === 'pwd') return writeLine(state.cwd);
+      if (name === 'pwd') {
+        const style = styleName();
+        if (isWindowsStyle(style)) return writeLine(toWinPath(state.cwd));
+        if (style === 'system7') return writeLine(toSystem7Path(state.cwd));
+        return writeLine(state.cwd);
+      }
       if (name === 'whoami') return writeLine('tabby');
-      if (name === 'uname') return writeLine(args[0] === '-a' ? 'Linux tabbyos 6.8-tabby #1 SMP PREEMPT x86_64 GNU/Tabby' : 'Linux');
-      if (name === 'date') return writeLine(new Date().toString());
+      if (name === 'uname') {
+        const style = styleName();
+        if (style === 'system7') return writeLine('Macintosh');
+        if (style === 'win11') return writeLine('Windows_NT');
+        if (style === 'win98') return writeLine('Windows 4.10');
+        return writeLine(args[0] === '-a' ? 'Linux tabbyos 6.8-tabby #1 SMP PREEMPT x86_64 GNU/Tabby' : 'Linux');
+      }
+      if (name === 'date') {
+        const style = styleName();
+        if (isWindowsStyle(style)) return writeLine(new Date().toLocaleString('en-US'));
+        return writeLine(new Date().toString());
+      }
       if (name === 'history') return state.history.forEach((h, i) => writeLine(`${i + 1}  ${h}`));
       if (name === 'clear') {
         out.innerHTML = '';
@@ -1042,11 +1283,15 @@
         if (!node) return writeLine(`open: ${target}: not found`, 'term-error');
         if (node.type === 'dir') {
           openOrFocusApp('explorer', { path: abs });
-          return writeLine(`opened explorer at ${abs}`);
+          return writeLine(`opened explorer at ${isWindowsStyle(styleName()) ? toWinPath(abs) : abs}`);
         }
         return writeLine(String(node.content || ''));
       }
-      writeLine(`${name}: command not found`, 'term-error');
+      if (styleName() === 'win98') {
+        writeLine(`Bad command or file name: ${rawName}`, 'term-error');
+        return;
+      }
+      writeLine(`${rawName}: command not found`, 'term-error');
     };
 
     const renderPrompt = () => {
@@ -1054,7 +1299,7 @@
       row.className = 'term-row';
       const label = document.createElement('span');
       label.className = 'term-prompt';
-      label.textContent = `tabby@tabbyos:${toPromptPath(state.cwd)}$`;
+      label.textContent = promptForStyle(state.cwd);
       const input = document.createElement('input');
       input.className = 'term-input';
       input.type = 'text';
@@ -1090,8 +1335,7 @@
       out.scrollTop = out.scrollHeight;
     };
 
-    writeLine('TabbyOS Unix Shell (tabsh)');
-    writeLine('Type help for commands.');
+    introLines().forEach(line => writeLine(line));
     renderPrompt();
   }
 
@@ -1100,6 +1344,7 @@
     view.classList.add('window-scrollable');
     let currentPath = normalizeAbs(payload?.path || '/home/tabby');
     let selectedFile = '';
+    const explorerStyle = () => normalizeOsStyle(currentOsStyle);
 
     view.innerHTML = `
       <div class="explorer-toolbar">
@@ -1112,6 +1357,7 @@
       <div class="explorer-layout">
         <aside class="explorer-sidebar"></aside>
         <section class="explorer-main">
+          <div class="explorer-list-head"></div>
           <div class="explorer-list"></div>
           <div class="explorer-preview">
             <div class="explorer-preview-title">Preview</div>
@@ -1126,10 +1372,116 @@
     `;
 
     const pathInput = view.querySelector('.explorer-path');
+    const upBtn = view.querySelector('[data-act="up"]');
+    const newFileBtn = view.querySelector('[data-act="new-file"]');
+    const newFolderBtn = view.querySelector('[data-act="new-folder"]');
+    const refreshBtn = view.querySelector('[data-act="refresh"]');
     const sidebar = view.querySelector('.explorer-sidebar');
+    const listHead = view.querySelector('.explorer-list-head');
     const list = view.querySelector('.explorer-list');
     const editor = view.querySelector('.explorer-editor');
     const quickPaths = ['/home/tabby', '/home/tabby/Desktop', '/home/tabby/Documents', '/home/tabby/Downloads', '/home/tabby/Projects', '/var/log'];
+
+    const toWinPath = absPath => {
+      const p = normalizeAbs(absPath || '/');
+      if (p === '/' || p === '/home' || p === '/home/tabby') return 'C:\\Users\\Tabby';
+      if (p.startsWith('/home/tabby/')) return 'C:\\Users\\Tabby\\' + p.slice('/home/tabby/'.length).replace(/\//g, '\\');
+      if (p.startsWith('/var/log')) return 'C:\\Windows\\Logs' + p.slice('/var/log'.length).replace(/\//g, '\\');
+      if (p.startsWith('/etc')) return 'C:\\Windows\\System32\\etc' + p.slice('/etc'.length).replace(/\//g, '\\');
+      return 'C:\\TabbyOS' + p.replace(/\//g, '\\');
+    };
+
+    const toSystem7Path = absPath => {
+      const p = normalizeAbs(absPath || '/');
+      if (p === '/' || p === '/home' || p === '/home/tabby') return 'Macintosh HD:Tabby';
+      if (p.startsWith('/home/tabby/')) return `Macintosh HD:Tabby:${p.slice('/home/tabby/'.length).replace(/\//g, ':')}`;
+      return `Macintosh HD:${p.slice(1).replace(/\//g, ':')}`;
+    };
+
+    const displayPathForStyle = absPath => {
+      const style = explorerStyle();
+      if (style === 'win98' || style === 'win11') return toWinPath(absPath);
+      if (style === 'system7') return toSystem7Path(absPath);
+      return absPath;
+    };
+
+    const parseDisplayPath = value => {
+      const raw = String(value || '').trim();
+      const style = explorerStyle();
+      if ((style === 'win98' || style === 'win11') && /^[A-Za-z]:\\/.test(raw)) {
+        const cleaned = raw.replace(/^[A-Za-z]:\\/, '').replace(/\\/g, '/').replace(/^\/+/, '');
+        const lower = cleaned.toLowerCase();
+        if (lower === 'users/tabby') return '/home/tabby';
+        if (lower.startsWith('users/tabby/')) return '/home/tabby/' + cleaned.slice('users/tabby/'.length);
+        if (lower === 'windows/logs') return '/var/log';
+        if (lower.startsWith('windows/logs/')) return '/var/log/' + cleaned.slice('windows/logs/'.length);
+        if (lower === 'windows/system32/etc') return '/etc';
+        if (lower.startsWith('windows/system32/etc/')) return '/etc/' + cleaned.slice('windows/system32/etc/'.length);
+        return '/' + cleaned;
+      }
+      if (style === 'system7' && /^Macintosh HD:/i.test(raw)) {
+        const cleaned = raw.replace(/^Macintosh HD:/i, '').replace(/:/g, '/').replace(/^\/+/, '');
+        if (cleaned.toLowerCase() === 'tabby') return '/home/tabby';
+        if (cleaned.toLowerCase().startsWith('tabby/')) return '/home/tabby/' + cleaned.slice('tabby/'.length);
+        return '/' + cleaned;
+      }
+      return raw;
+    };
+
+    const humanSize = size => {
+      const n = Number(size || 0);
+      if (n < 1024) return `${n} B`;
+      if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+      return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+    };
+
+    const renderListHead = () => {
+      const style = explorerStyle();
+      view.dataset.osStyle = style;
+      if (style === 'win98') {
+        if (upBtn) upBtn.textContent = 'Up';
+        if (newFileBtn) newFileBtn.textContent = 'New File';
+        if (newFolderBtn) newFolderBtn.textContent = 'New Folder';
+        if (refreshBtn) refreshBtn.textContent = 'Refresh';
+      } else if (style === 'system7') {
+        if (upBtn) upBtn.textContent = 'Parent';
+        if (newFileBtn) newFileBtn.textContent = 'New Doc';
+        if (newFolderBtn) newFolderBtn.textContent = 'New Folder';
+        if (refreshBtn) refreshBtn.textContent = 'Reload';
+      } else if (style === 'win11') {
+        if (upBtn) upBtn.textContent = 'Up';
+        if (newFileBtn) newFileBtn.textContent = 'New File';
+        if (newFolderBtn) newFolderBtn.textContent = 'New Folder';
+        if (refreshBtn) refreshBtn.textContent = 'Refresh';
+      } else {
+        if (upBtn) upBtn.textContent = 'Up';
+        if (newFileBtn) newFileBtn.textContent = 'New File';
+        if (newFolderBtn) newFolderBtn.textContent = 'New Folder';
+        if (refreshBtn) refreshBtn.textContent = 'Refresh';
+      }
+      if (style === 'win98' || style === 'win11') {
+        listHead.innerHTML = `
+          <span>Name</span>
+          <span>Type</span>
+          <span>Modified</span>
+          <span>Size</span>
+        `;
+        listHead.classList.remove('hidden');
+        return;
+      }
+      if (style === 'system7') {
+        listHead.innerHTML = `
+          <span>Name</span>
+          <span>Kind</span>
+          <span>Modified</span>
+          <span>Size</span>
+        `;
+        listHead.classList.remove('hidden');
+        return;
+      }
+      listHead.classList.add('hidden');
+      listHead.innerHTML = '';
+    };
 
     const setPreview = (path, node) => {
       selectedFile = path;
@@ -1156,7 +1508,8 @@
     };
 
     const renderList = () => {
-      pathInput.value = currentPath;
+      renderListHead();
+      pathInput.value = displayPathForStyle(currentPath);
       const items = listDir(currentPath);
       list.innerHTML = '';
       if (!items) {
@@ -1169,20 +1522,33 @@
       items.forEach(item => {
         const row = document.createElement('button');
         row.type = 'button';
-        row.className = 'explorer-item';
+        const style = explorerStyle();
+        row.className = `explorer-item explorer-item-${style}`;
+        const abs = normalizeAbs(`${currentPath}/${item.name}`);
+        const node = getNode(abs);
         const icon = item.type === 'dir' ? '📁' : '📄';
-        row.innerHTML = `<span>${icon}</span><span>${item.name}</span><span class="explorer-meta">${new Date(item.mtime || Date.now()).toLocaleString()}</span>`;
+        const typeLabel = item.type === 'dir' ? (style === 'system7' ? 'Folder' : 'Directory') : (style === 'system7' ? 'Document' : 'File');
+        const modified = new Date(item.mtime || Date.now()).toLocaleString();
+        const size = node?.type === 'file' ? humanSize(String(node.content || '').length) : '--';
+        if (style === 'win98' || style === 'win11' || style === 'system7') {
+          row.innerHTML = `
+            <span class="explorer-col-name"><span>${icon}</span><span>${item.name}</span></span>
+            <span>${typeLabel}</span>
+            <span class="explorer-meta">${modified}</span>
+            <span class="explorer-size">${size}</span>
+          `;
+        } else {
+          row.innerHTML = `<span>${icon}</span><span>${item.name}</span><span class="explorer-meta">${modified}</span>`;
+        }
         row.addEventListener('click', () => {
-          const abs = normalizeAbs(`${currentPath}/${item.name}`);
-          const node = getNode(abs);
-          if (!node) return;
-          if (node.type === 'dir') return navigate(abs);
-          setPreview(abs, node);
+          const picked = getNode(abs);
+          if (!picked) return;
+          if (picked.type === 'dir') return navigate(abs);
+          setPreview(abs, picked);
         });
         row.addEventListener('dblclick', () => {
-          const abs = normalizeAbs(`${currentPath}/${item.name}`);
-          const node = getNode(abs);
-          if (node?.type === 'dir') navigate(abs);
+          const picked = getNode(abs);
+          if (picked?.type === 'dir') navigate(abs);
         });
         list.appendChild(row);
       });
@@ -1201,14 +1567,16 @@
     view.querySelector('[data-act="up"]').addEventListener('click', () => navigate(dirname(currentPath)));
     view.querySelector('[data-act="refresh"]').addEventListener('click', () => renderList());
     view.querySelector('[data-act="new-file"]').addEventListener('click', () => {
-      const name = window.prompt('New file name:');
+      const promptLabel = explorerStyle() === 'system7' ? 'New document name:' : 'New file name:';
+      const name = window.prompt(promptLabel);
       if (!name) return;
       const res = touch(normalizeAbs(`${currentPath}/${name}`));
       if (!res.ok) return window.alert(res.error);
       renderList();
     });
     view.querySelector('[data-act="new-folder"]').addEventListener('click', () => {
-      const name = window.prompt('New folder name:');
+      const promptLabel = explorerStyle() === 'system7' ? 'New folder name:' : 'New folder name:';
+      const name = window.prompt(promptLabel);
       if (!name) return;
       const res = mkdirp(normalizeAbs(`${currentPath}/${name}`));
       if (!res.ok) return window.alert(res.error);
@@ -1230,16 +1598,23 @@
     });
     pathInput.addEventListener('keydown', ev => {
       if (ev.key !== 'Enter') return;
-      navigate(resolvePath(currentPath, pathInput.value));
+      navigate(resolvePath(currentPath, parseDisplayPath(pathInput.value)));
     });
 
+    const onStyleChange = () => renderList();
+    document.addEventListener('tabby-os-style-change', onStyleChange);
+
     navigate(currentPath);
-    return { open(path) { if (path) navigate(path); } };
+    return {
+      open(path) { if (path) navigate(path); },
+      destroy() { document.removeEventListener('tabby-os-style-change', onStyleChange); },
+    };
   }
 
   function closeWindow(appName) {
     const entry = appWindows.get(appName);
     if (!entry) return;
+    entry.api?.destroy?.();
     entry.win.remove();
     appWindows.delete(appName);
     entry.taskbarBtn?.remove();
@@ -1387,6 +1762,7 @@
   }
 
   loadCfg();
+  initOsStyleBackdrop();
   loadTier();
   updatePlusLauncher();
   ensureDir('/home/tabby');
@@ -1408,6 +1784,9 @@
       currentOsStyle = normalizeOsStyle(ev.newValue || localStorage.getItem(OS_STYLE_KEY));
       osRoot.dataset.osStyle = currentOsStyle;
       broadcastOsStyle();
+      document.dispatchEvent(new CustomEvent('tabby-os-style-change', {
+        detail: { style: currentOsStyle },
+      }));
       refreshClippy();
     }
   });
