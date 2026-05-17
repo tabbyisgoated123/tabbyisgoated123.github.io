@@ -173,10 +173,34 @@ body {
   min-height: 320px;
   display: grid;
   gap: 12px;
+  position: relative;
 }
 
 .game-card-wide {
   grid-column: 1 / -1;
+}
+
+#game-roulette {
+  order: 99;
+}
+
+.game-card.locked-tier {
+  border-color: rgba(255, 214, 123, 0.5);
+}
+
+.game-card.locked-tier::after {
+  content: "Tabby Plus Required";
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 214, 123, 0.68);
+  background: rgba(53, 40, 14, 0.8);
+  color: #ffe9b2;
+  padding: 6px 10px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .game-head {

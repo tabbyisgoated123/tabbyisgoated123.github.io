@@ -1,6 +1,9 @@
 (function () {
   const profileApi = window.TabbyProfiles;
   const GAME_KEY = 'carnival';
+  const PLUS_GAME_KEY = 'tabbyplus';
+  const PLUS_KEY = 'tabby_plus_tier_v1';
+  const TIER_LEVEL = { free: 0, plus: 1, premium: 2 };
   const DEFAULT_TOKENS = 250;
   const SYMBOLS = ['🍒', '🍋', '🔔', '⭐', '7️⃣', '💎'];
   const SUITS = ['♠', '♥', '♦', '♣'];
@@ -84,8 +87,10 @@
   const pagaoBankerRankEl = document.getElementById('pagao-banker-rank');
   const pagaoPlayerRankEl = document.getElementById('pagao-player-rank');
   const pagaoResultEl = document.getElementById('pagao-result');
+  const plusGatedCards = [...document.querySelectorAll('.plus-gated')];
 
   let tokens = DEFAULT_TOKENS;
+  let membershipTier = 'free';
   let offers = [];
   let toastTimer = null;
   let slotBusy = false;
@@ -98,6 +103,52 @@
 
   function getStats() {
     return profileApi?.getProfileGameStats?.(GAME_KEY) || {};
+  }
+
+  function normalizeTier(tier) {
+    const t = String(tier || '').toLowerCase();
+    if (t === 'premium' || t === 'plus') return t;
+    return 'free';
+  }
+
+  function tierRank(tier) {
+    return TIER_LEVEL[normalizeTier(tier)] || 0;
+  }
+
+  function hasPlusAccess() {
+    return tierRank(membershipTier) >= TIER_LEVEL.plus;
+  }
+
+  function loadMembershipTier() {
+    const localTier = normalizeTier(localStorage.getItem(PLUS_KEY));
+    const profileTier = normalizeTier(profileApi?.getProfileGameStats?.(PLUS_GAME_KEY)?.tier);
+    membershipTier = tierRank(profileTier) >= tierRank(localTier) ? profileTier : localTier;
+    if (membershipTier === 'free') membershipTier = localTier || profileTier || 'free';
+  }
+
+  function applyMembershipGates() {
+    const locked = !hasPlusAccess();
+    plusGatedCards.forEach(card => {
+      card.classList.toggle('locked-tier', locked);
+      card.querySelectorAll('button, input, select, textarea').forEach(el => {
+        el.disabled = locked;
+      });
+    });
+    if (locked) {
+      setText(bjResultEl, 'Tabby Plus required for Blackjack.');
+      setText(thResultEl, 'Tabby Plus required for Texas Hold\'em.');
+      setText(drawResultEl, 'Tabby Plus required for 5 Card Draw.');
+      setText(pagaoResultEl, 'Tabby Plus required for Pagao Poker.');
+      blackjackRound = null;
+      texasRound = null;
+    }
+  }
+
+  function requirePlusAccess() {
+    if (hasPlusAccess()) return true;
+    showToast('Tabby Plus is required for this table.');
+    applyMembershipGates();
+    return false;
   }
 
   function saveStats(patch = {}) {
@@ -342,7 +393,7 @@
           <strong>${offer.tokens} tokens</strong>
           <span class="game-badge">$${offer.price}</span>
         </div>
-        <div class="offer-meta">Fake checkout. Clicking buy adds this bundle to your profile for free.</div>
+        <div class="offer-meta">Click buy to add this bundle instantly.</div>
         <button type="button" class="shop-btn">Buy bundle ${index + 1}</button>
       `;
       card.querySelector('button').addEventListener('click', () => {
@@ -540,6 +591,7 @@
   }
 
   function startBlackjack() {
+    if (!requirePlusAccess()) return;
     const bet = clampBet(bjBetEl?.value || 25);
     if (tokens < bet) return showToast('Not enough tokens.');
     changeTokens(-bet, { gamesPlayed: true });
@@ -769,6 +821,7 @@
   }
 
   function startTexas() {
+    if (!requirePlusAccess()) return;
     const bet = clampBet(thBetEl?.value || 30);
     if (tokens < bet) return showToast('Not enough tokens.');
     changeTokens(-bet, { gamesPlayed: true });
@@ -813,6 +866,7 @@
   }
 
   function playDraw() {
+    if (!requirePlusAccess()) return;
     const bet = clampBet(drawBetEl?.value || 20);
     if (tokens < bet) return showToast('Not enough tokens.');
     changeTokens(-bet, { gamesPlayed: true });
@@ -841,6 +895,7 @@
   }
 
   function playPagao() {
+    if (!requirePlusAccess()) return;
     const bet = clampBet(pagaoBetEl?.value || 25);
     if (tokens < bet) return showToast('Not enough tokens.');
     changeTokens(-bet, { gamesPlayed: true });
@@ -872,6 +927,8 @@
   }
 
   function syncFromProfile() {
+    loadMembershipTier();
+    applyMembershipGates();
     loadTokens();
   }
 
@@ -905,11 +962,18 @@
   pagaoPlayBtn?.addEventListener('click', playPagao);
 
   document.addEventListener('tabby-profile-change', syncFromProfile);
+  window.addEventListener('storage', ev => {
+    if (ev.key !== PLUS_KEY) return;
+    loadMembershipTier();
+    applyMembershipGates();
+  });
 
   setRouletteChip(10);
   buildRouletteTable();
   clearRouletteBets();
   setBlackjackControls(false);
   updateTexasControls(false);
+  loadMembershipTier();
+  applyMembershipGates();
   syncFromProfile();
 })();

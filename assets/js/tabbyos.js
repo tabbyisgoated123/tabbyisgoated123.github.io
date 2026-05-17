@@ -3,11 +3,15 @@
   const desktop = document.getElementById('os-desktop');
   const windowLayer = document.getElementById('window-layer');
   const taskbar = document.getElementById('taskbar');
+  const plusLauncher = document.getElementById('plus-launcher');
   if (!osRoot || !desktop || !windowLayer || !taskbar) return;
 
   const CFG_KEY = 'tabbyos_cfg_v2';
   const ICON_KEY = 'tabbyos_icons_v1';
   const FS_KEY = 'tabbyos_vfs_v1';
+  const PLUS_KEY = 'tabby_plus_tier_v1';
+  const PLUS_GAME_KEY = 'tabbyplus';
+  const TIER_LEVEL = { free: 0, plus: 1, premium: 2 };
   const PROFILE_COLORS = [
     '#ff1a1a', '#ff7a1a', '#ffd21a', '#4ade80',
     '#38bdf8', '#a855f7', '#f472b6', '#e5e7eb',
@@ -21,6 +25,7 @@
   let currentTaskbar = 'bottom';
   let currentWallpaper = 'tabby';
   let currentWallpaperUrl = '';
+  let currentTier = 'free';
 
   const appMeta = {
     settings: { title: 'Settings', icon: '⚙️' },
@@ -293,6 +298,66 @@
     applyDefaultIconLayout(false);
   }
 
+  function normalizeTier(tier) {
+    const t = String(tier || '').toLowerCase();
+    if (t === 'premium' || t === 'plus') return t;
+    return 'free';
+  }
+
+  function tierRank(tier) {
+    return TIER_LEVEL[normalizeTier(tier)] || 0;
+  }
+
+  function tierLabel(tier) {
+    const t = normalizeTier(tier);
+    if (t === 'premium') return 'Premium';
+    if (t === 'plus') return 'Plus';
+    return 'Free';
+  }
+
+  function hasPremiumAccess() {
+    return tierRank(currentTier) >= TIER_LEVEL.premium;
+  }
+
+  function readTierFromProfile() {
+    const profileApi = window.TabbyProfiles;
+    const stats = profileApi?.getProfileGameStats?.(PLUS_GAME_KEY) || {};
+    return normalizeTier(stats.tier);
+  }
+
+  function loadTier() {
+    const localTier = normalizeTier(localStorage.getItem(PLUS_KEY));
+    const profileTier = readTierFromProfile();
+    currentTier = tierRank(profileTier) >= tierRank(localTier) ? profileTier : localTier;
+    if (currentTier === 'free') currentTier = localTier || profileTier || 'free';
+    localStorage.setItem(PLUS_KEY, currentTier);
+  }
+
+  function updatePlusLauncher() {
+    if (!plusLauncher) return;
+    const active = normalizeTier(currentTier);
+    plusLauncher.dataset.tier = active;
+    if (active === 'premium') plusLauncher.textContent = '👑 Premium';
+    else if (active === 'plus') plusLauncher.textContent = '👑 Plus';
+    else plusLauncher.textContent = '👑 Get Plus';
+  }
+
+  function saveTier(tier) {
+    currentTier = normalizeTier(tier);
+    localStorage.setItem(PLUS_KEY, currentTier);
+    window.TabbyProfiles?.setProfileGameStat?.(PLUS_GAME_KEY, {
+      tier: currentTier,
+      updatedAt: Date.now(),
+    });
+    updatePlusLauncher();
+    document.dispatchEvent(new CustomEvent('tabby-plus-change', { detail: { tier: currentTier } }));
+    const settingsWin = appWindows.get('settings');
+    if (settingsWin) {
+      const panel = settingsWin.win.querySelector('.settings-window');
+      if (panel) applySettingsUI(settingsWin.win, panel);
+    }
+  }
+
   function safeWallpaperUrl(url) {
     const v = String(url || '').trim().replace(/["'<>]/g, '');
     if (!v) return '';
@@ -500,13 +565,89 @@
     handle.addEventListener('pointercancel', end);
   }
 
+  function ensurePlusModal() {
+    let modal = document.getElementById('plus-modal');
+    if (modal) return modal;
+    modal = document.createElement('div');
+    modal.id = 'plus-modal';
+    modal.className = 'plus-modal hidden';
+    modal.setAttribute('aria-hidden', 'true');
+    modal.innerHTML = `
+      <div class="plus-panel">
+        <div class="plus-head">
+          <div>
+            <div class="plus-kicker">Tabby Plus</div>
+            <h3>Choose your tier</h3>
+          </div>
+          <button type="button" class="icon-btn" data-action="close" aria-label="Close Tabby Plus">x</button>
+        </div>
+        <div class="plus-tiers">
+          <article class="plus-tier" data-tier-card="free">
+            <div class="plus-tier-name">Free</div>
+            <p>Core apps and standard gameplay.</p>
+            <button type="button" data-tier="free">Use Free</button>
+          </article>
+          <article class="plus-tier" data-tier-card="plus">
+            <div class="plus-tier-name">Plus</div>
+            <p>Unlocks Blackjack and all Poker games in Carnival.</p>
+            <button type="button" data-tier="plus">Activate Plus</button>
+          </article>
+          <article class="plus-tier" data-tier-card="premium">
+            <div class="plus-tier-name">Premium</div>
+            <p>All Plus perks plus full personalization controls.</p>
+            <button type="button" data-tier="premium">Activate Premium</button>
+          </article>
+        </div>
+      </div>
+    `;
+    osRoot.appendChild(modal);
+
+    const close = () => {
+      modal.classList.add('hidden');
+      modal.setAttribute('aria-hidden', 'true');
+    };
+    modal.querySelector('[data-action="close"]')?.addEventListener('click', close);
+    modal.addEventListener('click', ev => {
+      if (ev.target === modal) close();
+    });
+    modal.querySelectorAll('[data-tier]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        saveTier(btn.dataset.tier);
+        close();
+      });
+    });
+    return modal;
+  }
+
+  function openPlusModal() {
+    const modal = ensurePlusModal();
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    const activeTier = normalizeTier(currentTier);
+    modal.querySelectorAll('[data-tier-card]').forEach(card => {
+      card.classList.toggle('active', card.dataset.tierCard === activeTier);
+    });
+  }
+
+  function applyPremiumLock(panel, locked) {
+    panel.querySelectorAll('[data-premium-only="1"]').forEach(el => {
+      if ('disabled' in el) el.disabled = !!locked;
+      el.classList.toggle('locked-control', !!locked);
+    });
+    panel.querySelectorAll('[data-premium-button]').forEach(el => {
+      if ('disabled' in el) el.disabled = !!locked;
+    });
+    const gate = panel.querySelector('#premium-gate-note');
+    if (gate) gate.classList.toggle('hidden', !locked);
+  }
+
   function applySettingsUI(win, panel) {
     panel.classList.add('window-scrollable');
     panel.innerHTML = `
       <div class="settings-card">
         <div class="settings-title">Appearance</div>
         <label>Accent
-          <input type="color" id="os-accent" value="${currentAccent}">
+          <input type="color" id="os-accent" data-premium-only="1" value="${currentAccent}">
         </label>
         <label>Desktop layout
           <select id="os-layout">
@@ -515,7 +656,7 @@
           </select>
         </label>
         <label>Wallpaper preset
-          <select id="os-wallpaper">
+          <select id="os-wallpaper" data-premium-only="1">
             <option value="tabby">TabbyOS Default</option>
             <option value="aurora">Aurora</option>
             <option value="mesh">Mesh</option>
@@ -524,8 +665,12 @@
           </select>
         </label>
         <label id="wallpaper-url-wrap">Custom wallpaper URL
-          <input type="text" id="os-wallpaper-url" placeholder="https://... or /assets/...">
+          <input type="text" id="os-wallpaper-url" data-premium-only="1" placeholder="https://... or /assets/...">
         </label>
+        <div id="premium-gate-note" class="settings-note hidden">
+          Premium is required for appearance customization.
+          <button type="button" id="open-plus-from-settings">Get Plus</button>
+        </div>
       </div>
       <div class="settings-card">
         <div class="settings-title">Taskbar</div>
@@ -593,6 +738,7 @@
     const cursor = panel.querySelector('#pref-cursor');
     const fontScale = panel.querySelector('#pref-font-scale');
     const panelOpacity = panel.querySelector('#pref-panel-opacity');
+    const openPlusFromSettings = panel.querySelector('#open-plus-from-settings');
     const saveBtn = panel.querySelector('[data-action="save"]');
     const newBtn = panel.querySelector('[data-action="new"]');
     const deleteBtn = panel.querySelector('[data-action="delete"]');
@@ -620,10 +766,15 @@
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'profile-color-swatch';
+        btn.dataset.premiumButton = '1';
         btn.style.background = color;
         btn.dataset.color = color;
         btn.title = color;
         btn.addEventListener('click', () => {
+          if (!hasPremiumAccess()) {
+            openPlusModal();
+            return;
+          }
           profileApi?.updateActiveProfile?.({ color });
           applySettingsUI(win, panel);
         });
@@ -631,14 +782,35 @@
       });
     }
 
-    accent?.addEventListener('input', ev => { currentAccent = ev.target.value; saveCfg(); });
+    applyPremiumLock(panel, !hasPremiumAccess());
+    openPlusFromSettings?.addEventListener('click', openPlusModal);
+
+    accent?.addEventListener('input', ev => {
+      if (!hasPremiumAccess()) {
+        ev.target.value = currentAccent;
+        openPlusModal();
+        return;
+      }
+      currentAccent = ev.target.value;
+      saveCfg();
+    });
     layout?.addEventListener('change', ev => { currentLayout = ev.target.value; saveCfg(); applyDefaultIconLayout(true); });
     wallpaper?.addEventListener('change', ev => {
+      if (!hasPremiumAccess()) {
+        ev.target.value = currentWallpaper;
+        openPlusModal();
+        return;
+      }
       currentWallpaper = ev.target.value;
       if (wallpaperUrlWrap) wallpaperUrlWrap.classList.toggle('hidden', currentWallpaper !== 'custom');
       saveCfg();
     });
     wallpaperUrl?.addEventListener('change', ev => {
+      if (!hasPremiumAccess()) {
+        ev.target.value = currentWallpaperUrl;
+        openPlusModal();
+        return;
+      }
       currentWallpaperUrl = safeWallpaperUrl(ev.target.value);
       if (currentWallpaper === 'custom') saveCfg();
     });
@@ -1136,14 +1308,26 @@
   }
 
   loadCfg();
+  loadTier();
+  updatePlusLauncher();
   ensureDir('/home/tabby');
   saveFs();
   applyDefaultIconLayout(false);
   makeDesktopIconsDraggable();
   createWindow('settings');
   minimizeWindow('settings');
+  plusLauncher?.addEventListener('click', openPlusModal);
 
   window.addEventListener('resize', () => applyDefaultIconLayout(false));
+  window.addEventListener('storage', ev => {
+    if (ev.key !== PLUS_KEY) return;
+    loadTier();
+    updatePlusLauncher();
+  });
+  document.addEventListener('tabby-profile-change', () => {
+    loadTier();
+    updatePlusLauncher();
+  });
   window.addEventListener('keydown', ev => {
     if (ev.key !== 'Escape') return;
     if (document.fullscreenElement) return;
