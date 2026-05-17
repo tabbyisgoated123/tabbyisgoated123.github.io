@@ -9,10 +9,6 @@ body {
   overflow: auto !important;
 }
 
-.carnival-nav {
-  display: none !important;
-}
-
 .carnival-app {
   position: relative;
   width: 100vw;
