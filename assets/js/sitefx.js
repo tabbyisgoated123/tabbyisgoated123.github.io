@@ -116,18 +116,6 @@
 
   function initShell() {
     if (document.body.classList.contains('tabbyos-page')) return;
-    const pages = [
-      ['index.html', 'Home'],
-      ['aim.html', 'Aim'],
-      ['cps.html', 'CPS'],
-      ['typing.html', 'Typing'],
-      ['tabbycraft.html', 'TabbyCraft'],
-    ];
-    const nav = document.createElement('nav');
-    nav.className = 'site-nav';
-    nav.innerHTML = pages.map(([href, label]) => `<a href="${href}">${label}</a>`).join('');
-    document.body.appendChild(nav);
-
     const footer = document.createElement('footer');
     footer.className = 'site-footer';
     footer.innerHTML = '<span>Tabby Games</span><span><button id="fx-sound-btn" type="button">Sound</button> <button id="fx-full-btn" type="button">Fullscreen</button> <a href="https://github.com/" target="_blank" rel="noopener noreferrer">GitHub</a></span>';
