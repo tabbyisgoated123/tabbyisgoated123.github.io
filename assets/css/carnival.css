@@ -2,7 +2,7 @@
   position: relative;
   width: 100vw;
   height: 100vh;
-  overflow: hidden;
+  overflow: auto;
   color: #f4efe5;
   background:
     radial-gradient(circle at 20% 10%, rgba(255, 191, 86, 0.18), transparent 32%),
@@ -11,7 +11,7 @@
 }
 
 .carnival-backdrop {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0 25%, transparent 25% 50%, rgba(255, 255, 255, 0.03) 50% 75%, transparent 75% 100%),
@@ -22,7 +22,7 @@
 }
 
 .carnival-header,
-.carnival-strip,
+.carnival-nav,
 .carnival-grid,
 .pricing-panel,
 .toast {
@@ -39,8 +39,7 @@
 }
 
 .carnival-kicker,
-.game-tag,
-.info-pill {
+.game-tag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -52,14 +51,14 @@
 
 .carnival-header h1 {
   margin: 8px 0 6px;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: "Bebas Neue", sans-serif;
   font-size: clamp(3rem, 7vw, 5.6rem);
   line-height: 0.9;
   letter-spacing: 0.08em;
 }
 
 .carnival-header p {
-  max-width: 56ch;
+  max-width: 58ch;
   color: rgba(244, 239, 229, 0.8);
 }
 
@@ -107,11 +106,13 @@
 .icon-btn,
 .primary-btn,
 .ghost-btn,
-.shop-btn {
+.roulette-outside button,
+.carnival-nav a,
+.inline-buttons button {
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
-  border-radius: 14px;
+  border-radius: 12px;
   cursor: pointer;
   transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease;
 }
@@ -128,7 +129,9 @@
 .icon-btn:hover,
 .primary-btn:hover,
 .ghost-btn:hover,
-.shop-btn:hover {
+.roulette-outside button:hover,
+.carnival-nav a:hover,
+.inline-buttons button:hover {
   transform: translateY(-1px);
   border-color: rgba(255, 213, 138, 0.55);
   background: rgba(255, 213, 138, 0.12);
@@ -140,14 +143,26 @@
   font-size: 12px;
 }
 
-.carnival-strip {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  padding: 0 24px 18px;
+.carnival-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 24px 16px;
 }
 
-.info-card,
+.carnival-nav a {
+  padding: 8px 10px;
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.carnival-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 0 24px 24px;
+}
+
 .game-card,
 .pricing-panel {
   border-radius: 22px;
@@ -157,36 +172,15 @@
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
 }
 
-.info-card {
-  padding: 16px;
-}
-
-.info-card h2,
-.game-head h3,
-.pricing-panel h3 {
-  margin: 8px 0 0;
-  font-family: 'Bebas Neue', sans-serif;
-  letter-spacing: 0.06em;
-  font-size: 2rem;
-}
-
-.info-card p {
-  color: rgba(244, 239, 229, 0.76);
-  margin-top: 8px;
-}
-
-.carnival-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  padding: 0 24px 24px;
-}
-
 .game-card {
   padding: 16px;
   min-height: 320px;
   display: grid;
-  gap: 14px;
+  gap: 12px;
+}
+
+.game-card-wide {
+  grid-column: 1 / -1;
 }
 
 .game-head {
@@ -194,6 +188,14 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 10px;
+}
+
+.game-head h3,
+.pricing-panel h3 {
+  margin: 8px 0 0;
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 0.06em;
+  font-size: 2rem;
 }
 
 .game-badge {
@@ -206,28 +208,23 @@
   font-size: 12px;
 }
 
-.slot-machine,
-.roulette-wheel,
-.card-stage {
-  display: grid;
-  place-items: center;
-  min-height: 120px;
+.table-info {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: rgba(244, 239, 229, 0.78);
+}
+
+.table-info strong {
+  color: #fff;
 }
 
 .slot-machine {
+  display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-}
-
-.reel,
-.playing-card,
-.wheel-center {
-  display: grid;
-  place-items: center;
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  min-height: 120px;
 }
 
 .reel {
@@ -235,50 +232,148 @@
   font-size: 3rem;
 }
 
+.reel,
+.wheel-center {
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.roulette-area {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 14px;
+}
+
 .roulette-wheel {
-  position: relative;
-  min-height: 140px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.24);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  padding: 12px;
 }
 
 .wheel-center {
-  width: 120px;
-  height: 120px;
+  width: 128px;
+  height: 128px;
   border-radius: 999px;
   font-size: 3rem;
-  background:
-    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.18), transparent 40%),
-    linear-gradient(180deg, rgba(255, 74, 112, 0.16), rgba(10, 14, 20, 0.92));
 }
 
-.card-stage {
-  grid-template-columns: 1fr auto 1fr;
-  gap: 12px;
+.wheel-color {
+  margin-top: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(245, 245, 245, 0.82);
 }
 
-.playing-card {
-  width: 100px;
-  height: 128px;
-  font-size: 3rem;
+.roulette-table-wrap {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.roulette-zero-row {
+  display: grid;
+  margin-bottom: 8px;
+}
+
+.roulette-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.roulette-num {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 12px;
+  padding: 6px 0;
+  cursor: pointer;
+}
+
+.roulette-red {
+  background: rgba(185, 34, 52, 0.9);
+}
+
+.roulette-black {
+  background: rgba(30, 34, 40, 0.92);
+}
+
+.roulette-green {
+  background: rgba(27, 124, 73, 0.92);
+}
+
+.roulette-num.selected,
+.roulette-outside button.selected {
+  outline: 2px solid #ffd58a;
+  outline-offset: 1px;
+}
+
+.roulette-outside {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.roulette-outside button {
+  font-size: 11px;
+  padding: 8px 6px;
+}
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.card {
+  min-width: 42px;
+  padding: 8px 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  text-align: center;
+  font-size: 14px;
   font-weight: 700;
 }
 
-.playing-card.dim {
-  color: rgba(255, 255, 255, 0.65);
+.card.red {
+  color: #ff8d99;
 }
 
-.card-vs {
-  color: #ffd58a;
-  font-size: 24px;
+.card.black {
+  color: #f4efe5;
+}
+
+.lane-title {
+  font-size: 12px;
+  color: rgba(244, 239, 229, 0.75);
+  margin-bottom: 6px;
+}
+
+.card-lane {
+  display: grid;
+  gap: 10px;
+}
+
+.mini-meta {
+  margin-top: 6px;
+  font-size: 12px;
+  color: rgba(244, 239, 229, 0.8);
 }
 
 .game-controls {
   display: grid;
   gap: 10px;
-}
-
-.roulette-controls,
-.card-controls {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .game-controls label {
@@ -313,9 +408,15 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
-.card-actions {
+.inline-buttons {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bet-selected {
+  font-size: 12px;
+  color: rgba(244, 239, 229, 0.78);
 }
 
 .game-result {
@@ -395,7 +496,7 @@
 }
 
 .toast {
-  position: absolute;
+  position: fixed;
   left: 50%;
   bottom: 18px;
   transform: translateX(-50%);
@@ -411,12 +512,13 @@
   display: none;
 }
 
-#number-wrap.hidden {
-  display: none;
+@media (max-width: 1200px) {
+  .roulette-area {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 1020px) {
-  .carnival-strip,
   .carnival-grid {
     grid-template-columns: 1fr;
   }
@@ -424,5 +526,12 @@
   .carnival-header {
     flex-direction: column;
   }
-}
 
+  .roulette-outside {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pricing-offers {
+    grid-template-columns: 1fr;
+  }
+}

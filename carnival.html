@@ -16,11 +16,10 @@
 
   <header class="carnival-header">
     <div>
-      <div class="carnival-kicker">// neon midway arcade</div>
+      <div class="carnival-kicker">// casino district simulator</div>
       <h1>Tabby Carnival</h1>
-      <p>Slots, roulette, and quick bets powered by profile-backed tokens.</p>
+      <p>Arcade casino with profile-backed tokens and high-fidelity mini table games.</p>
     </div>
-
     <div class="carnival-wallet">
       <div class="wallet-label">
         <span class="wallet-icon" aria-hidden="true">🪙</span>
@@ -30,36 +29,234 @@
         <strong id="token-count">0</strong>
         <button type="button" id="buy-tokens-btn" class="wallet-plus" aria-label="Buy tokens">+</button>
       </div>
-      <div class="wallet-sub">Saved to your active profile</div>
+      <div class="wallet-sub">Linked to active profile</div>
     </div>
   </header>
 
-  <section class="carnival-strip">
-    <article class="info-card">
-      <span class="info-pill">Free-hosted</span>
-      <h2>Real profile sync</h2>
-      <p>Token balance, wins, and purchases stay attached to the selected profile.</p>
-    </article>
-    <article class="info-card">
-      <span class="info-pill">Multiple games</span>
-      <h2>Quick arcade loop</h2>
-      <p>Jump between games without leaving the carnival floor.</p>
-    </article>
-    <article class="info-card">
-      <span class="info-pill">Fake checkout</span>
-      <h2>Pricing screen</h2>
-      <p>Token bundles show random prices between $5 and $100 and add tokens for free.</p>
-    </article>
+  <section class="carnival-nav">
+    <a href="#game-roulette">Roulette</a>
+    <a href="#game-blackjack">Blackjack</a>
+    <a href="#game-baccarat">Baccarat</a>
+    <a href="#game-texas">Texas Hold'em</a>
+    <a href="#game-draw">5 Card Draw</a>
+    <a href="#game-pagao">Pagao Poker</a>
+    <a href="#game-slots">Slots</a>
   </section>
 
   <section class="carnival-grid">
-    <article class="game-card" data-game="slots">
+    <article class="game-card game-card-wide" id="game-roulette">
+      <div class="game-head">
+        <div>
+          <div class="game-tag">Roulette Table</div>
+          <h3>Grand Wheel</h3>
+        </div>
+        <span class="game-badge">Inside + Outside Bets</span>
+      </div>
+      <div class="roulette-area">
+        <div class="roulette-wheel">
+          <div class="wheel-center" id="roulette-display">0</div>
+          <div class="wheel-color" id="roulette-color">green</div>
+        </div>
+        <div class="roulette-table-wrap">
+          <div class="roulette-zero-row">
+            <button type="button" class="roulette-num roulette-green" data-bet-type="number" data-bet-value="0">0</button>
+          </div>
+          <div class="roulette-grid" id="roulette-grid"></div>
+          <div class="roulette-outside">
+            <button type="button" data-bet-type="outside" data-bet-value="red">Red</button>
+            <button type="button" data-bet-type="outside" data-bet-value="black">Black</button>
+            <button type="button" data-bet-type="outside" data-bet-value="odd">Odd</button>
+            <button type="button" data-bet-type="outside" data-bet-value="even">Even</button>
+            <button type="button" data-bet-type="outside" data-bet-value="low">1-18</button>
+            <button type="button" data-bet-type="outside" data-bet-value="high">19-36</button>
+            <button type="button" data-bet-type="outside" data-bet-value="dozen1">1st 12</button>
+            <button type="button" data-bet-type="outside" data-bet-value="dozen2">2nd 12</button>
+            <button type="button" data-bet-type="outside" data-bet-value="dozen3">3rd 12</button>
+            <button type="button" data-bet-type="outside" data-bet-value="column1">Col 1</button>
+            <button type="button" data-bet-type="outside" data-bet-value="column2">Col 2</button>
+            <button type="button" data-bet-type="outside" data-bet-value="column3">Col 3</button>
+          </div>
+        </div>
+      </div>
+      <div class="game-controls">
+        <label>Bet
+          <input type="number" id="roulette-bet" min="1" step="1" value="10">
+        </label>
+        <div class="bet-selected" id="roulette-selected">Selected bet: none</div>
+        <button type="button" id="roulette-btn" class="primary-btn">Spin Wheel</button>
+      </div>
+      <div class="game-result" id="roulette-result">Choose a number or outside bet first.</div>
+    </article>
+
+    <article class="game-card" id="game-blackjack">
+      <div class="game-head">
+        <div>
+          <div class="game-tag">Blackjack</div>
+          <h3>21 Table</h3>
+        </div>
+        <span class="game-badge">Hit / Stand</span>
+      </div>
+      <div class="table-info">
+        <div>Dealer: <strong id="bj-dealer-total">0</strong></div>
+        <div>Player: <strong id="bj-player-total">0</strong></div>
+      </div>
+      <div class="card-lane">
+        <div>
+          <div class="lane-title">Dealer</div>
+          <div class="cards" id="bj-dealer-cards"></div>
+        </div>
+        <div>
+          <div class="lane-title">Player</div>
+          <div class="cards" id="bj-player-cards"></div>
+        </div>
+      </div>
+      <div class="game-controls">
+        <label>Bet
+          <input type="number" id="bj-bet" min="1" step="1" value="25">
+        </label>
+        <div class="inline-buttons">
+          <button type="button" id="bj-deal" class="primary-btn">Deal</button>
+          <button type="button" id="bj-hit" class="ghost-btn">Hit</button>
+          <button type="button" id="bj-stand" class="ghost-btn">Stand</button>
+        </div>
+      </div>
+      <div class="game-result" id="bj-result">Start a hand and race to 21.</div>
+    </article>
+
+    <article class="game-card" id="game-baccarat">
+      <div class="game-head">
+        <div>
+          <div class="game-tag">Baccarat</div>
+          <h3>Salon Privé</h3>
+        </div>
+        <span class="game-badge">Player / Banker / Tie</span>
+      </div>
+      <div class="table-info">
+        <div>Player Total: <strong id="bac-player-total">0</strong></div>
+        <div>Banker Total: <strong id="bac-banker-total">0</strong></div>
+      </div>
+      <div class="card-lane">
+        <div>
+          <div class="lane-title">Player</div>
+          <div class="cards" id="bac-player-cards"></div>
+        </div>
+        <div>
+          <div class="lane-title">Banker</div>
+          <div class="cards" id="bac-banker-cards"></div>
+        </div>
+      </div>
+      <div class="game-controls">
+        <label>Bet
+          <input type="number" id="bac-bet" min="1" step="1" value="20">
+        </label>
+        <label>Wager
+          <select id="bac-wager">
+            <option value="player">Player</option>
+            <option value="banker">Banker</option>
+            <option value="tie">Tie</option>
+          </select>
+        </label>
+        <button type="button" id="bac-play" class="primary-btn">Deal Round</button>
+      </div>
+      <div class="game-result" id="bac-result">Bet on player, banker, or tie.</div>
+    </article>
+
+    <article class="game-card" id="game-texas">
+      <div class="game-head">
+        <div>
+          <div class="game-tag">Poker</div>
+          <h3>Texas Hold'em</h3>
+        </div>
+        <span class="game-badge">Best 5 of 7</span>
+      </div>
+      <div class="lane-title">Board</div>
+      <div class="cards" id="th-board"></div>
+      <div class="card-lane">
+        <div>
+          <div class="lane-title">Dealer</div>
+          <div class="cards" id="th-dealer"></div>
+          <div class="mini-meta" id="th-dealer-rank">-</div>
+        </div>
+        <div>
+          <div class="lane-title">Player</div>
+          <div class="cards" id="th-player"></div>
+          <div class="mini-meta" id="th-player-rank">-</div>
+        </div>
+      </div>
+      <div class="game-controls">
+        <label>Bet
+          <input type="number" id="th-bet" min="1" step="1" value="30">
+        </label>
+        <button type="button" id="th-play" class="primary-btn">Deal Hold'em</button>
+      </div>
+      <div class="game-result" id="th-result">Player and dealer each get 2 cards plus a shared board.</div>
+    </article>
+
+    <article class="game-card" id="game-draw">
+      <div class="game-head">
+        <div>
+          <div class="game-tag">Poker</div>
+          <h3>5 Card Draw</h3>
+        </div>
+        <span class="game-badge">Head to Head</span>
+      </div>
+      <div class="card-lane">
+        <div>
+          <div class="lane-title">Dealer</div>
+          <div class="cards" id="draw-dealer"></div>
+          <div class="mini-meta" id="draw-dealer-rank">-</div>
+        </div>
+        <div>
+          <div class="lane-title">Player</div>
+          <div class="cards" id="draw-player"></div>
+          <div class="mini-meta" id="draw-player-rank">-</div>
+        </div>
+      </div>
+      <div class="game-controls">
+        <label>Bet
+          <input type="number" id="draw-bet" min="1" step="1" value="20">
+        </label>
+        <button type="button" id="draw-play" class="primary-btn">Deal 5 Draw</button>
+      </div>
+      <div class="game-result" id="draw-result">Classic 5-card hand showdown.</div>
+    </article>
+
+    <article class="game-card" id="game-pagao">
+      <div class="game-head">
+        <div>
+          <div class="game-tag">Poker</div>
+          <h3>Pagao Poker (Pai Gow Style)</h3>
+        </div>
+        <span class="game-badge">High + Low Split</span>
+      </div>
+      <div class="card-lane">
+        <div>
+          <div class="lane-title">Banker 7 Cards</div>
+          <div class="cards" id="pagao-banker"></div>
+          <div class="mini-meta" id="pagao-banker-rank">-</div>
+        </div>
+        <div>
+          <div class="lane-title">Player 7 Cards</div>
+          <div class="cards" id="pagao-player"></div>
+          <div class="mini-meta" id="pagao-player-rank">-</div>
+        </div>
+      </div>
+      <div class="game-controls">
+        <label>Bet
+          <input type="number" id="pagao-bet" min="1" step="1" value="25">
+        </label>
+        <button type="button" id="pagao-play" class="primary-btn">Deal Pagao</button>
+      </div>
+      <div class="game-result" id="pagao-result">Both high and low hands must beat the banker to win.</div>
+    </article>
+
+    <article class="game-card" id="game-slots">
       <div class="game-head">
         <div>
           <div class="game-tag">Slots</div>
           <h3>Midnight Reels</h3>
         </div>
-        <span class="game-badge">Bet 10+</span>
+        <span class="game-badge">Fast Spin</span>
       </div>
       <div class="slot-machine">
         <div class="reel" data-reel="0">7</div>
@@ -74,61 +271,6 @@
       </div>
       <div class="game-result" id="slot-result">Match three symbols to win a payout.</div>
     </article>
-
-    <article class="game-card" data-game="roulette">
-      <div class="game-head">
-        <div>
-          <div class="game-tag">Roulette</div>
-          <h3>Velvet Wheel</h3>
-        </div>
-        <span class="game-badge">Red / Black</span>
-      </div>
-      <div class="roulette-wheel">
-        <div class="wheel-center" id="roulette-display">0</div>
-      </div>
-      <div class="game-controls roulette-controls">
-        <label>Bet
-          <input type="number" id="roulette-bet" min="1" step="1" value="10">
-        </label>
-        <label>Guess
-          <select id="roulette-guess">
-            <option value="red">Red</option>
-            <option value="black">Black</option>
-            <option value="number">Number</option>
-          </select>
-        </label>
-        <label id="number-wrap">Number
-          <input type="number" id="roulette-number" min="0" max="36" step="1" value="7">
-        </label>
-        <button type="button" id="roulette-btn" class="primary-btn">Place Bet</button>
-      </div>
-      <div class="game-result" id="roulette-result">Pick a color or number before the wheel spins.</div>
-    </article>
-
-    <article class="game-card" data-game="highlow">
-      <div class="game-head">
-        <div>
-          <div class="game-tag">High-Low</div>
-          <h3>Card Count</h3>
-        </div>
-        <span class="game-badge">Fast rounds</span>
-      </div>
-      <div class="card-stage">
-        <div class="playing-card" id="card-current">8</div>
-        <div class="card-vs">vs</div>
-        <div class="playing-card dim" id="card-next">?</div>
-      </div>
-      <div class="game-controls card-controls">
-        <label>Bet
-          <input type="number" id="card-bet" min="1" step="1" value="10">
-        </label>
-        <div class="card-actions">
-          <button type="button" id="higher-btn" class="primary-btn">Higher</button>
-          <button type="button" id="lower-btn" class="ghost-btn">Lower</button>
-        </div>
-      </div>
-      <div class="game-result" id="card-result">Guess whether the next card will be higher or lower.</div>
-    </article>
   </section>
 
   <div class="pricing-modal hidden" id="pricing-modal" aria-hidden="true">
@@ -140,7 +282,7 @@
         </div>
         <button type="button" id="close-pricing" class="icon-btn" aria-label="Close pricing screen">x</button>
       </div>
-      <p class="pricing-note">This is a fake checkout. Choose a bundle and it will be added to your active profile for free.</p>
+      <p class="pricing-note">This is a fake checkout. Select any bundle and tokens are added for free.</p>
       <div id="pricing-offers" class="pricing-offers"></div>
     </div>
   </div>

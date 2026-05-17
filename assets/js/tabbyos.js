@@ -1020,6 +1020,32 @@
     updateTaskbarState(appName);
   }
 
+  function toggleWindowFullscreen(appName) {
+    const entry = appWindows.get(appName);
+    if (!entry) return;
+    const win = entry.win;
+    const doc = document;
+    if (doc.fullscreenElement === win) {
+      doc.exitFullscreen?.().catch(() => {
+        win.classList.remove('window-maximized');
+      });
+      return;
+    }
+    if (!doc.fullscreenElement) {
+      win.requestFullscreen?.().catch(() => {
+        win.classList.toggle('window-maximized');
+      });
+      return;
+    }
+    doc.exitFullscreen?.().then(() => {
+      win.requestFullscreen?.().catch(() => {
+        win.classList.toggle('window-maximized');
+      });
+    }).catch(() => {
+      win.classList.toggle('window-maximized');
+    });
+  }
+
   function createWindow(appName, payload) {
     if (!appName || appWindows.has(appName)) return appWindows.get(appName)?.win;
     const meta = appMeta[appName];
@@ -1049,6 +1075,7 @@
       <div class="window-bar">
         <span>${meta.title}</span>
         <div class="window-actions">
+          <button type="button" data-action="full">[]</button>
           <button type="button" data-action="min">-</button>
           <button type="button" data-action="close">x</button>
         </div>
@@ -1073,6 +1100,10 @@
     win.querySelector('[data-action="min"]').addEventListener('click', ev => {
       ev.stopPropagation();
       minimizeWindow(appName);
+    });
+    win.querySelector('[data-action="full"]').addEventListener('click', ev => {
+      ev.stopPropagation();
+      toggleWindowFullscreen(appName);
     });
 
     if (isTerminal) createTerminal(win);
@@ -1114,6 +1145,7 @@
   window.addEventListener('resize', () => applyDefaultIconLayout(false));
   window.addEventListener('keydown', ev => {
     if (ev.key !== 'Escape') return;
+    if (document.fullscreenElement) return;
     const wins = [...windowLayer.querySelectorAll('.app-window')];
     if (!wins.length) return;
     const top = wins.sort((a, b) => (+b.style.zIndex || 0) - (+a.style.zIndex || 0))[0];

@@ -221,6 +221,30 @@
   cursor: pointer;
 }
 
+.window-actions [data-action="full"] {
+  letter-spacing: -0.08em;
+}
+
+.app-window:fullscreen {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  border-radius: 0;
+}
+
+.app-window.window-maximized {
+  left: 0 !important;
+  top: 0 !important;
+  width: 100vw !important;
+  height: calc(100vh - 44px) !important;
+  border-radius: 0;
+}
+
+.tabbyos[data-taskbar="top"] .app-window.window-maximized {
+  top: 44px !important;
+  height: calc(100vh - 44px) !important;
+}
+
 .window-body {
   position: relative;
   flex: 1 1 auto;
