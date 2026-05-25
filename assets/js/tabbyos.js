@@ -1185,10 +1185,10 @@
     };
     const helpLine = () => {
       const style = styleName();
-      if (style === 'win98') return 'Commands: dir cd type mkdir md touch del rm echo cls date whoami history tree open neofetch';
-      if (style === 'win11') return 'Commands: ls dir cd cat type mkdir rm del echo clear cls date whoami history tree open neofetch';
-      if (style === 'macos') return 'Built-ins: pwd ls cd cat mkdir touch rm echo clear date whoami uname history tree open neofetch';
-      return 'Built-ins: pwd ls cd cat mkdir touch rm echo clear date whoami uname history tree open neofetch';
+      if (style === 'win98') return 'Commands: dir cd type mkdir md touch del rm echo cls date whoami history tree run open neofetch';
+      if (style === 'win11') return 'Commands: ls dir cd cat type mkdir rm del echo clear cls date whoami history tree run open neofetch';
+      if (style === 'macos') return 'Built-ins: pwd ls cd cat mkdir touch rm echo clear date whoami uname history tree run open neofetch';
+      return 'Built-ins: pwd ls cd cat mkdir touch rm echo clear date whoami uname history tree run open neofetch';
     };
     const normalizeCommandName = raw => {
       const name = String(raw || '').toLowerCase();
@@ -1386,6 +1386,18 @@
           return;
         }
         return writeLine(args.join(' '));
+      }
+      if (name === 'run') {
+        const target = String(args[0] || '').trim().toLowerCase();
+        if (!target) return writeLine('run: specify executable (example: run torch.exe)', 'term-error');
+        if (target === 'torch' || target === 'torch.exe') {
+          writeLine('Launching TORCH.exe...');
+          setTimeout(() => {
+            window.location.href = new URL('./torch.html', window.location.href).href;
+          }, 80);
+          return;
+        }
+        return writeLine(`run: unknown executable: ${args[0]}`, 'term-error');
       }
       if (name === 'open') {
         const target = args[0] || '';
